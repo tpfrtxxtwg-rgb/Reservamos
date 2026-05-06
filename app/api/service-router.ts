@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { eq, desc } from "drizzle-orm";
-import { createRouter, authedQuery } from "./middleware";
+import { createRouter, publicQuery } from "./middleware";
 import { getDb } from "./queries/connection";
 import { services } from "@db/schema";
 
 export const serviceRouter = createRouter({
-  list: authedQuery
+  list: publicQuery
     .input(z.object({ clientId: z.number().positive() }).optional())
     .query(async ({ ctx, input }) => {
       const db = getDb();
@@ -18,7 +18,7 @@ export const serviceRouter = createRouter({
       });
     }),
 
-  create: authedQuery
+  create: publicQuery
     .input(z.object({
       clientId: z.number().positive(),
       name: z.string().min(1).max(255),
@@ -37,7 +37,7 @@ export const serviceRouter = createRouter({
       return db.query.services.findFirst({ where: eq(services.id, id) });
     }),
 
-  update: authedQuery
+  update: publicQuery
     .input(z.object({
       id: z.number().positive(),
       name: z.string().min(1).max(255).optional(),
@@ -54,7 +54,7 @@ export const serviceRouter = createRouter({
       return db.query.services.findFirst({ where: eq(services.id, id) });
     }),
 
-  delete: authedQuery
+  delete: publicQuery
     .input(z.object({ id: z.number().positive() }))
     .mutation(async ({ input }) => {
       const db = getDb();
