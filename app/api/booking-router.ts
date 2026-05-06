@@ -1,12 +1,11 @@
 import { z } from "zod";
 import { eq, and, desc, count, sql } from "drizzle-orm";
-import { createRouter, authedQuery } from "./middleware";
+import { createRouter, publicQuery } from "./middleware";
 import { getDb } from "./queries/connection";
 import { bookings } from "@db/schema";
 
 export const bookingRouter = createRouter({
-  // Admin: list all bookings with filters
-  list: authedQuery
+  list: publicQuery
     .input(z.object({
       clientId: z.number().positive().optional(),
       status: z.enum(["confirmed", "pending", "cancelled"]).optional(),
@@ -15,14 +14,9 @@ export const bookingRouter = createRouter({
       limit: z.number().min(1).max(100).default(50),
       offset: z.number().min(0).default(0),
     }).optional())
-    .query(async ({ ctx, input }) => {
+    .query(async ({ input }) => {
       const db = getDb();
       const filters = [];
-
-      if (ctx.user.role !== "admin") {
-        // Non-admin users only see their client's bookings
-        // For demo, we'll show all
-      }
 
       if (input?.clientId) filters.push(eq(bookings.clientId, input.clientId));
       if (input?.status) filters.push(eq(bookings.status, input.status));
@@ -53,7 +47,7 @@ export const bookingRouter = createRouter({
       };
     }),
 
-  byId: authedQuery
+  byId: publicQuery
     .input(z.object({ id: z.number().positive() }))
     .query(async ({ input }) => {
       const db = getDb();
@@ -67,7 +61,7 @@ export const bookingRouter = createRouter({
       });
     }),
 
-  byCode: authedQuery
+  byCode: publicQuery
     .input(z.object({ code: z.string().min(1) }))
     .query(async ({ input }) => {
       const db = getDb();
@@ -81,7 +75,7 @@ export const bookingRouter = createRouter({
       });
     }),
 
-  updateStatus: authedQuery
+  updateStatus: publicQuery
     .input(z.object({
       id: z.number().positive(),
       status: z.enum(["confirmed", "pending", "cancelled"]),
@@ -97,8 +91,7 @@ export const bookingRouter = createRouter({
       });
     }),
 
-  // Stats for dashboard
-  stats: authedQuery.query(async () => {
+  stats: publicQuery.query(async () => {
     const db = getDb();
 
     const [confirmedResult] = await db
