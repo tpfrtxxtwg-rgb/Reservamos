@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { eq, desc } from "drizzle-orm";
-import { createRouter, authedQuery } from "./middleware";
+import { createRouter, publicQuery } from "./middleware";
 import { getDb } from "./queries/connection";
 import { vehicles } from "@db/schema";
 
 export const vehicleRouter = createRouter({
-  list: authedQuery
+  list: publicQuery
     .input(z.object({ clientId: z.number().positive() }).optional())
     .query(async ({ input }) => {
       const db = getDb();
@@ -16,7 +16,7 @@ export const vehicleRouter = createRouter({
       });
     }),
 
-  create: authedQuery
+  create: publicQuery
     .input(z.object({
       clientId: z.number().positive(),
       name: z.string().min(1).max(255),
@@ -37,7 +37,7 @@ export const vehicleRouter = createRouter({
       return db.query.vehicles.findFirst({ where: eq(vehicles.id, id) });
     }),
 
-  update: authedQuery
+  update: publicQuery
     .input(z.object({
       id: z.number().positive(),
       name: z.string().min(1).max(255).optional(),
@@ -56,7 +56,7 @@ export const vehicleRouter = createRouter({
       return db.query.vehicles.findFirst({ where: eq(vehicles.id, id) });
     }),
 
-  delete: authedQuery
+  delete: publicQuery
     .input(z.object({ id: z.number().positive() }))
     .mutation(async ({ input }) => {
       const db = getDb();
