@@ -19,16 +19,16 @@ export default function AdminDestinations({ clientId }: Props) {
   const [newZoneId, setNewZoneId] = useState<number>(0);
   const [search, setSearch] = useState('');
 
-  const { data: zones } = trpc.zone.list.useQuery({ clientId });
-  const { data: destinations, isLoading } = trpc.destination.list.useQuery({ clientId });
+  const { data: zones } = trpc.zone.listMine.useQuery();
+  const { data: destinations, isLoading } = trpc.destination.listMine.useQuery();
   const createDest = trpc.destination.create.useMutation({
-    onSuccess: () => { utils.destination.list.invalidate(); setShowAdd(false); setNewName(''); },
+    onSuccess: () => { utils.destination.listMine.invalidate(); setShowAdd(false); setNewName(''); },
   });
   const updateDest = trpc.destination.update.useMutation({
-    onSuccess: () => { utils.destination.list.invalidate(); setEditing(null); },
+    onSuccess: () => { utils.destination.listMine.invalidate(); setEditing(null); },
   });
   const deleteDest = trpc.destination.delete.useMutation({
-    onSuccess: () => utils.destination.list.invalidate(),
+    onSuccess: () => utils.destination.listMine.invalidate(),
   });
 
   const filteredDestinations = destinations?.filter((d: any) => {
@@ -88,7 +88,7 @@ export default function AdminDestinations({ clientId }: Props) {
               placeholder={t('admin.hotelName') || 'Hotel name...'}
               className="flex-1 min-w-[200px] h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all"
               autoFocus />
-            <button onClick={() => createDest.mutate({ clientId, zoneId: newZoneId, name: newName })}
+            <button onClick={() => createDest.mutate({ zoneId: newZoneId, name: newName })}
               disabled={!newName.trim() || createDest.isPending}
               className="flex items-center gap-1 px-4 py-2 bg-terracotta text-white rounded-md font-body text-sm disabled:opacity-50 hover:bg-terracotta-dark transition-colors">
               <Check size={16} /> {t('common.save') || 'Save'}

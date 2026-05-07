@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { List, X } from '@phosphor-icons/react';
 import { useAuth } from '@/hooks/useAuth';
+import { useClientAuth } from '@/providers/ClientAuthProvider';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslation } from 'react-i18next';
 
 export default function Header() {
   const navigate = useNavigate();
   useAuth();
+  const { isAuthenticated } = useClientAuth();
   const { t } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -57,12 +59,29 @@ export default function Header() {
               {link.label}
             </button>
           ))}
-          <button
-            onClick={() => navigate('/admin')}
-            className="bg-terracotta text-white px-5 py-2 rounded-full font-body text-sm font-semibold shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5 transition-all"
-          >
-            {t('header.adminPanel')}
-          </button>
+          {isAuthenticated ? (
+            <button
+              onClick={() => navigate('/admin')}
+              className="bg-terracotta text-white px-5 py-2 rounded-full font-body text-sm font-semibold shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5 transition-all"
+            >
+              {t('header.adminPanel')}
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={() => navigate('/login')}
+                className="font-body text-sm font-medium text-charcoal-light hover:text-charcoal transition-colors"
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => navigate('/register')}
+                className="bg-terracotta text-white px-5 py-2 rounded-full font-body text-sm font-semibold shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5 transition-all"
+              >
+                Get Started
+              </button>
+            </>
+          )}
           <LanguageSwitcher />
         </nav>
 

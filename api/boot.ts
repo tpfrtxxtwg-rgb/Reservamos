@@ -10,6 +10,17 @@ import { Paths } from "@contracts/constants";
 
 const app = new Hono<{ Bindings: HttpBindings }>();
 
+// Health check endpoint to verify deployment version
+app.get("/health", (c) => {
+  return c.json({
+    status: "ok",
+    version: "v5",
+    lang: "en",
+    timestamp: new Date().toISOString(),
+    features: ["5-step-booking", "origin-field", "hotel-autocomplete", "luggage", "optional-services", "deposit-payment", "iva-16"],
+  });
+});
+
 app.use(bodyLimit({ maxSize: 50 * 1024 * 1024 }));
 app.get(Paths.oauthCallback, createOAuthCallbackHandler());
 app.use("/api/trpc/*", async (c) => {

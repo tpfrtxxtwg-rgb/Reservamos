@@ -1,10 +1,11 @@
 import { z } from "zod";
 import { eq, asc } from "drizzle-orm";
-import { createRouter, publicQuery } from "./middleware";
+import { createRouter, publicQuery, clientAuthedQuery } from "./middleware";
 import { getDb } from "./queries/connection";
 import { destinations } from "@db/schema";
 
 export const destinationRouter = createRouter({
+  // Public: used by widget
   list: publicQuery
     .input(z.object({ clientId: z.number().positive() }).optional())
     .query(async ({ input }) => {
@@ -17,23 +18,33 @@ export const destinationRouter = createRouter({
       });
     }),
 
-  create: publicQuery
+  // Admin: authenticated
+  listMine: clientAuthedQuery.query(async ({ ctx }) => {
+    const db = getDb();
+    return db.query.destinations.findMany({
+      where: eq(destinations.clientId, ctx.clientUser.clientId),
+      orderBy: [asc(destinations.name)],
+      with: { zone: true },
+    });
+  }),
+
+  create: clientAuthedQuery
     .input(z.object({
-      clientId: z.number().positive(),
       zoneId: z.number().positive(),
       name: z.string().min(1).max(255),
       sortOrder: z.number().default(0),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const db = getDb();
       const [{ id }] = await db.insert(destinations).values({
+        clientId: ctx.clientUser.clientId,
         ...input,
         active: true,
       }).$returningId();
       return db.query.destinations.findFirst({ where: eq(destinations.id, id), with: { zone: true } });
     }),
 
-  update: publicQuery
+  update: clientAuthedQuery
     .input(z.object({
       id: z.number().positive(),
       zoneId: z.number().positive().optional(),
@@ -48,7 +59,7 @@ export const destinationRouter = createRouter({
       return db.query.destinations.findFirst({ where: eq(destinations.id, id), with: { zone: true } });
     }),
 
-  delete: publicQuery
+  delete: clientAuthedQuery
     .input(z.object({ id: z.number().positive() }))
     .mutation(async ({ input }) => {
       const db = getDb();
@@ -56,17 +67,15 @@ export const destinationRouter = createRouter({
       return { success: true };
     }),
 
-  // Bulk import - useful for adding multiple hotels at once
-  bulkImport: publicQuery
+  bulkImport: clientAuthedQuery
     .input(z.object({
-      clientId: z.number().positive(),
       zoneId: z.number().positive(),
       names: z.array(z.string().min(1)).min(1),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const db = getDb();
       const values = input.names.map((name, i) => ({
-        clientId: input.clientId,
+        clientId: ctx.clientUser.clientId,
         zoneId: input.zoneId,
         name,
         active: true,

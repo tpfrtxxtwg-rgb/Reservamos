@@ -1,35 +1,33 @@
 import { z } from "zod";
 import { eq } from "drizzle-orm";
-import { createRouter, publicQuery } from "./middleware";
+import { createRouter, clientAuthedQuery } from "./middleware";
 import { getDb } from "./queries/connection";
 import { clients } from "@db/schema";
 
 export const clientSettingsRouter = createRouter({
-  get: publicQuery
-    .input(z.object({ clientId: z.number().positive() }))
-    .query(async ({ input }) => {
-      const db = getDb();
-      const client = await db.query.clients.findFirst({
-        where: eq(clients.id, input.clientId),
-      });
-      if (!client) throw new Error("Client not found");
-      return {
-        id: client.id,
-        name: client.name,
-        email: client.email,
-        theme: client.theme,
-        primaryColor: client.primaryColor,
-        taxRate: client.taxRate,
-        depositEnabled: client.depositEnabled,
-        depositPercentage: client.depositPercentage,
-        plan: client.plan,
-        status: client.status,
-      };
-    }),
+  get: clientAuthedQuery.query(async ({ ctx }) => {
+    const db = getDb();
+    const clientId = ctx.clientUser.clientId;
+    const client = await db.query.clients.findFirst({
+      where: eq(clients.id, clientId),
+    });
+    if (!client) throw new Error("Client not found");
+    return {
+      id: client.id,
+      name: client.name,
+      email: client.email,
+      theme: client.theme,
+      primaryColor: client.primaryColor,
+      taxRate: client.taxRate,
+      depositEnabled: client.depositEnabled,
+      depositPercentage: client.depositPercentage,
+      plan: client.plan,
+      status: client.status,
+    };
+  }),
 
-  update: publicQuery
+  update: clientAuthedQuery
     .input(z.object({
-      clientId: z.number().positive(),
       name: z.string().min(1).max(255).optional(),
       email: z.string().email().optional(),
       theme: z.enum(["light", "dark"]).optional(),
@@ -39,10 +37,10 @@ export const clientSettingsRouter = createRouter({
       depositPercentage: z.string().regex(/^\d+(\.\d{2})?$/).optional(),
       status: z.enum(["active", "inactive", "suspended"]).optional(),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const db = getDb();
-      const { clientId, ...data } = input;
-      await db.update(clients).set(data).where(eq(clients.id, clientId));
+      const clientId = ctx.clientUser.clientId;
+      await db.update(clients).set(input).where(eq(clients.id, clientId));
       return db.query.clients.findFirst({ where: eq(clients.id, clientId) });
     }),
 });

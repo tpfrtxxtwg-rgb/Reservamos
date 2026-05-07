@@ -1,10 +1,11 @@
 import { z } from "zod";
 import { eq, desc } from "drizzle-orm";
-import { createRouter, publicQuery } from "./middleware";
+import { createRouter, publicQuery, clientAuthedQuery } from "./middleware";
 import { getDb } from "./queries/connection";
 import { vehicles } from "@db/schema";
 
 export const vehicleRouter = createRouter({
+  // Public: used by widget
   list: publicQuery
     .input(z.object({ clientId: z.number().positive() }).optional())
     .query(async ({ input }) => {
@@ -16,9 +17,17 @@ export const vehicleRouter = createRouter({
       });
     }),
 
-  create: publicQuery
+  // Admin: authenticated
+  listMine: clientAuthedQuery.query(async ({ ctx }) => {
+    const db = getDb();
+    return db.query.vehicles.findMany({
+      where: eq(vehicles.clientId, ctx.clientUser.clientId),
+      orderBy: [desc(vehicles.active), vehicles.sortOrder],
+    });
+  }),
+
+  create: clientAuthedQuery
     .input(z.object({
-      clientId: z.number().positive(),
       name: z.string().min(1).max(255),
       image: z.string().optional(),
       capacityMin: z.number().min(1).default(1),
@@ -26,9 +35,10 @@ export const vehicleRouter = createRouter({
       features: z.array(z.string()).default([]),
       sortOrder: z.number().default(0),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const db = getDb();
       const [{ id }] = await db.insert(vehicles).values({
+        clientId: ctx.clientUser.clientId,
         ...input,
         features: input.features,
         active: true,
@@ -36,7 +46,7 @@ export const vehicleRouter = createRouter({
       return db.query.vehicles.findFirst({ where: eq(vehicles.id, id) });
     }),
 
-  update: publicQuery
+  update: clientAuthedQuery
     .input(z.object({
       id: z.number().positive(),
       name: z.string().min(1).max(255).optional(),
@@ -54,7 +64,7 @@ export const vehicleRouter = createRouter({
       return db.query.vehicles.findFirst({ where: eq(vehicles.id, id) });
     }),
 
-  delete: publicQuery
+  delete: clientAuthedQuery
     .input(z.object({ id: z.number().positive() }))
     .mutation(async ({ input }) => {
       const db = getDb();

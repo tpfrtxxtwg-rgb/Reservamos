@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { eq, and } from "drizzle-orm";
-import { createRouter, publicQuery } from "./middleware";
+import { createRouter, publicQuery, clientAuthedQuery } from "./middleware";
 import { getDb } from "./queries/connection";
 import { vehicleZonePrices } from "@db/schema";
 
 export const vehicleZonePriceRouter = createRouter({
-  // Get all prices for a specific zone
+  // Public: used by widget
   listByZone: publicQuery
     .input(z.object({ zoneId: z.number().positive() }))
     .query(async ({ input }) => {
@@ -20,7 +20,6 @@ export const vehicleZonePriceRouter = createRouter({
       return prices;
     }),
 
-  // Get all prices for a specific vehicle
   listByVehicle: publicQuery
     .input(z.object({ vehicleId: z.number().positive() }))
     .query(async ({ input }) => {
@@ -34,8 +33,8 @@ export const vehicleZonePriceRouter = createRouter({
       });
     }),
 
-  // Create or update a price entry
-  upsert: publicQuery
+  // Admin: authenticated
+  upsert: clientAuthedQuery
     .input(z.object({
       zoneId: z.number().positive(),
       vehicleId: z.number().positive(),
@@ -44,7 +43,6 @@ export const vehicleZonePriceRouter = createRouter({
     }))
     .mutation(async ({ input }) => {
       const db = getDb();
-      // Check if price entry already exists
       const existing = await db.query.vehicleZonePrices.findFirst({
         where: and(
           eq(vehicleZonePrices.zoneId, input.zoneId),
@@ -76,7 +74,7 @@ export const vehicleZonePriceRouter = createRouter({
       }
     }),
 
-  update: publicQuery
+  update: clientAuthedQuery
     .input(z.object({
       id: z.number().positive(),
       oneWayPrice: z.string().regex(/^\d+(\.\d{2})?$/).optional(),
@@ -93,7 +91,7 @@ export const vehicleZonePriceRouter = createRouter({
       });
     }),
 
-  delete: publicQuery
+  delete: clientAuthedQuery
     .input(z.object({ id: z.number().positive() }))
     .mutation(async ({ input }) => {
       const db = getDb();

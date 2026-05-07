@@ -12,10 +12,10 @@ export default function AdminSettings({ clientId }: Props) {
   const { t } = useTranslation();
   const utils = trpc.useUtils();
 
-  const { data: settings, isLoading } = trpc.clientSettings.get.useQuery({ clientId });
+  const { data: settings, isLoading } = trpc.clientSettings.get.useQuery();
   const updateSettings = trpc.clientSettings.update.useMutation({
     onSuccess: () => {
-      utils.clientSettings.get.invalidate({ clientId });
+      utils.clientSettings.get.invalidate();
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     },
@@ -38,7 +38,6 @@ export default function AdminSettings({ clientId }: Props) {
 
   const handleSave = () => {
     updateSettings.mutate({
-      clientId,
       depositEnabled,
       depositPercentage,
       taxRate,

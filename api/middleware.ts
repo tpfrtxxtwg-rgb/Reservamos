@@ -38,5 +38,19 @@ function requireRole(role: string) {
   });
 }
 
+const requireClientAuth = t.middleware(async (opts) => {
+  const { ctx, next } = opts;
+
+  if (!ctx.clientUser) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: ErrorMessages.unauthenticated,
+    });
+  }
+
+  return next({ ctx: { ...ctx, clientUser: ctx.clientUser } });
+});
+
 export const authedQuery = t.procedure.use(requireAuth);
 export const adminQuery = authedQuery.use(requireRole("admin"));
+export const clientAuthedQuery = t.procedure.use(requireClientAuth);

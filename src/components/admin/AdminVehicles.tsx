@@ -24,15 +24,15 @@ export default function AdminVehicles({ clientId }: Props) {
   });
   const [editData, setEditData] = useState({ name: '', capacityMin: 1, capacityMax: 6, features: [] as string[], sortOrder: 0 });
 
-  const { data: vehicles, isLoading } = trpc.vehicle.list.useQuery({ clientId });
+  const { data: vehicles, isLoading } = trpc.vehicle.listMine.useQuery();
   const createVeh = trpc.vehicle.create.useMutation({
-    onSuccess: () => { utils.vehicle.list.invalidate(); setShowAdd(false); resetForm(); },
+    onSuccess: () => { utils.vehicle.listMine.invalidate(); setShowAdd(false); resetForm(); },
   });
   const updateVeh = trpc.vehicle.update.useMutation({
-    onSuccess: () => { utils.vehicle.list.invalidate(); setEditing(null); },
+    onSuccess: () => { utils.vehicle.listMine.invalidate(); setEditing(null); },
   });
   const deleteVeh = trpc.vehicle.delete.useMutation({
-    onSuccess: () => utils.vehicle.list.invalidate(),
+    onSuccess: () => utils.vehicle.listMine.invalidate(),
   });
 
   const resetForm = () => setFormData({ name: '', capacityMin: 1, capacityMax: 6, features: [], sortOrder: 0 });
@@ -103,7 +103,7 @@ export default function AdminVehicles({ clientId }: Props) {
             </div>
           </div>
           <div className="flex gap-2">
-            <button onClick={() => createVeh.mutate({ clientId, ...formData })}
+            <button onClick={() => createVeh.mutate({ ...formData })}
               disabled={!formData.name.trim() || createVeh.isPending}
               className="flex items-center gap-1 px-4 py-2 bg-terracotta text-white rounded-md font-body text-sm disabled:opacity-50 hover:bg-terracotta-dark transition-colors">
               <Check size={16} /> {t('common.save') || 'Save'}

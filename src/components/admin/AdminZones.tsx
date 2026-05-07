@@ -16,15 +16,15 @@ export default function AdminZones({ clientId }: Props) {
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState('');
 
-  const { data: zones, isLoading } = trpc.zone.list.useQuery({ clientId });
+  const { data: zones, isLoading } = trpc.zone.listMine.useQuery();
   const createZone = trpc.zone.create.useMutation({
-    onSuccess: () => { utils.zone.list.invalidate(); setShowAdd(false); setNewName(''); },
+    onSuccess: () => { utils.zone.listMine.invalidate(); setShowAdd(false); setNewName(''); },
   });
   const updateZone = trpc.zone.update.useMutation({
-    onSuccess: () => { utils.zone.list.invalidate(); setEditing(null); },
+    onSuccess: () => { utils.zone.listMine.invalidate(); setEditing(null); },
   });
   const deleteZone = trpc.zone.delete.useMutation({
-    onSuccess: () => utils.zone.list.invalidate(),
+    onSuccess: () => utils.zone.listMine.invalidate(),
   });
 
   if (isLoading) return <div className="flex items-center justify-center h-64"><span className="font-body text-warm-gray">{t('common.loading')}...</span></div>;
@@ -51,7 +51,7 @@ export default function AdminZones({ clientId }: Props) {
               placeholder={t('admin.zoneName') || 'Zone name...'}
               className="flex-1 h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all"
               autoFocus />
-            <button onClick={() => createZone.mutate({ clientId, name: newName })}
+            <button onClick={() => createZone.mutate({ name: newName })}
               disabled={!newName.trim() || createZone.isPending}
               className="flex items-center gap-1 px-4 py-2 bg-terracotta text-white rounded-md font-body text-sm disabled:opacity-50 hover:bg-terracotta-dark transition-colors">
               <Check size={16} /> {t('common.save') || 'Save'}

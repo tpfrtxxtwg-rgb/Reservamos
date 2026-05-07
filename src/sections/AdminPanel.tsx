@@ -7,9 +7,10 @@ import {
   ChartBar, Gear, ArrowLeft, Eye, CheckCircle, XCircle,
   TrendUp, TrendDown, X, MapPin, CreditCard,
   Clock as ClockIcon, MapTrifold, Buildings, Money,
-  ShoppingCart,
+  ShoppingCart, SignOut,
 } from '@phosphor-icons/react';
 import { trpc } from '@/providers/trpc';
+import { useClientAuth } from '@/providers/ClientAuthProvider';
 import type { Booking } from '@/types';
 import AdminZones from '@/components/admin/AdminZones';
 import AdminDestinations from '@/components/admin/AdminDestinations';
@@ -24,14 +25,15 @@ const statusConfig: Record<string, { label: string; icon: React.ReactNode; bg: s
   cancelled: { label: 'common.cancelled', icon: <XCircle size={14} weight="fill" />, bg: 'bg-[rgba(178,58,47,0.1)]', text: 'text-[#B23A2F]' },
 };
 
-const DEMO_CLIENT_ID = 3;
-
 export default function AdminPanel() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { user, logout } = useClientAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedReservation, setSelectedReservation] = useState<Booking | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const clientId = user?.clientId ?? 0;
 
   const sidebarItems = [
     { icon: <SquaresFour size={20} />, label: t('admin.dashboard'), id: 'dashboard' },
@@ -176,12 +178,12 @@ export default function AdminPanel() {
           </div>
         </div>
       );
-      case 'zones': return <AdminZones clientId={DEMO_CLIENT_ID} />;
-      case 'destinations': return <AdminDestinations clientId={DEMO_CLIENT_ID} />;
-      case 'vehicles': return <AdminVehicles clientId={DEMO_CLIENT_ID} />;
-      case 'pricing': return <AdminPricing clientId={DEMO_CLIENT_ID} />;
-      case 'optionalServices': return <AdminOptionalServices clientId={DEMO_CLIENT_ID} />;
-      case 'settings': return <AdminSettings clientId={DEMO_CLIENT_ID} />;
+      case 'zones': return <AdminZones clientId={clientId} />;
+      case 'destinations': return <AdminDestinations clientId={clientId} />;
+      case 'vehicles': return <AdminVehicles clientId={clientId} />;
+      case 'pricing': return <AdminPricing clientId={clientId} />;
+      case 'optionalServices': return <AdminOptionalServices clientId={clientId} />;
+      case 'settings': return <AdminSettings clientId={clientId} />;
       default: return (
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
@@ -211,6 +213,15 @@ export default function AdminPanel() {
           ))}
         </nav>
         <div className="p-4 border-t border-white/10">
+          {user && (
+            <div className="mb-3 px-1">
+              <p className="font-body text-xs text-white/80 truncate">{user.name}</p>
+              <p className="font-body text-[10px] text-white/50 truncate">{user.email}</p>
+            </div>
+          )}
+          <button onClick={logout} className="flex items-center gap-2 text-white/60 hover:text-[#C75E3A] font-body text-sm transition-colors w-full mb-2">
+            <SignOut size={16} /> {t('common.logout') || 'Logout'}
+          </button>
           <button onClick={() => navigate('/')} className="flex items-center gap-2 text-white/60 hover:text-white font-body text-sm transition-colors w-full">
             <ArrowLeft size={16} /> {t('common.back')}
           </button>

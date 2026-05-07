@@ -1,10 +1,11 @@
 import { z } from "zod";
 import { eq, and } from "drizzle-orm";
-import { createRouter, publicQuery } from "./middleware";
+import { createRouter, publicQuery, clientAuthedQuery } from "./middleware";
 import { getDb } from "./queries/connection";
 import { optionalServices } from "@db/schema";
 
 export const optionalServiceRouter = createRouter({
+  // Public: used by widget
   list: publicQuery
     .input(z.object({ clientId: z.number().positive() }))
     .query(async ({ input }) => {
@@ -18,9 +19,17 @@ export const optionalServiceRouter = createRouter({
       });
     }),
 
-  create: publicQuery
+  // Admin: authenticated
+  listMine: clientAuthedQuery.query(async ({ ctx }) => {
+    const db = getDb();
+    return db.query.optionalServices.findMany({
+      where: eq(optionalServices.clientId, ctx.clientUser.clientId),
+      orderBy: optionalServices.sortOrder,
+    });
+  }),
+
+  create: clientAuthedQuery
     .input(z.object({
-      clientId: z.number().positive(),
       name: z.string().min(1).max(255),
       slug: z.string().min(1).max(100),
       description: z.string().optional(),
@@ -28,16 +37,17 @@ export const optionalServiceRouter = createRouter({
       perPassenger: z.boolean().default(false),
       sortOrder: z.number().default(0),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const db = getDb();
       const [{ id }] = await db.insert(optionalServices).values({
+        clientId: ctx.clientUser.clientId,
         ...input,
         active: true,
       }).$returningId();
       return db.query.optionalServices.findFirst({ where: eq(optionalServices.id, id) });
     }),
 
-  update: publicQuery
+  update: clientAuthedQuery
     .input(z.object({
       id: z.number().positive(),
       name: z.string().min(1).max(255).optional(),
@@ -54,7 +64,7 @@ export const optionalServiceRouter = createRouter({
       return db.query.optionalServices.findFirst({ where: eq(optionalServices.id, id) });
     }),
 
-  delete: publicQuery
+  delete: clientAuthedQuery
     .input(z.object({ id: z.number().positive() }))
     .mutation(async ({ input }) => {
       const db = getDb();

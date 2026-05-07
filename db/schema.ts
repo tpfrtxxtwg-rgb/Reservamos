@@ -55,6 +55,27 @@ export const clients = mysqlTable("clients", {
 export type Client = typeof clients.$inferSelect;
 export type InsertClient = typeof clients.$inferInsert;
 
+// ─── Client Users (Transportation Company Admins) ──────────────────
+// Each client (tenant) can have multiple users who manage the account.
+export const clientUsers = mysqlTable("client_users", {
+  id: serial("id").primaryKey(),
+  clientId: bigint("clientId", { mode: "number", unsigned: true }).notNull(),
+  email: varchar("email", { length: 320 }).notNull().unique(),
+  passwordHash: varchar("passwordHash", { length: 255 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  role: mysqlEnum("role", ["owner", "admin", "operator"]).default("owner").notNull(),
+  active: boolean("active").default(true).notNull(),
+  lastSignInAt: timestamp("lastSignInAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => new Date()),
+}, (table) => ({
+  emailIdx: index("client_user_email_idx").on(table.email),
+  clientIdx: index("client_user_client_idx").on(table.clientId),
+}));
+
+export type ClientUser = typeof clientUsers.$inferSelect;
+export type InsertClientUser = typeof clientUsers.$inferInsert;
+
 // ─── Services ──────────────────────────────────────────────────
 export const services = mysqlTable("services", {
   id: serial("id").primaryKey(),

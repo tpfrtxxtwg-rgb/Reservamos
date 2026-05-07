@@ -16,15 +16,15 @@ export default function AdminOptionalServices({ clientId }: Props) {
   const [formData, setFormData] = useState({ name: '', slug: '', description: '', price: '0.00', perPassenger: false, sortOrder: 0 });
   const [editData, setEditData] = useState({ name: '', description: '', price: '0.00', perPassenger: false, sortOrder: 0 });
 
-  const { data: services, isLoading } = trpc.optionalService.list.useQuery({ clientId });
+  const { data: services, isLoading } = trpc.optionalService.listMine.useQuery();
   const createSvc = trpc.optionalService.create.useMutation({
-    onSuccess: () => { utils.optionalService.list.invalidate(); setShowAdd(false); resetForm(); },
+    onSuccess: () => { utils.optionalService.listMine.invalidate(); setShowAdd(false); resetForm(); },
   });
   const updateSvc = trpc.optionalService.update.useMutation({
-    onSuccess: () => { utils.optionalService.list.invalidate(); setEditing(null); },
+    onSuccess: () => { utils.optionalService.listMine.invalidate(); setEditing(null); },
   });
   const deleteSvc = trpc.optionalService.delete.useMutation({
-    onSuccess: () => utils.optionalService.list.invalidate(),
+    onSuccess: () => utils.optionalService.listMine.invalidate(),
   });
 
   const resetForm = () => setFormData({ name: '', slug: '', description: '', price: '0.00', perPassenger: false, sortOrder: 0 });
@@ -87,7 +87,7 @@ export default function AdminOptionalServices({ clientId }: Props) {
             </label>
           </div>
           <div className="flex gap-2">
-            <button onClick={() => createSvc.mutate({ clientId, ...formData })}
+            <button onClick={() => createSvc.mutate({ ...formData })}
               disabled={!formData.name.trim() || createSvc.isPending}
               className="flex items-center gap-1 px-4 py-2 bg-terracotta text-white rounded-md font-body text-sm disabled:opacity-50 hover:bg-terracotta-dark transition-colors">
               <Check size={16} /> {t('common.save') || 'Save'}

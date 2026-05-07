@@ -1,4 +1,5 @@
 import { authRouter } from "./auth-router";
+import { clientAuthRouter } from "./client-auth-router";
 import { widgetRouter } from "./widget-router";
 import { tenantRouter } from "./client-router";
 import { vehicleRouter } from "./vehicle-router";
@@ -14,6 +15,7 @@ import { createRouter, publicQuery } from "./middleware";
 export const appRouter = createRouter({
   ping: publicQuery.query(() => ({ ok: true, ts: Date.now() })),
   auth: authRouter,
+  clientAuth: clientAuthRouter,
   widget: widgetRouter,
   tenant: tenantRouter,
   vehicle: vehicleRouter,
