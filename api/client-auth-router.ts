@@ -81,32 +81,37 @@ export const clientAuthRouter = createRouter({
         throw new Error("Email already registered");
       }
 
-      // Create client (tenant)
+      // Create client (tenant) - use $returningId for MySQL
       const apiKey = generateApiKey();
-      const [client] = await db
+      const [{ id: clientId }] = await db
         .insert(clients)
         .values({
           name: input.companyName,
           email: input.email,
           apiKey,
         })
-        .returning();
+        .$returningId();
 
-      // Create owner user
+      const client = await db.query.clients.findFirst({
+        where: eq(clients.id, clientId),
+      });
+      if (!client) throw new Error("Failed to create client");
+
+      // Create owner user - use $returningId for MySQL
       const passwordHash = await hashPassword(input.password);
-      const [user] = await db
+      const [{ id: userId }] = await db
         .insert(clientUsers)
         .values({
-          clientId: client.id,
+          clientId: clientId,
           email: input.email,
           passwordHash,
           name: input.name,
           role: "owner",
         })
-        .returning();
+        .$returningId();
 
       // Create session cookie
-      const session = serializeSession({ userId: user.id, clientId: client.id });
+      const session = serializeSession({ userId, clientId });
       const opts = getCookieOptions(ctx.req.headers);
       ctx.resHeaders.append(
         "set-cookie",
@@ -116,11 +121,11 @@ export const clientAuthRouter = createRouter({
       return {
         success: true,
         user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          clientId: client.id,
+          id: userId,
+          name: input.name,
+          email: input.email,
+          role: "owner",
+          clientId,
         },
       };
     }),
