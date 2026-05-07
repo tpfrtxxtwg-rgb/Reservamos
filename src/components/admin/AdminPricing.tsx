@@ -4,43 +4,33 @@ import { useTranslation } from 'react-i18next';
 import { Pencil, Check, X, Money, Car, ArrowRight, ArrowsLeftRight } from '@phosphor-icons/react';
 import { trpc } from '@/providers/trpc';
 
-interface Props {
-  clientId: number;
-}
-
-export default function AdminPricing({ clientId }: Props) {
+export default function AdminPricing() {
   const { t } = useTranslation();
   const utils = trpc.useUtils();
   const [editingCell, setEditingCell] = useState<string | null>(null);
   const [editPrices, setEditPrices] = useState({ oneWay: '', roundTrip: '' });
 
-  const { data: zones } = trpc.zone.list.useQuery({ clientId });
-  const { data: vehicles } = trpc.vehicle.list.useQuery({ clientId });
-
-  // Fetch prices for ALL zones using multiple queries
-  const isLoading = !zones;
-  const zonePriceQueries = zones?.map(z => ({
-    zoneId: z.id,
-    query: trpc.vehicleZonePrice.listByZone.useQuery({ zoneId: z.id }),
-  })) || [];
+  const { data: zones, isLoading: zonesLoading } = trpc.zone.listMine.useQuery();
+  const { data: vehicles, isLoading: vehiclesLoading } = trpc.vehicle.listMine.useQuery();
+  const { data: allPrices, isLoading: pricesLoading } = trpc.vehicleZonePrice.listMine.useQuery();
 
   const upsertPrice = trpc.vehicleZonePrice.upsert.useMutation({
     onSuccess: () => {
-      utils.vehicleZonePrice.listByZone.invalidate();
+      utils.vehicleZonePrice.listMine.invalidate();
       setEditingCell(null);
     },
   });
 
   // Build price map: "zoneId-vehicleId" -> { oneWayPrice, roundTripPrice, id? }
   const priceMap: Record<string, { oneWay: string; roundTrip: string; id?: number }> = {};
-  zonePriceQueries.forEach(({ zoneId, query }) => {
-    query.data?.forEach((p: any) => {
-      priceMap[`${zoneId}-${p.vehicleId}`] = {
+  allPrices?.forEach((p: any) => {
+    if (p.zoneId && p.vehicleId) {
+      priceMap[`${p.zoneId}-${p.vehicleId}`] = {
         oneWay: String(p.oneWayPrice),
         roundTrip: String(p.roundTripPrice),
         id: p.id,
       };
-    });
+    }
   });
 
   const activeZones = zones?.filter((z: any) => z.active) || [];
@@ -59,12 +49,13 @@ export default function AdminPricing({ clientId }: Props) {
   const savePrice = (zoneId: number, vehicleId: number) => {
     const oneWay = editPrices.oneWay || '0.00';
     const roundTrip = editPrices.roundTrip || '0.00';
-    // Validate format
     if (!/^\d+(\.\d{2})?$/.test(oneWay) || !/^\d+(\.\d{2})?$/.test(roundTrip)) return;
     upsertPrice.mutate({ zoneId, vehicleId, oneWayPrice: oneWay, roundTripPrice: roundTrip });
   };
 
-  if (isLoading) return <div className="flex items-center justify-center h-64"><span className="font-body text-warm-gray">{t('common.loading')}...</span></div>;
+  if (zonesLoading || vehiclesLoading || pricesLoading) {
+    return <div className="flex items-center justify-center h-64"><span className="font-body text-warm-gray">{t('common.loading')}...</span></div>;
+  }
 
   return (
     <div>
@@ -75,7 +66,6 @@ export default function AdminPricing({ clientId }: Props) {
         </div>
       </div>
 
-      {/* Legend */}
       <div className="flex gap-4 mb-4">
         <div className="flex items-center gap-1.5 font-body text-xs text-warm-gray">
           <ArrowRight size={14} className="text-terracotta" /> {t('common.oneWay') || 'One Way'}
@@ -85,7 +75,6 @@ export default function AdminPricing({ clientId }: Props) {
         </div>
       </div>
 
-      {/* Pricing Table */}
       <div className="bg-white rounded-lg shadow-sm border border-[rgba(138,130,120,0.08)] overflow-hidden overflow-x-auto">
         <table className="w-full min-w-[600px]">
           <thead>

@@ -181,7 +181,7 @@ export default function AdminPanel() {
       case 'zones': return <AdminZones clientId={clientId} />;
       case 'destinations': return <AdminDestinations clientId={clientId} />;
       case 'vehicles': return <AdminVehicles clientId={clientId} />;
-      case 'pricing': return <AdminPricing clientId={clientId} />;
+      case 'pricing': return <AdminPricing />;
       case 'optionalServices': return <AdminOptionalServices clientId={clientId} />;
       case 'settings': return <AdminSettings clientId={clientId} />;
       default: return (

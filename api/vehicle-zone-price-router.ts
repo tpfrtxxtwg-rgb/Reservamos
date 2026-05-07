@@ -33,6 +33,14 @@ export const vehicleZonePriceRouter = createRouter({
       });
     }),
 
+  // Admin: get all prices for authenticated client
+  listMine: clientAuthedQuery.query(async ({ ctx }) => {
+    const db = getDb();
+    return db.query.vehicleZonePrices.findMany({
+      with: { vehicle: true, zone: true },
+    });
+  }),
+
   // Admin: authenticated
   upsert: clientAuthedQuery
     .input(z.object({
