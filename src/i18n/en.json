@@ -1,0 +1,303 @@
+{
+  "common": {
+    "continue": "Continue",
+    "back": "Back",
+    "close": "Close",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "total": "Total",
+    "from": "From",
+    "to": "To",
+    "status": "Status",
+    "confirmed": "Confirmed",
+    "pending": "Pending",
+    "cancelled": "Cancelled",
+    "passengers": "Passengers",
+    "passenger": "Passenger",
+    "price": "Price",
+    "tax": "Tax",
+    "iva": "IVA ({{rate}}%)",
+    "subtotal": "Subtotal",
+    "usd": "USD",
+    "securePayment": "Secure Payment",
+    "copy": "Copy",
+    "copied": "Copied",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "saving": "Saving...",
+    "saved": "Saved!",
+    "saveChanges": "Save Changes",
+    "development": "In Development",
+    "comingSoon": "Coming soon.",
+    "oneWay": "One Way",
+    "roundTrip": "Round Trip",
+    "zone": "Zone",
+    "flightNumber": "Flight Number",
+    "airline": "Airline",
+    "departureDate": "Departure Date",
+    "departureTime": "Departure Time"
+  },
+  "header": {
+    "product": "Product",
+    "features": "Features",
+    "pricing": "Pricing",
+    "integration": "Integration",
+    "adminPanel": "Admin Panel"
+  },
+  "hero": {
+    "title": "The Booking Engine for Private Transportation",
+    "subtitle": "Embeddable widget. High conversion. Zero hassle.",
+    "ctaDemo": "View Demo",
+    "ctaDocs": "Documentation",
+    "statsOperators": "Operators",
+    "statsBookings": "Bookings",
+    "statsUptime": "Uptime"
+  },
+  "demoSection": {
+    "label": "Experience It Live",
+    "title": "Your Customer Books in Seconds",
+    "description": "The widget adapts to any website design. Travelers complete their booking in under 2 minutes."
+  },
+  "features": {
+    "label": "Features",
+    "title": "Everything You Need",
+    "embeddableWidget": {
+      "title": "Embeddable Widget",
+      "description": "Integrate with a single script. Works on WordPress, React, any site."
+    },
+    "integratedPayments": {
+      "title": "Integrated Payments",
+      "description": "Stripe, PayPal, MercadoPago. Payment processed inside the widget."
+    },
+    "multilanguage": {
+      "title": "Multi-Language",
+      "description": "English, Spanish, Portuguese. Automatic browser language detection."
+    },
+    "realTimeAvailability": {
+      "title": "Real-Time Availability",
+      "description": "Calendar shows only available dates and times."
+    },
+    "autoNotifications": {
+      "title": "Automatic Notifications",
+      "description": "Instant email and WhatsApp confirmations."
+    },
+    "controlPanel": {
+      "title": "Control Panel",
+      "description": "Manage bookings, drivers, vehicles, and reports."
+    }
+  },
+  "pricing": {
+    "label": "Pricing",
+    "title": "Transparent Plans",
+    "starter": {
+      "name": "Starter",
+      "price": "$49",
+      "period": "/month",
+      "description": "For small operators",
+      "features": ["1 website", "100 bookings/month", "Basic payments", "Email support", "Basic reports"],
+      "cta": "Get Started"
+    },
+    "professional": {
+      "name": "Professional",
+      "price": "$149",
+      "period": "/month",
+      "description": "For growing operators",
+      "badge": "Most Popular",
+      "features": ["5 websites", "Unlimited bookings", "Advanced payments (Stripe, PayPal)", "WhatsApp notifications", "Advanced reports", "Priority support"],
+      "cta": "Get Started"
+    },
+    "enterprise": {
+      "name": "Enterprise",
+      "price": "Custom",
+      "period": "",
+      "description": "For large operators",
+      "features": ["Unlimited websites", "Full API", "All payment methods", "White-label available", "Dedicated 24/7 support", "Personalized onboarding"],
+      "cta": "Contact Sales"
+    }
+  },
+  "integration": {
+    "title": "Ready to Integrate?",
+    "description": "Just copy and paste this code into your website. The widget loads automatically.",
+    "codeComment": "ReserVamos Widget",
+    "cta": "Get API Key"
+  },
+  "footer": {
+    "product": "Product",
+    "resources": "Resources",
+    "company": "Company",
+    "legal": "Legal",
+    "copyright": "All rights reserved."
+  },
+  "widget": {
+    "title": "ReserVamos",
+    "tripType": {
+      "title": "Trip Type",
+      "subtitle": "Select your trip type",
+      "oneWay": "One Way",
+      "roundTrip": "Round Trip"
+    },
+    "step1": {
+      "title": "Select Service",
+      "subtitle": "What service do you need?",
+      "serviceAirport": "Airport Transfer",
+      "serviceTour": "Private Tour",
+      "serviceHourly": "By the Hour",
+      "priceFrom": "From $45 USD"
+    },
+    "step2": {
+      "title": "Where & When",
+      "subtitle": "Select your zone, date, and time",
+      "origin": "From",
+      "destination": "Hotel / Destination",
+      "searchDestination": "Search hotel...",
+      "date": "Date",
+      "time": "Time",
+      "passengers": "Passengers",
+      "zone": "Zone",
+      "origin": "Pickup Location",
+      "otherLocation": "Other location",
+      "enterLocation": "Enter location...",
+      "destination": "Hotel / Destination",
+      "searchDestination": "Search hotel...",
+      "noResults": "No hotels found",
+      "luggage": "Luggage",
+      "luggageStandard": "Standard",
+      "luggageOversized": "Oversized",
+      "luggageExtra": "Extra Bags",
+      "selectZone": "Select zone",
+      "selectDate": "Select date",
+      "selectTime": "Select time",
+      "airport": "Airport",
+      "hotel": "Hotel / Destination"
+    },
+    "step3": {
+      "title": "Select Your Vehicle",
+      "passengers": "passengers",
+      "continueToPayment": "Continue to Payment"
+    },
+    "step4": {
+      "title": "Order Summary",
+      "subtitle": "Review your booking and add optional services",
+      "passengerData": "Passenger Information",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email",
+      "phone": "Phone",
+      "specialNotes": "Special Requests",
+      "notesPlaceholder": "Flight number, baby seats, etc.",
+      "paymentMethod": "Payment Method",
+      "creditCard": "Credit Card",
+      "paypal": "PayPal",
+      "cash": "Cash",
+      "cardNumber": "Card Number",
+      "cardPlaceholder": "4242 4242 4242 4242",
+      "expiration": "Expiration",
+      "expirationPlaceholder": "MM/YY",
+      "cvv": "CVV",
+      "cvvPlaceholder": "123",
+      "badgeRecommended": "Recommended",
+      "optionalServices": "Optional Services",
+      "perPassenger": "per passenger",
+      "continueToPayment": "Continue to Payment",
+      "processing": "Processing..."
+    },
+    "step5": {
+      "title": "Payment",
+      "paymentOption": "Payment Option",
+      "payFull": "Pay Full Amount",
+      "payDeposit": "Pay Deposit Only",
+      "depositAmount": "Deposit to pay now",
+      "balanceDue": "Balance due at service",
+      "amountToPay": "Amount to Pay",
+      "deposit": "Deposit",
+      "amountPaid": "Amount Paid",
+      "payNow": "Pay Now"
+    },
+    "flight": {
+      "title": "Flight Information",
+      "flightNumber": "Flight Number",
+      "airline": "Airline",
+      "departureDate": "Departure Date",
+      "departureTime": "Departure Time",
+      "arrivalDate": "Arrival Date",
+      "arrivalTime": "Arrival Time",
+      "roundTripDetails": "Round Trip Details"
+    },
+    "confirmation": {
+      "title": "Booking Confirmed!",
+      "message": "We've sent the details to your email.",
+      "newBooking": "Make Another Booking"
+    }
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "bookings": "Bookings",
+    "vehicles": "Vehicles",
+    "drivers": "Drivers",
+    "calendar": "Calendar",
+    "reports": "Reports",
+    "settings": "Settings",
+    "zones": "Zones",
+    "destinations": "Hotels",
+    "pricing": "Pricing",
+    "optionalServices": "Optional Services",
+    "totalBookings": "Total Bookings",
+    "monthlyRevenue": "Monthly Revenue",
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "recentBookings": "Recent Bookings",
+    "viewAll": "View All",
+    "code": "Code",
+    "client": "Client",
+    "service": "Service",
+    "date": "Date",
+    "vehicle": "Vehicle",
+    "actions": "Actions",
+    "bookingDetail": "Booking Detail",
+    "editBooking": "Edit Booking",
+    "zonesDesc": "Manage pricing zones for your service area",
+    "destinationsDesc": "Manage hotels and destinations within each zone",
+    "vehiclesDesc": "Manage your fleet. Each vehicle has its own price table per zone.",
+    "pricingDesc": "Set prices for each vehicle in each zone",
+    "optionalServicesDesc": "Manage add-on services customers can select during booking",
+    "addOptionalService": "Add New Service",
+    "noOptionalServices": "No optional services yet",
+    "noOptionalServicesDesc": "Add services like shopping stops, car seats, etc.",
+    "perPassenger": "per passenger",
+    "zoneName": "Zone Name",
+    "hotelName": "Hotel Name",
+    "vehicleName": "Vehicle Name",
+    "capacityMin": "Min Passengers",
+    "capacityMax": "Max Passengers",
+    "features": "Features",
+    "addVehicle": "Add Vehicle",
+    "needZones": "Create zones first",
+    "needVehicles": "Add vehicles first",
+    "settingsDesc": "Configure your booking engine preferences",
+    "paymentSettings": "Payment Settings",
+    "taxRate": "Tax Rate (IVA)",
+    "taxRateDesc": "Applied to all bookings",
+    "depositOption": "Allow Deposit Payments",
+    "depositOptionDesc": "Let customers pay a deposit instead of the full amount. The balance is due at service time.",
+    "depositPercentage": "Deposit Percentage",
+    "depositPercentageDesc": "Of the total booking amount",
+    "exampleBooking": "Example: $100 booking",
+    "customerPays": "Customer pays now",
+    "balanceDue": "Balance due at service",
+    "appearance": "Appearance",
+    "primaryColor": "Primary Color",
+    "settingsSaved": "Settings saved successfully",
+    "saveChanges": "Save Changes"
+  },
+  "lang": {
+    "en": "English",
+    "es": "Español",
+    "pt": "Português"
+  }
+}

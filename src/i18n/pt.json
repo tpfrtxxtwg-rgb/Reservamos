@@ -1,0 +1,299 @@
+{
+  "common": {
+    "continue": "Continuar",
+    "back": "Voltar",
+    "close": "Fechar",
+    "edit": "Editar",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "create": "Criar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "total": "Total",
+    "from": "A partir de",
+    "status": "Status",
+    "confirmed": "Confirmada",
+    "pending": "Pendente",
+    "cancelled": "Cancelada",
+    "passengers": "Passageiros",
+    "passenger": "Passageiro",
+    "price": "Preço",
+    "tax": "Impostos",
+    "iva": "IVA ({{rate}}%)",
+    "subtotal": "Subtotal",
+    "usd": "USD",
+    "securePayment": "Pagamento Seguro",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "loading": "Carregando...",
+    "error": "Erro",
+    "success": "Sucesso",
+    "saving": "Salvando...",
+    "saved": "Salvo!",
+    "saveChanges": "Salvar Alterações",
+    "development": "Em Desenvolvimento",
+    "comingSoon": "Disponível em breve.",
+    "oneWay": "Somente Ida",
+    "roundTrip": "Ida e Volta",
+    "zone": "Zona",
+    "flightNumber": "Número do Voo",
+    "airline": "Companhia Aérea",
+    "departureDate": "Data de Partida",
+    "departureTime": "Hora de Partida"
+  },
+  "header": {
+    "product": "Produto",
+    "features": "Recursos",
+    "pricing": "Preços",
+    "integration": "Integração",
+    "adminPanel": "Painel Admin"
+  },
+  "hero": {
+    "title": "O Motor de Reservas para Transporte Privado",
+    "subtitle": "Widget incorporável. Alta conversão. Sem complicações.",
+    "ctaDemo": "Ver Demo",
+    "ctaDocs": "Documentação",
+    "statsOperators": "Operadores",
+    "statsBookings": "Reservas",
+    "statsUptime": "Uptime"
+  },
+  "demoSection": {
+    "label": "Experimente ao Vivo",
+    "title": "Seu Cliente Reserva em Segundos",
+    "description": "O widget se adapta ao design de qualquer site. O viajante completa a reserva em menos de 2 minutos."
+  },
+  "features": {
+    "label": "Recursos",
+    "title": "Tudo que Você Precisa",
+    "embeddableWidget": {
+      "title": "Widget Incorporável",
+      "description": "Integre com um script. Funciona em WordPress, React, qualquer site."
+    },
+    "integratedPayments": {
+      "title": "Pagamentos Integrados",
+      "description": "Stripe, PayPal, MercadoPago. O pagamento é processado dentro do widget."
+    },
+    "multilanguage": {
+      "title": "Multi-Idioma",
+      "description": "Inglês, espanhol, português. Detecção automática do navegador."
+    },
+    "realTimeAvailability": {
+      "title": "Disponibilidade em Tempo Real",
+      "description": "O calendário mostra apenas datas e horários disponíveis."
+    },
+    "autoNotifications": {
+      "title": "Notificações Automáticas",
+      "description": "Confirmações por email e WhatsApp instantâneas."
+    },
+    "controlPanel": {
+      "title": "Painel de Controle",
+      "description": "Gerencie reservas, motoristas, veículos e relatórios."
+    }
+  },
+  "pricing": {
+    "label": "Preços",
+    "title": "Planos Transparentes",
+    "starter": {
+      "name": "Starter",
+      "price": "$49",
+      "period": "/mês",
+      "description": "Para operadores pequenos",
+      "features": ["1 site", "100 reservas/mês", "Pagamentos básicos", "Suporte por email", "Relatórios básicos"],
+      "cta": "Começar"
+    },
+    "professional": {
+      "name": "Professional",
+      "price": "$149",
+      "period": "/mês",
+      "description": "Para operadores em crescimento",
+      "badge": "Mais Popular",
+      "features": ["5 sites", "Reservas ilimitadas", "Pagamentos avançados (Stripe, PayPal)", "Notificações WhatsApp", "Relatórios avançados", "Suporte prioritário"],
+      "cta": "Começar"
+    },
+    "enterprise": {
+      "name": "Enterprise",
+      "price": "Custom",
+      "period": "",
+      "description": "Para grandes operadores",
+      "features": ["Sites ilimitados", "API completa", "Todos os métodos de pagamento", "White-label disponível", "Suporte dedicado 24/7", "Onboarding personalizado"],
+      "cta": "Contactar Vendas"
+    }
+  },
+  "integration": {
+    "title": "Pronto para Integrar?",
+    "description": "Basta copiar e colar este código no seu site. O widget carregará automaticamente.",
+    "codeComment": "Widget ReserVamos",
+    "cta": "Obter API Key"
+  },
+  "footer": {
+    "product": "Produto",
+    "resources": "Recursos",
+    "company": "Empresa",
+    "legal": "Legal",
+    "copyright": "Todos os direitos reservados."
+  },
+  "widget": {
+    "title": "ReserVamos",
+    "tripType": {
+      "title": "Tipo de Viagem",
+      "subtitle": "Selecione seu tipo de viagem",
+      "oneWay": "Somente Ida",
+      "roundTrip": "Ida e Volta"
+    },
+    "step1": {
+      "title": "Selecionar Serviço",
+      "subtitle": "Que serviço você precisa?",
+      "serviceAirport": "Traslado Aeroporto",
+      "serviceTour": "Tour Privado",
+      "serviceHourly": "Por Hora",
+      "priceFrom": "A partir de $45 USD"
+    },
+    "step2": {
+      "title": "Onde e Quando",
+      "subtitle": "Selecione sua zona, data e hora",
+      "origin": "Local de Origem",
+      "otherLocation": "Outra localização",
+      "enterLocation": "Digite a localização...",
+      "destination": "Hotel / Destino",
+      "searchDestination": "Buscar hotel...",
+      "noResults": "Nenhum hotel encontrado",
+      "luggage": "Bagagem",
+      "luggageStandard": "Padrão",
+      "luggageOversized": "Grande",
+      "luggageExtra": "Bolsas Extras",
+      "date": "Data",
+      "time": "Hora",
+      "passengers": "Passageiros",
+      "zone": "Zona",
+      "selectZone": "Selecionar zona",
+      "selectDate": "Selecionar data",
+      "selectTime": "Selecionar horário",
+      "airport": "Aeroporto",
+      "hotel": "Hotel / Destino"
+    },
+    "step3": {
+      "title": "Selecione Seu Veículo",
+      "passengers": "passageiros",
+      "continueToPayment": "Continuar para Pagamento"
+    },
+    "flight": {
+      "title": "Informação do Voo",
+      "flightNumber": "Número do Voo",
+      "airline": "Companhia Aérea",
+      "departureDate": "Data de Partida",
+      "departureTime": "Hora de Partida",
+      "arrivalDate": "Data de Chegada",
+      "arrivalTime": "Hora de Chegada",
+      "roundTripDetails": "Detalhes da Volta"
+    },
+    "step4": {
+      "title": "Resumo do Pedido",
+      "subtitle": "Revise sua reserva e adicione serviços opcionais",
+      "passengerData": "Informações do Passageiro",
+      "firstName": "Nome",
+      "lastName": "Sobrenome",
+      "email": "Email",
+      "phone": "Telefone",
+      "specialNotes": "Observações Especiais",
+      "notesPlaceholder": "Número do voo, cadeiras de bebê, etc.",
+      "paymentMethod": "Método de Pagamento",
+      "creditCard": "Cartão de Crédito",
+      "paypal": "PayPal",
+      "cash": "Dinheiro",
+      "cardNumber": "Número do Cartão",
+      "cardPlaceholder": "4242 4242 4242 4242",
+      "expiration": "Validade",
+      "expirationPlaceholder": "MM/AA",
+      "cvv": "CVV",
+      "cvvPlaceholder": "123",
+      "badgeRecommended": "Recomendado",
+      "optionalServices": "Serviços Opcionais",
+      "perPassenger": "por passageiro",
+      "continueToPayment": "Continuar para Pagamento",
+      "processing": "Processando..."
+    },
+    "step5": {
+      "title": "Pagamento",
+      "paymentOption": "Opção de Pagamento",
+      "payFull": "Pagar Valor Total",
+      "payDeposit": "Pagar Depósito",
+      "depositAmount": "Depósito a pagar agora",
+      "balanceDue": "Saldo pendente no serviço",
+      "amountToPay": "Valor a Pagar",
+      "deposit": "Depósito",
+      "amountPaid": "Valor Pago",
+      "payNow": "Pagar Agora"
+    },
+    "confirmation": {
+      "title": "Reserva Confirmada!",
+      "message": "Enviamos os detalhes para o seu email.",
+      "newBooking": "Fazer Outra Reserva"
+    }
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "bookings": "Reservas",
+    "vehicles": "Veículos",
+    "drivers": "Motoristas",
+    "calendar": "Calendário",
+    "reports": "Relatórios",
+    "settings": "Configurações",
+    "zones": "Zonas",
+    "destinations": "Hotéis",
+    "pricing": "Preços",
+    "optionalServices": "Serviços Opcionais",
+    "totalBookings": "Total de Reservas",
+    "monthlyRevenue": "Receita (Mês)",
+    "pending": "Pendentes",
+    "confirmed": "Confirmadas",
+    "recentBookings": "Reservas Recentes",
+    "viewAll": "Ver Todas",
+    "code": "Código",
+    "client": "Cliente",
+    "service": "Serviço",
+    "date": "Data",
+    "vehicle": "Veículo",
+    "actions": "Ações",
+    "bookingDetail": "Detalhe da Reserva",
+    "editBooking": "Editar Reserva",
+    "zonesDesc": "Gerencie as zonas de preços da sua área de serviço",
+    "destinationsDesc": "Gerencie hotéis e destinos dentro de cada zona",
+    "vehiclesDesc": "Gerencie sua frota. Cada veículo tem sua própria tabela de preços por zona.",
+    "pricingDesc": "Defina preços para cada veículo em cada zona",
+    "optionalServicesDesc": "Gerencie serviços adicionais que os clientes podem selecionar ao reservar",
+    "addOptionalService": "Adicionar Novo Serviço",
+    "noOptionalServices": "Ainda não há serviços opcionais",
+    "noOptionalServicesDesc": "Adicione serviços como paradas de compras, assentos para crianças, etc.",
+    "perPassenger": "Preço por passageiro",
+    "zoneName": "Nome da Zona",
+    "hotelName": "Nome do Hotel",
+    "vehicleName": "Nome do Veículo",
+    "capacityMin": "Mín Passageiros",
+    "capacityMax": "Máx Passageiros",
+    "features": "Características",
+    "addVehicle": "Adicionar Veículo",
+    "needZones": "Crie zonas primeiro",
+    "needVehicles": "Adicione veículos primeiro",
+    "settingsDesc": "Configure as preferências do seu motor de reservas",
+    "paymentSettings": "Configurações de Pagamento",
+    "taxRate": "Taxa de Imposto (IVA)",
+    "taxRateDesc": "Aplicado a todas as reservas",
+    "depositOption": "Permitir Pagamentos com Depósito",
+    "depositOptionDesc": "Permita que os clientes paguem um depósito em vez do total. O saldo é pago no momento do serviço.",
+    "depositPercentage": "Porcentagem do Depósito",
+    "depositPercentageDesc": "Do valor total da reserva",
+    "exampleBooking": "Exemplo: reserva de $100",
+    "customerPays": "Cliente paga agora",
+    "balanceDue": "Saldo pendente no serviço",
+    "appearance": "Aparência",
+    "primaryColor": "Cor Principal",
+    "settingsSaved": "Configurações salvas com sucesso",
+    "saveChanges": "Salvar Alterações"
+  },
+  "lang": {
+    "en": "English",
+    "es": "Español",
+    "pt": "Português"
+  }
+}
