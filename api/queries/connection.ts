@@ -12,7 +12,6 @@ export function getDb() {
     instance = drizzle(env.databaseUrl, {
       mode: "planetscale",
       schema: fullSchema,
-      casing: "snake_case",
     });
   }
   return instance;

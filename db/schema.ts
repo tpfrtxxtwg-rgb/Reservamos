@@ -57,17 +57,18 @@ export type InsertClient = typeof clients.$inferInsert;
 
 // ─── Client Users (Transportation Company Admins) ──────────────────
 // Each client (tenant) can have multiple users who manage the account.
+// Column names match the snake_case names in the MySQL database.
 export const clientUsers = mysqlTable("client_users", {
   id: serial("id").primaryKey(),
-  clientId: bigint("clientId", { mode: "number", unsigned: true }).notNull(),
+  clientId: bigint("client_id", { mode: "number", unsigned: true }).notNull(),
   email: varchar("email", { length: 320 }).notNull().unique(),
-  passwordHash: varchar("passwordHash", { length: 255 }).notNull(),
+  passwordHash: varchar("password_hash", { length: 255 }).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   role: mysqlEnum("role", ["owner", "admin", "operator"]).default("owner").notNull(),
   active: boolean("active").default(true).notNull(),
-  lastSignInAt: timestamp("lastSignInAt").defaultNow().notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => new Date()),
+  lastSignInAt: timestamp("last_sign_in_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
 }, (table) => ({
   emailIdx: index("client_user_email_idx").on(table.email),
   clientIdx: index("client_user_client_idx").on(table.clientId),
