@@ -76,6 +76,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
   const [reservationCode, setReservationCode] = useState('');
   const [copied, setCopied] = useState(false);
   const [destSearch, setDestSearch] = useState('');
+  const [bookingError, setBookingError] = useState('');
 
   const { data: clientConfig } = trpc.widget.config.useQuery({ apiKey });
   const clientId = clientConfig?.id || 1;
@@ -96,15 +97,28 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
 
   const createBooking = trpc.widget.createBooking.useMutation({
     onSuccess: (data) => {
+      setBookingError('');
       if (data?.code) {
         setReservationCode(data.code);
         setConfirmed(true);
+      }
+    },
+    onError: (err) => {
+      const msg = err.message || 'Booking failed. Please try again.';
+      // Make error messages user-friendly
+      if (msg.includes('pricing')) {
+        setBookingError('No price configured for this vehicle and zone. Please contact the administrator.');
+      } else if (msg.includes('client')) {
+        setBookingError('Invalid client configuration. Please contact support.');
+      } else {
+        setBookingError(msg);
       }
     },
   });
 
   const updateBooking = useCallback((updates: Partial<BookingData>) => {
     setBooking(prev => ({ ...prev, ...updates }));
+    setBookingError(''); // Clear error when user changes something
   }, []);
 
   const selectedService = servicesList?.find(s => s.id === Number(booking.serviceId));
@@ -158,10 +172,11 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
   };
 
   const handleNext = () => {
+    setBookingError(''); // Clear previous error
     if (currentStep < 5) {
       setDirection(1);
       setCurrentStep(s => s + 1);
-    } else if (clientConfig?.id && selectedDestination && selectedVehicle) {
+    } else if (clientConfig?.id && selectedDestination && selectedVehicle && apiKey) {
       createBooking.mutate({
         apiKey,
         serviceId: Number(booking.serviceId),
@@ -190,8 +205,8 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
     }
   };
 
-  const handleBack = () => { if (currentStep > 1) { setDirection(-1); setCurrentStep(s => s - 1); } };
-  const handleReset = () => { setBooking(initialBooking); setCurrentStep(1); setConfirmed(false); setReservationCode(''); setDestSearch(''); };
+  const handleBack = () => { if (currentStep > 1) { setDirection(-1); setCurrentStep(s => s - 1); setBookingError(''); } };
+  const handleReset = () => { setBooking(initialBooking); setCurrentStep(1); setConfirmed(false); setReservationCode(''); setDestSearch(''); setBookingError(''); };
   const handleCopyCode = () => { navigator.clipboard.writeText(reservationCode); setCopied(true); setTimeout(() => setCopied(false), 2000); };
 
   const progressWidth = currentStep === 5 ? 100 : ((currentStep - 1) / 4) * 100;
@@ -826,8 +841,13 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                     </div>
                   )}
                 </div>
+                {bookingError && (
+                  <div className="mb-3 p-3 bg-[rgba(178,58,47,0.08)] border border-[rgba(178,58,47,0.2)] rounded-lg">
+                    <p className="font-body text-xs text-[#B23A2F] text-center">{bookingError}</p>
+                  </div>
+                )}
                 <button onClick={handleNext} disabled={!canProceed() || createBooking.isPending}
-                  className={`w-full h-[52px] rounded-lg font-body font-semibold text-base transition-all ${canProceed() ? 'bg-terracotta text-white shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5' : 'bg-terracotta/50 text-white/70 cursor-not-allowed'}`}>
+                  className={`w-full h-[52px] rounded-lg font-body font-semibold text-base transition-all ${canProceed() && !bookingError ? 'bg-terracotta text-white shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5' : 'bg-terracotta/50 text-white/70 cursor-not-allowed'}`}>
                   {createBooking.isPending ? t('widget.step4.processing') : `${t('widget.step5.payNow') || 'Pay'} $${amountToPayNow.toFixed(2)} USD`}
                 </button>
               </div>
