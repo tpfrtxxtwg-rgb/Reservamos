@@ -7,7 +7,7 @@ import {
   ChartBar, Gear, ArrowLeft, Eye, CheckCircle, XCircle,
   TrendUp, TrendDown, X, MapPin, CreditCard,
   Clock as ClockIcon, MapTrifold, Buildings, Money,
-  ShoppingCart, SignOut,
+  ShoppingCart, SignOut, Globe,
 } from '@phosphor-icons/react';
 import { trpc } from '@/providers/trpc';
 import { useClientAuth } from '@/providers/ClientAuthProvider';
@@ -48,6 +48,10 @@ export default function AdminPanel() {
     { icon: <ChartBar size={20} />, label: t('admin.reports'), id: 'reports' },
     { icon: <Gear size={20} />, label: t('admin.settings'), id: 'settings' },
   ];
+
+  const handlePreviewWidget = () => {
+    navigate('/preview');
+  };
 
   const { data: stats } = trpc.booking.stats.useQuery(undefined, { enabled: activeTab === 'dashboard' });
   const { data: bookingsData } = trpc.booking.list.useQuery({ limit: activeTab === 'reservations' ? 100 : 5 });
@@ -233,6 +237,13 @@ export default function AdminPanel() {
             <button onClick={() => setSidebarOpen(true)} className="md:hidden text-charcoal"><SquaresFour size={24} /></button>
             <h1 className="font-display text-xl font-semibold text-charcoal capitalize">{sidebarItems.find(i => i.id === activeTab)?.label}</h1>
           </div>
+          <button
+            onClick={handlePreviewWidget}
+            className="flex items-center gap-2 px-4 py-2 bg-[#C75E3A] text-white rounded-lg font-body text-sm font-medium hover:bg-[#a84d2f] transition-colors shadow-sm"
+          >
+            <Globe size={18} />
+            <span className="hidden sm:inline">{t('admin.previewWidget') || 'Preview Widget'}</span>
+          </button>
         </header>
         <div className="p-6 md:p-8">
           {renderTabContent()}

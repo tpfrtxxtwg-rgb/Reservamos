@@ -16,6 +16,7 @@ export const clientSettingsRouter = createRouter({
       id: client.id,
       name: client.name,
       email: client.email,
+      apiKey: client.apiKey,
       theme: client.theme,
       primaryColor: client.primaryColor,
       taxRate: client.taxRate,

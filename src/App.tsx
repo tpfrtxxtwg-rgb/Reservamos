@@ -3,6 +3,7 @@ import LandingPage from '@/pages/LandingPage';
 import AdminPanel from '@/sections/AdminPanel';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
+import WidgetPreview from '@/pages/WidgetPreview';
 import NotFound from '@/pages/NotFound';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
@@ -17,6 +18,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <AdminPanel />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/preview"
+        element={
+          <ProtectedRoute>
+            <WidgetPreview />
           </ProtectedRoute>
         }
       />
