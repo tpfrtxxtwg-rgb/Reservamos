@@ -10,7 +10,7 @@ import BookingWidget from '@/components/BookingWidget';
 export default function WidgetPreview() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { isAuthenticated, isLoading: authLoading } = useClientAuth();
+  const { isAuthenticated, isLoading: authLoading, user } = useClientAuth();
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'preview' | 'code'>('preview');
 
@@ -20,6 +20,7 @@ export default function WidgetPreview() {
   );
 
   const apiKey = settings?.apiKey || '';
+  const directClientId = user?.clientId;
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
 
   // Embed code that clients can copy and paste into their website
@@ -146,7 +147,7 @@ export default function WidgetPreview() {
 
               {/* The actual widget */}
               <div className="border border-[rgba(138,130,120,0.08)] rounded-lg overflow-hidden">
-                <BookingWidget apiKey={apiKey} />
+                <BookingWidget apiKey={apiKey} directClientId={directClientId} />
               </div>
             </div>
           </motion.div>

@@ -14,6 +14,7 @@ import type { BookingData } from '@/types';
 
 interface BookingWidgetProps {
   apiKey?: string;
+  directClientId?: number; // Used in preview to bypass apiKey lookup
 }
 
 const initialBooking: BookingData = {
@@ -67,7 +68,7 @@ const airlines = [
 
 const timeSlots = ['05:00 AM','05:30 AM','06:00 AM','06:30 AM','07:00 AM','07:30 AM','08:00 AM','08:30 AM','09:00 AM','09:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM','12:00 PM','12:30 PM','01:00 PM','01:30 PM','02:00 PM','02:30 PM','03:00 PM','03:30 PM','04:00 PM','04:30 PM','05:00 PM','05:30 PM','06:00 PM','06:30 PM','07:00 PM','07:30 PM','08:00 PM','08:30 PM','09:00 PM','09:30 PM','10:00 PM'];
 
-export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: BookingWidgetProps) {
+export default function BookingWidget({ apiKey = 'rv_demo_client_12345', directClientId }: BookingWidgetProps) {
   const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(1);
   const [direction, setDirection] = useState(1);
@@ -78,21 +79,30 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
   const [destSearch, setDestSearch] = useState('');
   const [bookingError, setBookingError] = useState('');
 
-  const { data: clientConfig } = trpc.widget.config.useQuery({ apiKey });
-  const clientId = clientConfig?.id || 1;
-
-  const { data: servicesList } = trpc.widget.listServices.useQuery(
-    { clientId }, { enabled: !!clientConfig?.id }
+  // When directClientId is provided (preview mode), skip apiKey lookup
+  const { data: clientConfig } = trpc.widget.config.useQuery(
+    { apiKey },
+    { enabled: !directClientId && !!apiKey }
   );
-  const { data: destinationsList } = trpc.widget.listDestinations.useQuery(
-    { clientId }, { enabled: !!clientConfig?.id }
+
+  const effectiveClientId = directClientId || clientConfig?.id || 0;
+  const isReady = effectiveClientId > 0;
+
+  const { data: servicesList, isLoading: servicesLoading } = trpc.widget.listServices.useQuery(
+    { clientId: effectiveClientId },
+    { enabled: isReady }
+  );
+  const { data: destinationsList, isLoading: destsLoading } = trpc.widget.listDestinations.useQuery(
+    { clientId: effectiveClientId },
+    { enabled: isReady }
   );
   const { data: optionalServicesList } = trpc.widget.listOptionalServices.useQuery(
-    { clientId }, { enabled: !!clientConfig?.id }
+    { clientId: effectiveClientId },
+    { enabled: isReady }
   );
   const { data: vehiclesList } = trpc.widget.listVehicles.useQuery(
-    { clientId, destinationId: Number(booking.destinationId) || 0, tripType: booking.tripType || 'one_way' },
-    { enabled: !!clientConfig?.id && !!booking.destinationId && currentStep >= 3 }
+    { clientId: effectiveClientId, destinationId: Number(booking.destinationId) || 0, tripType: booking.tripType || 'one_way' },
+    { enabled: isReady && !!booking.destinationId && currentStep >= 3 }
   );
 
   const createBooking = trpc.widget.createBooking.useMutation({
@@ -179,7 +189,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
     if (currentStep < 5) {
       setDirection(1);
       setCurrentStep(s => s + 1);
-    } else if (clientConfig?.id && selectedDestination && selectedVehicle && apiKey) {
+    } else if (effectiveClientId && selectedDestination && selectedVehicle && apiKey) {
       createBooking.mutate({
         apiKey,
         serviceId: Number(booking.serviceId),
@@ -297,8 +307,12 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                   </button>
                 </div>
 
-                {/* Services - or message if none exist */}
-                {servicesList && servicesList.length > 0 ? (
+                {/* Services - loading, empty, or list */}
+                {servicesLoading || destsLoading ? (
+                  <div className="flex items-center justify-center h-32 mb-6">
+                    <span className="font-body text-sm text-warm-gray animate-pulse">{t('common.loading') || 'Loading...'}</span>
+                  </div>
+                ) : servicesList && servicesList.length > 0 ? (
                   <div className="grid grid-cols-1 gap-3 mb-6">
                     {servicesList.map(service => (
                       <button key={service.id} onClick={() => updateBooking({ serviceId: String(service.id) })}
@@ -316,14 +330,14 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                 ) : (
                   <div className="bg-[#FAFAF8] rounded-lg p-5 mb-6 border border-[rgba(138,130,120,0.15)]">
                     <p className="font-body text-sm text-warm-gray text-center">
-                      {t('widget.noServices') || 'No services configured yet. Go to Admin Panel → Services to add your first service.'}
+                      {'No services configured yet. Go to Admin Panel > Services to add your first service.'}
                     </p>
                   </div>
                 )}
 
                 <div className="flex items-center justify-between pt-2">
                   <span className="font-body text-sm text-warm-gray">
-                    {servicesList && servicesList.length > 0 ? (t('widget.step1.priceFrom') || 'Configure your services') : ''}
+                    {servicesList && servicesList.length > 0 ? (t('widget.step1.priceFrom') || '') : ''}
                   </span>
                   <button onClick={handleNext} disabled={!canProceed()}
                     className={`flex items-center gap-2 px-6 py-3 rounded-full font-body font-semibold text-sm transition-all ${canProceed() ? 'bg-terracotta text-white shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5' : 'bg-terracotta/50 text-white/70 cursor-not-allowed'}`}>
