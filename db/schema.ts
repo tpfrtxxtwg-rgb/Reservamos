@@ -196,7 +196,7 @@ export const vehicles = mysqlTable("vehicles", {
   capacityMin: int("capacityMin").default(1).notNull(),
   capacityMax: int("capacityMax").default(6).notNull(),
   features: json("features").$type<string[]>(),
-  hourlyRate: decimal("hourlyRate", { precision: 10, scale: 2 }).default("0.00").notNull(),
+  hourlyRate: decimal("hourly_rate", { precision: 10, scale: 2 }).default("0.00").notNull(),
   active: boolean("active").default(true).notNull(),
   sortOrder: int("sortOrder").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
