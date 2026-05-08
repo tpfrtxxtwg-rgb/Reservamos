@@ -153,6 +153,7 @@
       "title": "Dónde y Cuándo",
       "subtitle": "Selecciona tu zona, fecha y hora",
       "origin": "Lugar de Origen",
+      "selectAirport": "Selecciona origen",
       "otherLocation": "Otra ubicación",
       "enterLocation": "Ingresa ubicación...",
       "destination": "Hotel / Destino",
