@@ -10,6 +10,8 @@ import { vehicleZonePriceRouter } from "./vehicle-zone-price-router";
 import { optionalServiceRouter } from "./optional-service-router";
 import { clientSettingsRouter } from "./client-settings-router";
 import { bookingRouter } from "./booking-router";
+import { serviceAirportRouter } from "./service-airport-router";
+import { serviceTourRouter } from "./service-tour-router";
 import { createRouter, publicQuery } from "./middleware";
 
 export const appRouter = createRouter({
@@ -26,6 +28,8 @@ export const appRouter = createRouter({
   optionalService: optionalServiceRouter,
   clientSettings: clientSettingsRouter,
   booking: bookingRouter,
+  serviceAirport: serviceAirportRouter,
+  serviceTour: serviceTourRouter,
 });
 
 export type AppRouter = typeof appRouter;

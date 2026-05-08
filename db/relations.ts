@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { clients, services, vehicles, bookings, zones, destinations, vehicleZonePrices, optionalServices } from "./schema";
+import { clients, services, vehicles, bookings, zones, destinations, vehicleZonePrices, optionalServices, serviceAirports, serviceTours } from "./schema";
 
 export const clientsRelations = relations(clients, ({ many }) => ({
   services: many(services),
@@ -8,6 +8,8 @@ export const clientsRelations = relations(clients, ({ many }) => ({
   zones: many(zones),
   destinations: many(destinations),
   optionalServices: many(optionalServices),
+  airports: many(serviceAirports),
+  tours: many(serviceTours),
 }));
 
 export const servicesRelations = relations(services, ({ one, many }) => ({

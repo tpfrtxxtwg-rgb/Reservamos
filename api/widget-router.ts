@@ -2,7 +2,7 @@ import { z } from "zod";
 import { eq, and } from "drizzle-orm";
 import { createRouter, publicQuery } from "./middleware";
 import { getDb } from "./queries/connection";
-import { clients, services, vehicles, destinations, vehicleZonePrices, bookings, optionalServices } from "@db/schema";
+import { clients, services, vehicles, destinations, vehicleZonePrices, bookings, optionalServices, serviceAirports, serviceTours } from "@db/schema";
 
 function generateCode() {
   const ts = Date.now().toString(36).toUpperCase();
@@ -100,6 +100,32 @@ export const widgetRouter = createRouter({
       });
     }),
 
+  listAirports: publicQuery
+    .input(z.object({ clientId: z.number().positive() }))
+    .query(async ({ input }) => {
+      const db = getDb();
+      return db.query.serviceAirports.findMany({
+        where: and(
+          eq(serviceAirports.clientId, input.clientId),
+          eq(serviceAirports.active, true),
+        ),
+        orderBy: serviceAirports.sortOrder,
+      });
+    }),
+
+  listTours: publicQuery
+    .input(z.object({ clientId: z.number().positive() }))
+    .query(async ({ input }) => {
+      const db = getDb();
+      return db.query.serviceTours.findMany({
+        where: and(
+          eq(serviceTours.clientId, input.clientId),
+          eq(serviceTours.active, true),
+        ),
+        orderBy: serviceTours.sortOrder,
+      });
+    }),
+
   checkAvailability: publicQuery
     .input(z.object({
       clientId: z.number().positive(),
@@ -113,7 +139,7 @@ export const widgetRouter = createRouter({
   createBooking: publicQuery
     .input(z.object({
       apiKey: z.string().min(1),
-      serviceId: z.number().positive(),
+      serviceId: z.number().positive().optional(),
       destinationId: z.number().positive(),
       tripType: z.enum(["one_way", "round_trip"]).default("one_way"),
       origin: z.string().min(1).max(500),
