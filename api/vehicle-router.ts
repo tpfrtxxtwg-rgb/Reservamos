@@ -33,6 +33,7 @@ export const vehicleRouter = createRouter({
       capacityMin: z.number().min(1).default(1),
       capacityMax: z.number().min(1).default(6),
       features: z.array(z.string()).default([]),
+      hourlyRate: z.string().regex(/^\d+(\.\d{2})?$/).default("0.00"),
       sortOrder: z.number().default(0),
     }))
     .mutation(async ({ input, ctx }) => {
@@ -54,6 +55,7 @@ export const vehicleRouter = createRouter({
       capacityMin: z.number().min(1).optional(),
       capacityMax: z.number().min(1).optional(),
       features: z.array(z.string()).optional(),
+      hourlyRate: z.string().regex(/^\d+(\.\d{2})?$/).optional(),
       active: z.boolean().optional(),
       sortOrder: z.number().optional(),
     }))

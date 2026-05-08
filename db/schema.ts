@@ -97,6 +97,38 @@ export const services = mysqlTable("services", {
 export type Service = typeof services.$inferSelect;
 export type InsertService = typeof services.$inferInsert;
 
+// ─── Service Airports (for Airport Transfer service type) ──────
+export const serviceAirports = mysqlTable("service_airports", {
+  id: serial("id").primaryKey(),
+  clientId: bigint("client_id", { mode: "number", unsigned: true }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  code: varchar("code", { length: 10 }).notNull(),
+  city: varchar("city", { length: 100 }),
+  active: boolean("active").default(true).notNull(),
+  sortOrder: int("sort_order").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
+});
+
+export type ServiceAirport = typeof serviceAirports.$inferSelect;
+
+// ─── Service Tours (for Private Tour service type) ─────────────
+export const serviceTours = mysqlTable("service_tours", {
+  id: serial("id").primaryKey(),
+  clientId: bigint("client_id", { mode: "number", unsigned: true }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  duration: varchar("duration", { length: 50 }),
+  highlights: text("highlights"),
+  price: decimal("price", { precision: 10, scale: 2 }).default("0.00").notNull(),
+  active: boolean("active").default(true).notNull(),
+  sortOrder: int("sort_order").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
+});
+
+export type ServiceTour = typeof serviceTours.$inferSelect;
+
 // ─── Zones (Administrative groupings) ──────────────────────────
 // Zones are defined by the transportation company. Each zone contains
 // a list of destinations (hotels). Prices are set per zone per vehicle.
@@ -164,6 +196,7 @@ export const vehicles = mysqlTable("vehicles", {
   capacityMin: int("capacityMin").default(1).notNull(),
   capacityMax: int("capacityMax").default(6).notNull(),
   features: json("features").$type<string[]>(),
+  hourlyRate: decimal("hourlyRate", { precision: 10, scale: 2 }).default("0.00").notNull(),
   active: boolean("active").default(true).notNull(),
   sortOrder: int("sortOrder").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
