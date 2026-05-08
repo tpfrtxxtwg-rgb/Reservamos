@@ -157,7 +157,10 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
 
   const canProceed = () => {
     switch (currentStep) {
-      case 1: return !!booking.tripType && !!booking.serviceId;
+      case 1: {
+        const hasServices = servicesList && servicesList.length > 0;
+        return !!booking.tripType && (hasServices ? !!booking.serviceId : true);
+      }
       case 2: {
         if (!booking.destinationId || !booking.date || !booking.time) return false;
         if (isAirportService && (!booking.flightNumber || !booking.airline)) return false;
@@ -293,22 +296,35 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                     <ArrowsLeftRight size={18} /> {t('widget.tripType.roundTrip')}
                   </button>
                 </div>
-                <div className="grid grid-cols-1 gap-3 mb-6">
-                  {servicesList?.map(service => (
-                    <button key={service.id} onClick={() => updateBooking({ serviceId: String(service.id) })}
-                      className={`p-4 rounded-lg border-2 text-left transition-all duration-200 hover:shadow-sm hover:-translate-y-0.5 flex items-center gap-4 ${Number(booking.serviceId) === service.id ? 'border-terracotta bg-[rgba(199,94,58,0.04)]' : 'border-[rgba(138,130,120,0.15)] bg-white'}`}>
-                      <div className={`${Number(booking.serviceId) === service.id ? 'text-terracotta' : 'text-warm-gray'}`}>
-                        {serviceIcons[service.slug] || <MapPin size={28} />}
-                      </div>
-                      <div>
-                        <span className="font-body text-[15px] font-medium text-charcoal block">{service.name}</span>
-                        <span className="font-body text-xs text-warm-gray">{service.description}</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+
+                {/* Services - or message if none exist */}
+                {servicesList && servicesList.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-3 mb-6">
+                    {servicesList.map(service => (
+                      <button key={service.id} onClick={() => updateBooking({ serviceId: String(service.id) })}
+                        className={`p-4 rounded-lg border-2 text-left transition-all duration-200 hover:shadow-sm hover:-translate-y-0.5 flex items-center gap-4 ${Number(booking.serviceId) === service.id ? 'border-terracotta bg-[rgba(199,94,58,0.04)]' : 'border-[rgba(138,130,120,0.15)] bg-white'}`}>
+                        <div className={`${Number(booking.serviceId) === service.id ? 'text-terracotta' : 'text-warm-gray'}`}>
+                          {serviceIcons[service.slug] || <MapPin size={28} />}
+                        </div>
+                        <div>
+                          <span className="font-body text-[15px] font-medium text-charcoal block">{service.name}</span>
+                          <span className="font-body text-xs text-warm-gray">{service.description}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-[#FAFAF8] rounded-lg p-5 mb-6 border border-[rgba(138,130,120,0.15)]">
+                    <p className="font-body text-sm text-warm-gray text-center">
+                      {t('widget.noServices') || 'No services configured yet. Go to Admin Panel → Services to add your first service.'}
+                    </p>
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between pt-2">
-                  <span className="font-body text-sm text-warm-gray">{t('widget.step1.priceFrom')}</span>
+                  <span className="font-body text-sm text-warm-gray">
+                    {servicesList && servicesList.length > 0 ? (t('widget.step1.priceFrom') || 'Configure your services') : ''}
+                  </span>
                   <button onClick={handleNext} disabled={!canProceed()}
                     className={`flex items-center gap-2 px-6 py-3 rounded-full font-body font-semibold text-sm transition-all ${canProceed() ? 'bg-terracotta text-white shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5' : 'bg-terracotta/50 text-white/70 cursor-not-allowed'}`}>
                     {t('common.continue')} <ArrowRight size={16} />

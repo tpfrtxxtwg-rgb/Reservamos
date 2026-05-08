@@ -3,7 +3,7 @@ import * as cookie from "cookie";
 import bcrypt from "bcryptjs";
 import { createRouter, publicQuery } from "./middleware";
 import { getDb } from "./queries/connection";
-import { clients, clientUsers } from "@db/schema";
+import { clients, clientUsers, services } from "@db/schema";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
@@ -109,6 +109,13 @@ export const clientAuthRouter = createRouter({
           role: "owner",
         })
         .$returningId();
+
+      // Auto-create default services for the new client
+      await db.insert(services).values([
+        { clientId: clientId, name: "Airport Transfer", slug: "airport-transfer", icon: "AirplaneLanding", description: "Private transfer from/to the airport", basePrice: "0.00", active: true, sortOrder: 0 },
+        { clientId: clientId, name: "Private Tour", slug: "private-tour", icon: "MapTrifold", description: "Custom private tours and excursions", basePrice: "0.00", active: true, sortOrder: 1 },
+        { clientId: clientId, name: "Hourly Service", slug: "hourly", icon: "Clock", description: "Vehicle and driver at your disposal", basePrice: "0.00", active: true, sortOrder: 2 },
+      ]);
 
       // Create session cookie
       const session = serializeSession({ userId, clientId });
