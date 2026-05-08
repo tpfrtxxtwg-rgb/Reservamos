@@ -19,8 +19,10 @@ interface BookingWidgetProps {
 const initialBooking: BookingData = {
   tripType: null,
   serviceId: null,
+  airportId: null,
+  tourId: null,
   destinationId: null,
-  origin: 'Cancun International Airport (CUN)',
+  origin: '',
   date: '',
   time: '',
   passengers: 2,
@@ -103,6 +105,14 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
     { clientId: effectiveClientId, destinationId: Number(booking.destinationId) || 0, tripType: booking.tripType || 'one_way' },
     { enabled: isReady && !!booking.destinationId && currentStep >= 3 }
   );
+  const { data: airportsList } = trpc.widget.listAirports.useQuery(
+    { clientId: effectiveClientId },
+    { enabled: isReady }
+  );
+  const { data: toursList } = trpc.widget.listTours.useQuery(
+    { clientId: effectiveClientId },
+    { enabled: isReady }
+  );
 
   const createBooking = trpc.widget.createBooking.useMutation({
     onSuccess: (data) => {
@@ -162,6 +172,8 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
   const balanceDue = booking.paymentOption === 'deposit' && depositEnabled ? Math.round((total - depositAmount) * 100) / 100 : 0;
 
   const isAirportService = selectedService?.slug === 'airport-transfer';
+  const isTourService = selectedService?.slug === 'private-tour';
+  const isHourlyService = selectedService?.slug === 'hourly';
   const isRoundTrip = booking.tripType === 'round_trip';
 
   const canProceed = () => {
@@ -362,19 +374,21 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                       <AirplaneTilt size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
                       <select value={booking.origin} onChange={e => updateBooking({ origin: e.target.value })}
                         className="w-full h-12 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-10 pr-4 font-body text-sm text-charcoal focus:border-terracotta focus:ring-[3px] focus:ring-[rgba(199,94,58,0.1)] outline-none transition-all appearance-none">
-                        <option value="Cancun International Airport (CUN)">Cancun International Airport (CUN)</option>
-                        <option value="Tulum Airport (TQO)">Tulum Airport (TQO)</option>
-                        <option value="Playa del Carmen Ferry Terminal">Playa del Carmen Ferry Terminal</option>
-                        <option value="Puerto Morelos">Puerto Morelos</option>
-                        <option value="Cancun Downtown">Cancun Downtown</option>
-                        <option value="Puerto Aventuras">Puerto Aventuras</option>
-                        <option value="Cozumel Ferry Terminal">Cozumel Ferry Terminal</option>
-                        <option value="Chetumal Airport (CTM)">Chetumal Airport (CTM)</option>
-                        <option value="Merida Airport (MID)">Merida Airport (MID)</option>
+                        <option value="">{t('widget.step2.selectAirport') || 'Select origin'}</option>
+                        {airportsList && airportsList.length > 0 ? (
+                          airportsList.map((apt: any) => (
+                            <option key={apt.id} value={`${apt.name} (${apt.code})`}>{apt.name} ({apt.code}){apt.city ? ` - ${apt.city}` : ''}</option>
+                          ))
+                        ) : (
+                          <>
+                            <option value="Cancun International Airport (CUN)">Cancun International Airport (CUN)</option>
+                            <option value="Tulum Airport (TQO)">Tulum Airport (TQO)</option>
+                          </>
+                        )}
                         <option value="Other">{t('widget.step2.otherLocation')}</option>
                       </select>
                     </div>
-                    {booking.origin === 'Other' && (
+                    {(booking.origin === 'Other' || !airportsList || airportsList.length === 0) && (
                       <input type="text" value={booking.origin === 'Other' ? '' : booking.origin}
                         onChange={e => updateBooking({ origin: e.target.value })}
                         placeholder={t('widget.step2.enterLocation')}
@@ -423,6 +437,23 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                       </div>
                     )}
                   </div>
+
+                  {/* Tour Selection for Private Tour service */}
+                  {isTourService && toursList && toursList.length > 0 && (
+                    <div>
+                      <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 block">Select Tour</label>
+                      <div className="relative">
+                        <MapTrifold size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
+                        <select value={booking.tourId || ''} onChange={e => updateBooking({ tourId: e.target.value })}
+                          className="w-full h-12 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-10 pr-4 font-body text-sm text-charcoal focus:border-terracotta focus:ring-[3px] focus:ring-[rgba(199,94,58,0.1)] outline-none transition-all appearance-none">
+                          <option value="">Select a tour</option>
+                          {toursList.map((tour: any) => (
+                            <option key={tour.id} value={String(tour.id)}>{tour.name}{tour.duration ? ` (${tour.duration})` : ''} - ${tour.price}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Date & Time */}
                   <div className="grid grid-cols-2 gap-3">

@@ -62,6 +62,8 @@ export interface Destination {
 export interface BookingData {
   tripType: 'one_way' | 'round_trip' | null;
   serviceId: string | null;
+  airportId: string | null;
+  tourId: string | null;
   destinationId: string | null;
   origin: string;
   date: string;
