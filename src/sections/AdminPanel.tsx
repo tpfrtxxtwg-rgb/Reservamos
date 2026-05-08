@@ -15,6 +15,7 @@ import type { Booking } from '@/types';
 import AdminZones from '@/components/admin/AdminZones';
 import AdminDestinations from '@/components/admin/AdminDestinations';
 import AdminVehicles from '@/components/admin/AdminVehicles';
+import AdminServices from '@/components/admin/AdminServices';
 import AdminPricing from '@/components/admin/AdminPricing';
 import AdminOptionalServices from '@/components/admin/AdminOptionalServices';
 import AdminSettings from '@/components/admin/AdminSettings';
@@ -41,6 +42,7 @@ export default function AdminPanel() {
     { icon: <MapTrifold size={20} />, label: t('admin.zones'), id: 'zones' },
     { icon: <Buildings size={20} />, label: t('admin.destinations'), id: 'destinations' },
     { icon: <Car size={20} />, label: t('admin.vehicles'), id: 'vehicles' },
+    { icon: <MapPin size={20} />, label: t('admin.services'), id: 'services' },
     { icon: <Money size={20} />, label: t('admin.pricing'), id: 'pricing' },
     { icon: <ShoppingCart size={20} />, label: t('admin.optionalServices'), id: 'optionalServices' },
     { icon: <Users size={20} />, label: t('admin.drivers'), id: 'drivers' },
@@ -185,6 +187,7 @@ export default function AdminPanel() {
       case 'zones': return <AdminZones clientId={clientId} />;
       case 'destinations': return <AdminDestinations clientId={clientId} />;
       case 'vehicles': return <AdminVehicles clientId={clientId} />;
+      case 'services': return <AdminServices />;
       case 'pricing': return <AdminPricing />;
       case 'optionalServices': return <AdminOptionalServices clientId={clientId} />;
       case 'settings': return <AdminSettings clientId={clientId} />;
