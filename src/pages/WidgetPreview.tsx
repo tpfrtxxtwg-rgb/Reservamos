@@ -20,7 +20,7 @@ export default function WidgetPreview() {
   );
 
   const apiKey = settings?.apiKey || '';
-  const directClientId = user?.clientId;
+  const isReady = !!apiKey && isAuthenticated;
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
 
   // Embed code that clients can copy and paste into their website
@@ -145,9 +145,15 @@ export default function WidgetPreview() {
                 </div>
               </div>
 
-              {/* The actual widget */}
+              {/* The actual widget - only render when apiKey is loaded */}
               <div className="border border-[rgba(138,130,120,0.08)] rounded-lg overflow-hidden">
-                <BookingWidget apiKey={apiKey} directClientId={directClientId} />
+                {isReady ? (
+                  <BookingWidget apiKey={apiKey} />
+                ) : (
+                  <div className="flex items-center justify-center h-64 bg-white">
+                    <span className="font-body text-sm text-warm-gray animate-pulse">Loading your booking engine...</span>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>

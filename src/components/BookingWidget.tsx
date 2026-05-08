@@ -14,7 +14,6 @@ import type { BookingData } from '@/types';
 
 interface BookingWidgetProps {
   apiKey?: string;
-  directClientId?: number; // Used in preview to bypass apiKey lookup
 }
 
 const initialBooking: BookingData = {
@@ -68,7 +67,7 @@ const airlines = [
 
 const timeSlots = ['05:00 AM','05:30 AM','06:00 AM','06:30 AM','07:00 AM','07:30 AM','08:00 AM','08:30 AM','09:00 AM','09:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM','12:00 PM','12:30 PM','01:00 PM','01:30 PM','02:00 PM','02:30 PM','03:00 PM','03:30 PM','04:00 PM','04:30 PM','05:00 PM','05:30 PM','06:00 PM','06:30 PM','07:00 PM','07:30 PM','08:00 PM','08:30 PM','09:00 PM','09:30 PM','10:00 PM'];
 
-export default function BookingWidget({ apiKey = 'rv_demo_client_12345', directClientId }: BookingWidgetProps) {
+export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: BookingWidgetProps) {
   const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(1);
   const [direction, setDirection] = useState(1);
@@ -79,13 +78,13 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345', directC
   const [destSearch, setDestSearch] = useState('');
   const [bookingError, setBookingError] = useState('');
 
-  // When directClientId is provided (preview mode), skip apiKey lookup
+  // Query client config from apiKey
   const { data: clientConfig } = trpc.widget.config.useQuery(
     { apiKey },
-    { enabled: !directClientId && !!apiKey }
+    { enabled: !!apiKey }
   );
 
-  const effectiveClientId = directClientId || clientConfig?.id || 0;
+  const effectiveClientId = clientConfig?.id || 0;
   const isReady = effectiveClientId > 0;
 
   const { data: servicesList, isLoading: servicesLoading } = trpc.widget.listServices.useQuery(
@@ -189,7 +188,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345', directC
     if (currentStep < 5) {
       setDirection(1);
       setCurrentStep(s => s + 1);
-    } else if (effectiveClientId && selectedDestination && selectedVehicle && apiKey) {
+    } else if (clientConfig?.id && selectedDestination && selectedVehicle && apiKey) {
       createBooking.mutate({
         apiKey,
         serviceId: Number(booking.serviceId),

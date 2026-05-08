@@ -148,7 +148,7 @@
       "serviceAirport": "Airport Transfer",
       "serviceTour": "Private Tour",
       "serviceHourly": "By the Hour",
-      "priceFrom": "From $45 USD"
+      "priceFrom": "Select your service to continue"
     },
     "step2": {
       "title": "Where & When",
