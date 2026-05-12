@@ -1,9 +1,10 @@
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
+# Cache bust - forces Docker to reinstall (not use cache)
+ARG CACHE_BUST=2
 COPY package.json ./
-
 RUN rm -f package-lock.json && npm install
 
 ARG RAILWAY_GIT_COMMIT_SHA
@@ -11,10 +12,9 @@ RUN echo "Building commit: ${RAILWAY_GIT_COMMIT_SHA:-unknown}"
 
 COPY . .
 
-# Build usando npx (ignora problemas de permisos)
-RUN npx vite build && npx esbuild api/boot.ts --platform=node --bundle --format=esm --outdir=dist --banner:js="import { createRequire } from 'module';const require = createRequire(import.meta.url);"
+RUN npm run build
 
-FROM node:20-alpine
+FROM node:20-slim
 
 WORKDIR /app
 
