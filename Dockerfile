@@ -3,8 +3,8 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Copy package files
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json ./
+RUN npm install
 
 # Cache bust on every commit to ensure fresh source build
 ARG RAILWAY_GIT_COMMIT_SHA
