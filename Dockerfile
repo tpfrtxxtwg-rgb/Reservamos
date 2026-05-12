@@ -3,11 +3,12 @@ FROM node:20-slim AS builder
 WORKDIR /build
 
 COPY package.json ./
-RUN rm -f package-lock.json && npm install
 
-# Fix permissions for native binaries (esbuild, etc.)
-RUN chmod +x node_modules/@esbuild/*/bin/esbuild 2>/dev/null || true && \
-    chmod +x node_modules/esbuild/bin/esbuild 2>/dev/null || true
+RUN rm -f package-lock.json && \
+    npm install && \
+    chmod -R +x node_modules/.bin 2>/dev/null && \
+    find node_modules -name "esbuild" -type f -exec chmod +x {} \; 2>/dev/null && \
+    find node_modules -path "*/bin/esbuild" -type f -exec chmod +x {} \; 2>/dev/null
 
 ARG RAILWAY_GIT_COMMIT_SHA
 RUN echo "Building commit: ${RAILWAY_GIT_COMMIT_SHA:-unknown}"
