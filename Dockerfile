@@ -5,6 +5,10 @@ WORKDIR /build
 COPY package.json ./
 RUN rm -f package-lock.json && npm install
 
+# Fix permissions for native binaries (esbuild, etc.)
+RUN chmod +x node_modules/@esbuild/*/bin/esbuild 2>/dev/null || true && \
+    chmod +x node_modules/esbuild/bin/esbuild 2>/dev/null || true
+
 ARG RAILWAY_GIT_COMMIT_SHA
 RUN echo "Building commit: ${RAILWAY_GIT_COMMIT_SHA:-unknown}"
 
