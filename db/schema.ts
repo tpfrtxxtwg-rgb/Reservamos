@@ -230,6 +230,32 @@ export const optionalServices = mysqlTable("optional_services", {
 export type OptionalService = typeof optionalServices.$inferSelect;
 export type InsertOptionalService = typeof optionalServices.$inferInsert;
 
+// ─── Client Email Settings ──────────────────────────────────────
+export const clientEmailSettings = mysqlTable("client_email_settings", {
+  id: serial("id").primaryKey(),
+  clientId: bigint("clientId", { mode: "number", unsigned: true }).notNull().unique(),
+  enabled: boolean("enabled").default(true).notNull(),
+  subject: varchar("subject", { length: 255 }).default("Your Reservation Confirmation").notNull(),
+  message: text("message").default("Thank you for your reservation. We look forward to serving you.").notNull(),
+  pickupInstructions: text("pickupInstructions").default("").notNull(),
+  // SMTP configuration
+  smtpHost: varchar("smtp_host", { length: 255 }),
+  smtpPort: int("smtp_port").default(587),
+  smtpUser: varchar("smtp_user", { length: 255 }),
+  smtpPass: varchar("smtp_pass", { length: 255 }),
+  smtpFrom: varchar("smtp_from", { length: 320 }),
+  // Company contact info for the PDF/email
+  companyPhone: varchar("company_phone", { length: 50 }),
+  companyWebsite: varchar("company_website", { length: 255 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
+}, (table) => ({
+  clientIdx: index("email_settings_client_idx").on(table.clientId),
+}));
+
+export type ClientEmailSetting = typeof clientEmailSettings.$inferSelect;
+export type InsertClientEmailSetting = typeof clientEmailSettings.$inferInsert;
+
 // ─── Bookings (Reservations) ───────────────────────────────────
 export const bookings = mysqlTable("bookings", {
   id: serial("id").primaryKey(),

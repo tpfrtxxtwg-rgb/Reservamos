@@ -3,6 +3,7 @@ import { eq, and } from "drizzle-orm";
 import { createRouter, publicQuery } from "./middleware";
 import { getDb } from "./queries/connection";
 import { clients, services, vehicles, destinations, vehicleZonePrices, bookings, optionalServices, serviceAirports, serviceTours } from "@db/schema";
+import { sendBookingConfirmationEmail } from "./email-router";
 
 function generateCode() {
   const ts = Date.now().toString(36).toUpperCase();
@@ -260,6 +261,15 @@ export const widgetRouter = createRouter({
         total: total.toFixed(2),
       }).$returningId();
 
-      return db.query.bookings.findFirst({ where: eq(bookings.id, id) });
+      const createdBooking = await db.query.bookings.findFirst({ where: eq(bookings.id, id) });
+
+      // Send confirmation email asynchronously (don't block the response)
+      if (createdBooking) {
+        sendBookingConfirmationEmail(createdBooking.id).catch((err: any) => {
+          console.error("[Widget] Failed to send confirmation email:", err?.message || err);
+        });
+      }
+
+      return createdBooking;
     }),
 });
