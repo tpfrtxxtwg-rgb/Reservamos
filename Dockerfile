@@ -1,17 +1,26 @@
+
 FROM node:20-slim AS builder
+
+# Change this comment to force Railway to bust cache if needed
+# cache-bust: v1
 
 WORKDIR /build
 
 COPY package.json ./
 
-RUN npm install && npm rebuild esbuild
+# Install deps globally to avoid .bin permission issues entirely
+RUN npm install && \
+    npm install -g vite esbuild && \
+    npm rebuild esbuild
 
 ARG RAILWAY_GIT_COMMIT_SHA
 RUN echo "Building commit: ${RAILWAY_GIT_COMMIT_SHA:-unknown}"
 
 COPY . .
 
-RUN npm run build
+# Use global binaries (never have permission issues)
+RUN vite build && \
+    esbuild api/boot.ts --platform=node --bundle --format=esm --outdir=dist --banner:js="import { createRequire } from 'module';const require = createRequire(import.meta.url);"
 
 FROM node:20-slim
 
