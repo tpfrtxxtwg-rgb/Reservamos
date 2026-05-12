@@ -4,19 +4,14 @@ WORKDIR /build
 
 COPY package.json ./
 
-RUN rm -f package-lock.json && \
-    npm install && \
-    chmod -R +x node_modules/.bin 2>/dev/null && \
-    find node_modules -name "esbuild" -type f -exec chmod +x {} \; 2>/dev/null && \
-    find node_modules -path "*/bin/esbuild" -type f -exec chmod +x {} \; 2>/dev/null
+RUN npm install && npm rebuild esbuild
 
 ARG RAILWAY_GIT_COMMIT_SHA
 RUN echo "Building commit: ${RAILWAY_GIT_COMMIT_SHA:-unknown}"
 
 COPY . .
 
-RUN node node_modules/vite/bin/vite.js build && \
-    node node_modules/esbuild/bin/esbuild api/boot.ts --platform=node --bundle --format=esm --outdir=dist --banner:js="import { createRequire } from 'module';const require = createRequire(import.meta.url);"
+RUN npm run build
 
 FROM node:20-slim
 
