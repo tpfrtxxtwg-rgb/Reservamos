@@ -13,8 +13,8 @@ RUN git clone --depth 1 --branch ${RAILWAY_GIT_BRANCH} https://github.com/tpfrtx
 RUN npm install && npm rebuild esbuild
 RUN npx vite build
 
-# Bundle backend: only local code, externalize all node_modules
-RUN node node_modules/esbuild/bin/esbuild api/boot.ts \
+# Bundle backend with esbuild (bundle only local code, externalize node_modules)
+RUN ./node_modules/.bin/esbuild api/boot.ts \
     --bundle \
     --platform=node \
     --format=esm \
