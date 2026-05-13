@@ -17,7 +17,6 @@ FROM node:22-slim
 
 WORKDIR /app
 
-# Copy source code from builder
 COPY --from=builder /build-reservamos/api ./api
 COPY --from=builder /build-reservamos/db ./db
 COPY --from=builder /build-reservamos/contracts ./contracts
@@ -31,7 +30,6 @@ COPY --from=builder /build-reservamos/vite.config.ts ./vite.config.ts
 COPY --from=builder /build-reservamos/src ./src
 COPY --from=builder /build-reservamos/components.json ./components.json
 
-# Install tsx FRESH in runtime (bypasses any Railway cache)
 RUN npm install tsx --save-dev
 
 ENV NODE_ENV=production
@@ -39,4 +37,5 @@ ENV PORT=3000
 
 EXPOSE 3000
 
-CMD ["npx", "tsx", "api/boot.ts"]
+# tsx with explicit tsconfig pointing to tsconfig.server.json
+CMD ["./node_modules/.bin/tsx", "--tsconfig", "tsconfig.server.json", "api/boot.ts"]
