@@ -13,12 +13,10 @@ RUN git clone --depth 1 --branch ${RAILWAY_GIT_BRANCH} https://github.com/tpfrtx
 RUN npm install && npm rebuild esbuild
 RUN npx vite build
 
-# Compile backend with tsup (bundle to single file with correct .js extensions)
+# Compile backend with tsup (bundle by default, correct ESM .js extensions)
 RUN npx tsup api/boot.ts \
     --format esm \
     --outDir dist/server \
-    --bundle \
-    --platform node \
     --clean \
     --tsconfig tsconfig.server.json
 

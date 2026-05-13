@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && tsup api/boot.ts --format esm --outDir dist/server --tsconfig tsconfig.server.json",
     "lint": "eslint .",
     "preview": "vite preview",
     "start": "NODE_ENV=production node --import tsx/esm api/boot.ts",
