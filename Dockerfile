@@ -1,5 +1,6 @@
 FROM node:20-slim AS builder
 
+# Cache bust: v3
 WORKDIR /app
 
 COPY package.json package-lock.json ./
@@ -15,7 +16,6 @@ COPY tsconfig.server.json ./
 COPY postcss.config.js ./
 COPY tailwind.config.js ./
 COPY drizzle.config.ts ./
-COPY .env ./
 COPY api/ ./api/
 COPY db/ ./db/
 COPY contracts/ ./contracts/
