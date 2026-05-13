@@ -11,33 +11,31 @@ RUN git clone --depth 1 --branch ${RAILWAY_GIT_BRANCH} https://github.com/tpfrtx
     echo "Cloned commit: ${RAILWAY_GIT_COMMIT_SHA:-unknown}"
 
 RUN npm install && npm rebuild esbuild
-
-# Install TypeScript and tsup for backend compilation
-RUN npm install -D typescript tsup
-
 RUN npx vite build
-
-# Compile backend with tsup (bundle with correct ESM .js extensions)
-RUN npx tsup api/boot.ts \
-    --format esm \
-    --outDir dist/server \
-    --clean \
-    --tsconfig tsconfig.server.json
 
 FROM node:22-slim
 
 WORKDIR /app
 
-COPY --from=builder /build-reservamos/dist ./dist
-COPY --from=builder /build-reservamos/node_modules ./node_modules
+COPY --from=builder /build-reservamos/api ./api
+COPY --from=builder /build-reservamos/db ./db
+COPY --from=builder /build-reservamos/contracts ./contracts
+COPY --from=builder /build-reservamos/drizzle.config.ts ./drizzle.config.ts
+COPY --from=builder /build-reservamos/tsconfig.server.json ./tsconfig.server.json
+COPY --from=builder /build-reservamos/tsconfig.json ./tsconfig.json
 COPY --from=builder /build-reservamos/package.json ./package.json
-COPY --from=builder /build-reservamos/entrypoint.sh ./entrypoint.sh
+COPY --from=builder /build-reservamos/node_modules ./node_modules
+COPY --from=builder /build-reservamos/dist ./dist
+COPY --from=builder /build-reservamos/index.html ./index.html
+COPY --from=builder /build-reservamos/vite.config.ts ./vite.config.ts
+COPY --from=builder /build-reservamos/src ./src
+COPY --from=builder /build-reservamos/components.json ./components.json
 
-RUN chmod +x entrypoint.sh
+RUN npm install -g tsx && tsx --version
 
 ENV NODE_ENV=production
 ENV PORT=3000
 
 EXPOSE 3000
 
-ENTRYPOINT ["./entrypoint.sh"]
+CMD ["tsx", "api/boot.ts"]
