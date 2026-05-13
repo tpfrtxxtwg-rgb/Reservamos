@@ -15,7 +15,6 @@ RUN if [ -n "$GITHUB_TOKEN" ]; then \
     fi
 
 RUN npm install && npm rebuild esbuild
-RUN npm install -g tsx
 RUN npx vite build
 
 FROM node:20-slim
@@ -23,7 +22,8 @@ FROM node:20-slim
 WORKDIR /reservamos-runtime
 
 COPY --from=builder /reservamos/ .
-COPY --from=builder /usr/local/lib/node_modules/tsx /usr/local/lib/node_modules/tsx
+
+RUN npm install -g tsx && tsx --version
 
 ENV NODE_ENV=production
 ENV PORT=3000
