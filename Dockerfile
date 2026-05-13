@@ -39,3 +39,5 @@ ENV PORT=3000
 EXPOSE 3000
 
 CMD ["node", "--import", "tsx/esm", "api/boot.ts"]
+
+# Cache bust: v8
