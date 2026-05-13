@@ -7,9 +7,25 @@ import path from "path";
 type App = Hono<{ Bindings: HttpBindings }>;
 
 export function serveStaticFiles(app: App) {
-  const distPath = path.resolve(import.meta.dirname, "../dist/public");
+  // Try multiple possible paths for dist/public
+  const possiblePaths = [
+    path.resolve(process.cwd(), "dist/public"),
+    path.resolve(import.meta.dirname, "../../public"),
+    path.resolve(import.meta.dirname, "../dist/public"),
+    path.resolve(import.meta.dirname, "../../../public"),
+    "/app/dist/public",
+  ];
+
+  let distPath = possiblePaths[0];
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      distPath = p;
+      break;
+    }
+  }
 
   // Log for debugging what files are available
+  console.log("[serveStatic] cwd:", process.cwd());
   console.log("[serveStatic] distPath:", distPath);
   console.log("[serveStatic] exists:", fs.existsSync(distPath));
   if (fs.existsSync(distPath)) {
@@ -20,31 +36,34 @@ export function serveStaticFiles(app: App) {
       const assets = fs.readdirSync(assetsPath);
       console.log("[serveStatic] assets:", assets.slice(0, 10));
     }
-    // Check if index.html contains new content
-    const idx = fs.readFileSync(path.join(distPath, "index.html"), "utf-8");
-    console.log("[serveStatic] index.html lang=", idx.includes('lang="en"') ? 'en' : idx.includes('lang="es"') ? 'es' : 'unknown');
-    console.log("[serveStatic] has step5?", idx.includes("step5") || idx.includes("payDeposit"));
   }
 
+  // Serve static files with absolute path
   app.use("*", serveStatic({
-    root: "./dist/public",
-    // Add cache-busting headers for static assets
-    onFound: (_path, c) => {
-      c.header("Cache-Control", "public, max-age=31536000, immutable");
+    root: distPath,
+    rewriteRequestPath: (p) => {
+      // Don't rewrite API routes
+      if (p.startsWith("/api/")) return p;
+      return p;
     },
   }));
 
+  // SPA fallback: serve index.html for all non-API, non-asset routes
   app.notFound((c) => {
-    const accept = c.req.header("accept") ?? "";
-    if (!accept.includes("text/html")) {
+    const url = c.req.url;
+    // Don't interfere with API routes
+    if (url.includes("/api/")) {
       return c.json({ error: "Not Found" }, 404);
     }
-    const indexPath = path.resolve(distPath, "index.html");
-    const content = fs.readFileSync(indexPath, "utf-8");
-    // Prevent browser caching of index.html
-    c.header("Cache-Control", "no-cache, no-store, must-revalidate");
-    c.header("Pragma", "no-cache");
-    c.header("Expires", "0");
-    return c.html(content);
+
+    // Serve index.html for SPA routes
+    const indexPath = path.join(distPath, "index.html");
+    if (fs.existsSync(indexPath)) {
+      const content = fs.readFileSync(indexPath, "utf-8");
+      c.header("Cache-Control", "no-cache, no-store, must-revalidate");
+      return c.html(content);
+    }
+
+    return c.json({ error: "Not Found" }, 404);
   });
 }
