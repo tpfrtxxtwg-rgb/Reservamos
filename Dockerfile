@@ -11,10 +11,12 @@ RUN git clone --depth 1 --branch ${RAILWAY_GIT_BRANCH} https://github.com/tpfrtx
     echo "Cloned commit: ${RAILWAY_GIT_COMMIT_SHA:-unknown}"
 
 RUN npm install && npm rebuild esbuild
+
+# Build frontend
 RUN npx vite build
 
-# Compile backend TypeScript to JavaScript
-RUN npx tsc --project tsconfig.build.json
+# Build backend: transpile TypeScript to JavaScript
+RUN node build-backend.mjs
 
 FROM node:22-slim
 
