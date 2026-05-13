@@ -11,9 +11,13 @@ RUN git clone --depth 1 --branch ${RAILWAY_GIT_BRANCH} https://github.com/tpfrtx
     echo "Cloned commit: ${RAILWAY_GIT_COMMIT_SHA:-unknown}"
 
 RUN npm install && npm rebuild esbuild
+
+# Install TypeScript and tsup for backend compilation
+RUN npm install -D typescript tsup
+
 RUN npx vite build
 
-# Compile backend with tsup (bundle by default, correct ESM .js extensions)
+# Compile backend with tsup (bundle with correct ESM .js extensions)
 RUN npx tsup api/boot.ts \
     --format esm \
     --outDir dist/server \
