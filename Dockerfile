@@ -41,4 +41,4 @@ ENV PORT=3000
 
 EXPOSE 3000
 
-CMD ["npx", "tsx", "api/boot.ts"]
+CMD ["node", "--import", "tsx/esm", "api/boot.ts"]
