@@ -8,7 +8,20 @@ RUN npm install && npm rebuild esbuild
 ARG RAILWAY_GIT_COMMIT_SHA
 RUN echo "Building commit: ${RAILWAY_GIT_COMMIT_SHA:-unknown}"
 
-COPY . .
+COPY index.html ./
+COPY vite.config.ts ./
+COPY tsconfig.json ./
+COPY tsconfig.server.json ./
+COPY postcss.config.js ./
+COPY tailwind.config.js ./
+COPY drizzle.config.ts ./
+COPY .env ./
+COPY api/ ./api/
+COPY db/ ./db/
+COPY contracts/ ./contracts/
+COPY src/ ./src/
+COPY public/ ./public/
+COPY components.json ./
 
 RUN ./node_modules/.bin/vite build && \
     ./node_modules/.bin/esbuild api/boot.ts --platform=node --bundle --format=esm --outdir=dist --banner:js="import { createRequire } from 'module';const require = createRequire(import.meta.url);"
@@ -32,3 +45,4 @@ ENV PORT=3000
 EXPOSE 3000
 
 CMD ["npm", "start"]
+
