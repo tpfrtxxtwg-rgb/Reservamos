@@ -1,33 +1,31 @@
 FROM node:22-slim AS builder
 
-RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
 
-WORKDIR /build-reservamos
-
-ARG RAILWAY_GIT_COMMIT_SHA
-ARG RAILWAY_GIT_BRANCH=main
-ARG CACHE_BUST=2
-RUN echo "Cache bust: ${CACHE_BUST}"
-
-RUN git clone --depth 1 --branch ${RAILWAY_GIT_BRANCH} https://github.com/tpfrtxxtwg-rgb/Reservamos.git . && \
-    echo "Cloned commit: ${RAILWAY_GIT_COMMIT_SHA:-unknown}"
-
+# Install dependencies first (better layer caching)
+COPY package.json .
 RUN npm install && npm rebuild esbuild
+
+# Copy source code
+COPY . .
 
 # Build frontend
 RUN npx vite build
 
 # Build backend: transpile TypeScript to JavaScript
-RUN node build-backend.mjs && ls -la dist/server/api/
+RUN node build-backend.mjs
+
+# Verify backend output
+RUN ls -la dist/server/api/boot.js
 
 FROM node:22-slim
 
 WORKDIR /app
 
 # Copy compiled backend + frontend + node_modules
-COPY --from=builder /build-reservamos/dist ./dist
-COPY --from=builder /build-reservamos/node_modules ./node_modules
-COPY --from=builder /build-reservamos/package.json ./package.json
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
 
 ENV NODE_ENV=production
 ENV PORT=3000
