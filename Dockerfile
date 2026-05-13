@@ -27,6 +27,9 @@ COPY --from=builder /build-reservamos/dist ./dist
 COPY --from=builder /build-reservamos/node_modules ./node_modules
 COPY --from=builder /build-reservamos/package.json ./package.json
 
+# Create symlink so transpiled backend can find frontend files
+RUN mkdir -p dist/server/dist && ln -s /app/dist/public dist/server/dist/public
+
 ENV NODE_ENV=production
 ENV PORT=3000
 
