@@ -22,5 +22,4 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:${PORT}/health || exit 1
 
-RUN chmod +x start.sh
-CMD ["./start.sh"]
+CMD ["node", "dist/server/api/boot.js"]
