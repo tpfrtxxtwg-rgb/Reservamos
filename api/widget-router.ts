@@ -265,7 +265,10 @@ export const widgetRouter = createRouter({
 
       // Send confirmation email asynchronously (don't block the response)
       if (createdBooking) {
-        sendBookingConfirmationEmail(createdBooking.id).catch((err: any) => {
+        console.log(`[Widget] Triggering confirmation email for booking #${createdBooking.id}`);
+        sendBookingConfirmationEmail(createdBooking.id).then((result) => {
+          console.log(`[Widget] Email result:`, JSON.stringify(result));
+        }).catch((err: any) => {
           console.error("[Widget] Failed to send confirmation email:", err?.message || err);
         });
       }

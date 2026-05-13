@@ -199,6 +199,7 @@ function buildTextEmail(
 
 // Main email sending function (exported for use by widget-router)
 export async function sendBookingConfirmationEmail(bookingId: number) {
+  console.log(`[Email] Starting sendBookingConfirmationEmail for bookingId=${bookingId}`);
   try {
     const db = getDb();
 
@@ -211,16 +212,27 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
         destination: true,
       },
     });
-    if (!booking) return { sent: false, reason: "Booking not found" };
+    if (!booking) {
+      console.log("[Email] Booking not found:", bookingId);
+      return { sent: false, reason: "Booking not found" };
+    }
+    console.log(`[Email] Found booking #${booking.code} for clientId=${booking.clientId}`);
 
     // Fetch client email settings
     const emailSettings = await db.query.clientEmailSettings.findFirst({
       where: eq(clientEmailSettings.clientId, booking.clientId),
     });
+    console.log(`[Email] Email settings found:`, !!emailSettings);
+    if (emailSettings) {
+      console.log(`[Email] Settings: enabled=${emailSettings.enabled}, host=${emailSettings.smtpHost}, user=${emailSettings.smtpUser}, from=${emailSettings.smtpFrom}`);
+    }
+
     if (!emailSettings || !emailSettings.enabled) {
+      console.log("[Email] Email notifications disabled for client:", booking.clientId);
       return { sent: false, reason: "Email notifications disabled" };
     }
     if (!emailSettings.smtpHost || !emailSettings.smtpUser || !emailSettings.smtpPass) {
+      console.log("[Email] SMTP not configured. host:", emailSettings.smtpHost, "user:", emailSettings.smtpUser, "pass:", emailSettings.smtpPass ? "***" : "empty");
       return { sent: false, reason: "SMTP not configured" };
     }
 
@@ -245,18 +257,22 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
     };
 
     const companyName = booking.client?.name || "ReserVamos";
+    console.log(`[Email] Building email for company: ${companyName}`);
     const htmlContent = buildHtmlEmail(enrichedBooking, emailSettings, companyName);
     const textContent = buildTextEmail(enrichedBooking, emailSettings, companyName);
 
-    // Try to send via nodemailer (if available)
+    // Try to send via nodemailer
     let nodemailer: any;
     try {
-      nodemailer = await import("nodemailer").then((m) => m.default || m);
-    } catch {
-      console.warn("[Email] nodemailer not available, email not sent");
-      return { sent: false, reason: "nodemailer not installed" };
+      const nodemailerMod = await import("nodemailer");
+      nodemailer = nodemailerMod.default || nodemailerMod;
+      console.log("[Email] nodemailer loaded successfully");
+    } catch (err: any) {
+      console.error("[Email] nodemailer import failed:", err.message);
+      return { sent: false, reason: "nodemailer not available: " + err.message };
     }
 
+    console.log(`[Email] Creating transport: host=${emailSettings.smtpHost}, port=${emailSettings.smtpPort || 587}`);
     const transporter = nodemailer.createTransport({
       host: emailSettings.smtpHost,
       port: emailSettings.smtpPort || 587,
@@ -267,29 +283,47 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
       },
     });
 
+    // Verify connection
+    console.log("[Email] Verifying SMTP connection...");
+    try {
+      await transporter.verify();
+      console.log("[Email] SMTP connection verified OK");
+    } catch (verifyErr: any) {
+      console.error("[Email] SMTP verification failed:", verifyErr.message);
+      return { sent: false, reason: "SMTP connection failed: " + verifyErr.message };
+    }
+
     const subject = emailSettings.subject || "Your Reservation Confirmation";
 
     // Send to passenger
-    await transporter.sendMail({
+    console.log(`[Email] Sending to passenger: ${booking.passengerEmail}`);
+    const passengerResult = await transporter.sendMail({
       from: emailSettings.smtpFrom || `"${companyName}" <noreply@reservamos.app>`,
       to: booking.passengerEmail,
       subject: `${subject} - #${booking.code}`,
       text: textContent,
       html: htmlContent,
     });
+    console.log("[Email] Passenger email sent. MessageId:", passengerResult.messageId);
 
     // Send notification to admin
-    await transporter.sendMail({
-      from: emailSettings.smtpFrom || `"${companyName}" <noreply@reservamos.app>`,
-      to: booking.client?.email,
-      subject: `New Reservation - #${booking.code}`,
-      text: `A new reservation has been received.\n\nCode: ${booking.code}\nPassenger: ${booking.passengerName} ${booking.passengerLastName}\nService: ${booking.tripType === "round_trip" ? "Round Trip" : "One Way"}\nDate: ${booking.date} at ${booking.time}\nTotal: $${booking.total}`,
-      html: `<p>A new reservation has been received.</p><p><strong>Code:</strong> ${booking.code}</p><p><strong>Passenger:</strong> ${booking.passengerName} ${booking.passengerLastName}</p><p><strong>Service:</strong> ${booking.tripType === "round_trip" ? "Round Trip" : "One Way"}</p><p><strong>Date:</strong> ${booking.date} at ${booking.time}</p><p><strong>Total:</strong> $${booking.total}</p>`,
-    });
+    const adminEmail = booking.client?.email;
+    if (adminEmail) {
+      console.log(`[Email] Sending admin notification to: ${adminEmail}`);
+      const adminResult = await transporter.sendMail({
+        from: emailSettings.smtpFrom || `"${companyName}" <noreply@reservamos.app>`,
+        to: adminEmail,
+        subject: `New Reservation - #${booking.code}`,
+        text: `A new reservation has been received.\n\nCode: ${booking.code}\nPassenger: ${booking.passengerName} ${booking.passengerLastName}\nService: ${booking.tripType === "round_trip" ? "Round Trip" : "One Way"}\nDate: ${booking.date} at ${booking.time}\nTotal: $${booking.total}`,
+        html: `<p>A new reservation has been received.</p><p><strong>Code:</strong> ${booking.code}</p><p><strong>Passenger:</strong> ${booking.passengerName} ${booking.passengerLastName}</p><p><strong>Service:</strong> ${booking.tripType === "round_trip" ? "Round Trip" : "One Way"}</p><p><strong>Date:</strong> ${booking.date} at ${booking.time}</p><p><strong>Total:</strong> $${booking.total}</p>`,
+      });
+      console.log("[Email] Admin email sent. MessageId:", adminResult.messageId);
+    }
 
+    console.log("[Email] All emails sent successfully for booking:", booking.code);
     return { sent: true, bookingCode: booking.code };
   } catch (error: any) {
-    console.error("[Email] Failed to send confirmation:", error.message);
+    console.error("[Email] CRITICAL ERROR:", error.message, error.stack);
     return { sent: false, reason: error.message };
   }
 }
