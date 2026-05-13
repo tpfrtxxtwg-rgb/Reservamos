@@ -17,6 +17,7 @@ FROM node:22-slim
 
 WORKDIR /app
 
+# Copy source code (NO node_modules)
 COPY --from=builder /build-reservamos/api ./api
 COPY --from=builder /build-reservamos/db ./db
 COPY --from=builder /build-reservamos/contracts ./contracts
@@ -30,12 +31,13 @@ COPY --from=builder /build-reservamos/vite.config.ts ./vite.config.ts
 COPY --from=builder /build-reservamos/src ./src
 COPY --from=builder /build-reservamos/components.json ./components.json
 
-RUN npm install tsx --save-dev
+# Install ALL dependencies fresh (including devDependencies like tsx)
+RUN npm install
 
 ENV NODE_ENV=production
 ENV PORT=3000
 
 EXPOSE 3000
 
-# tsx with explicit tsconfig pointing to tsconfig.server.json
-CMD ["./node_modules/.bin/tsx", "--tsconfig", "tsconfig.server.json", "api/boot.ts"]
+CMD ["npx", "tsx", "api/boot.ts"]
+son", "api/boot.ts"]
