@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && ./node_modules/.bin/esbuild api/boot.ts --bundle --platform=node --format=esm --outfile=dist/server/boot.mjs --packages=external --tsconfig=tsconfig.server.json",
+    "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "NODE_ENV=production node dist/server/boot.mjs",
+    "start": "NODE_ENV=production ./node_modules/.bin/tsx api/boot.ts",
     "check": "tsc -b",
     "format": "prettier --write .",
     "test": "vitest run",
