@@ -14,7 +14,7 @@ import {
   ToggleLeft,
   ToggleRight,
 } from '@phosphor-icons/react';
-import { trpc } from '@/providers/trpc';
+import { trpc } from '@/providers/trpc.tsx';
 
 interface Props {
   clientId: number;

@@ -9,8 +9,8 @@ import {
   Clock as ClockIcon, MapTrifold, Buildings, Money,
   ShoppingCart, SignOut, Globe, EnvelopeSimple,
 } from '@phosphor-icons/react';
-import { trpc } from '@/providers/trpc';
-import { useClientAuth } from '@/providers/ClientAuthProvider';
+import { trpc } from '@/providers/trpc.tsx';
+import { useClientAuth } from '@/providers/ClientAuthProvider.tsx';
 import type { Booking } from '@/types';
 import AdminZones from '@/components/admin/AdminZones';
 import AdminDestinations from '@/components/admin/AdminDestinations';
