@@ -13,29 +13,27 @@ RUN git clone --depth 1 --branch ${RAILWAY_GIT_BRANCH} https://github.com/tpfrtx
 RUN npm install && npm rebuild esbuild
 RUN npx vite build
 
+# Bundle backend: only local code, externalize all node_modules
+RUN node node_modules/esbuild/bin/esbuild api/boot.ts \
+    --bundle \
+    --platform=node \
+    --format=esm \
+    --outfile=dist/server/boot.mjs \
+    --packages=external \
+    --tsconfig=tsconfig.server.json \
+    --banner:js="import { createRequire } from 'module';const require = createRequire(import.meta.url);"
+
 FROM node:22-slim
 
 WORKDIR /app
 
-COPY --from=builder /build-reservamos/api ./api
-COPY --from=builder /build-reservamos/db ./db
-COPY --from=builder /build-reservamos/contracts ./contracts
-COPY --from=builder /build-reservamos/drizzle.config.ts ./drizzle.config.ts
-COPY --from=builder /build-reservamos/tsconfig.server.json ./tsconfig.server.json
-COPY --from=builder /build-reservamos/tsconfig.json ./tsconfig.json
-COPY --from=builder /build-reservamos/package.json ./package.json
-COPY --from=builder /build-reservamos/node_modules ./node_modules
 COPY --from=builder /build-reservamos/dist ./dist
-COPY --from=builder /build-reservamos/index.html ./index.html
-COPY --from=builder /build-reservamos/vite.config.ts ./vite.config.ts
-COPY --from=builder /build-reservamos/src ./src
-COPY --from=builder /build-reservamos/components.json ./components.json
-
-RUN npm install -g tsx && tsx --version
+COPY --from=builder /build-reservamos/node_modules ./node_modules
+COPY --from=builder /build-reservamos/package.json ./package.json
 
 ENV NODE_ENV=production
 ENV PORT=3000
 
 EXPOSE 3000
 
-CMD ["tsx", "api/boot.ts"]
+CMD ["node", "dist/server/boot.mjs"]
