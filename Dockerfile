@@ -6,6 +6,8 @@ WORKDIR /build-reservamos
 
 ARG RAILWAY_GIT_COMMIT_SHA
 ARG RAILWAY_GIT_BRANCH=main
+ARG CACHE_BUST=2
+RUN echo "Cache bust: ${CACHE_BUST}"
 
 RUN git clone --depth 1 --branch ${RAILWAY_GIT_BRANCH} https://github.com/tpfrtxxtwg-rgb/Reservamos.git . && \
     echo "Cloned commit: ${RAILWAY_GIT_COMMIT_SHA:-unknown}"
@@ -16,7 +18,7 @@ RUN npm install && npm rebuild esbuild
 RUN npx vite build
 
 # Build backend: transpile TypeScript to JavaScript
-RUN node build-backend.mjs
+RUN node build-backend.mjs && ls -la dist/server/api/
 
 FROM node:22-slim
 
