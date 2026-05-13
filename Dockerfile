@@ -1,21 +1,19 @@
 FROM node:20-slim AS builder
 
-# Cache bust: v6
-ARG CACHE_BUST=6
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+ARG GITHUB_TOKEN
+ARG RAILWAY_GIT_COMMIT_SHA
+ARG RAILWAY_GIT_BRANCH=main
+
+RUN git clone --depth 1 --branch ${RAILWAY_GIT_BRANCH} "https://${GITHUB_TOKEN}@github.com/tpfrtxxtwg-rgb/Reservamos.git" . && \
+    echo "Cloned commit: ${RAILWAY_GIT_COMMIT_SHA:-unknown}"
+
 RUN npm install && npm rebuild esbuild
 
-ARG RAILWAY_GIT_COMMIT_SHA
-RUN echo "Building commit: ${RAILWAY_GIT_COMMIT_SHA:-unknown}"
-
-# Copy ALL files (including src/)
-COPY . .
-
-# Verify key files exist
-RUN ls -la src/main.tsx && ls -la src/
+RUN ls -la src/main.tsx
 
 RUN ./node_modules/.bin/vite build && \
     ./node_modules/.bin/esbuild api/boot.ts --platform=node --bundle --format=esm --outdir=dist --banner:js="import { createRequire } from 'module';const require = createRequire(import.meta.url);"
