@@ -73,29 +73,41 @@ export const emailSettingsRouter = createRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const db = getDb();
-      const clientId = ctx.clientUser.clientId;
+      try {
+        const db = getDb();
+        const clientId = ctx.clientUser.clientId;
+        console.log(`[EmailSettings] Saving for clientId=${clientId}`, JSON.stringify(input));
 
-      const existing = await db.query.clientEmailSettings.findFirst({
-        where: eq(clientEmailSettings.clientId, clientId),
-      });
-
-      if (existing) {
-        await db
-          .update(clientEmailSettings)
-          .set(input)
-          .where(eq(clientEmailSettings.clientId, clientId));
-        return db.query.clientEmailSettings.findFirst({
+        const existing = await db.query.clientEmailSettings.findFirst({
           where: eq(clientEmailSettings.clientId, clientId),
         });
-      } else {
-        const [{ id }] = await db
-          .insert(clientEmailSettings)
-          .values({ ...input, clientId })
-          .$returningId();
-        return db.query.clientEmailSettings.findFirst({
-          where: eq(clientEmailSettings.id, id),
-        });
+        console.log(`[EmailSettings] Existing record:`, !!existing);
+
+        if (existing) {
+          await db
+            .update(clientEmailSettings)
+            .set(input)
+            .where(eq(clientEmailSettings.clientId, clientId));
+          const result = await db.query.clientEmailSettings.findFirst({
+            where: eq(clientEmailSettings.clientId, clientId),
+          });
+          console.log(`[EmailSettings] Updated successfully`);
+          return result;
+        } else {
+          console.log(`[EmailSettings] Inserting new record for clientId=${clientId}`);
+          const [{ id }] = await db
+            .insert(clientEmailSettings)
+            .values({ ...input, clientId })
+            .$returningId();
+          const result = await db.query.clientEmailSettings.findFirst({
+            where: eq(clientEmailSettings.id, id),
+          });
+          console.log(`[EmailSettings] Inserted successfully, id=${id}`);
+          return result;
+        }
+      } catch (err: any) {
+        console.error(`[EmailSettings] Database error:`, err.message, err.code);
+        throw new Error(`Database error: ${err.message}`);
       }
     }),
 

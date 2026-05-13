@@ -25,11 +25,18 @@ export default function AdminEmailSettings({ clientId }: Props) {
   const utils = trpc.useUtils();
 
   const { data: settings, isLoading } = trpc.emailSettings.get.useQuery();
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   const updateSettings = trpc.emailSettings.update.useMutation({
     onSuccess: () => {
       utils.emailSettings.get.invalidate();
       setSaved(true);
+      setSaveError(null);
       setTimeout(() => setSaved(false), 2000);
+    },
+    onError: (err) => {
+      console.error("[EmailSettings] Save failed:", err);
+      setSaveError(err.message || "Failed to save settings");
     },
   });
 
@@ -79,6 +86,17 @@ export default function AdminEmailSettings({ clientId }: Props) {
   };
 
   const isConfigured = smtpHost && smtpUser && smtpPass && smtpFrom;
+
+  const testSmtp = trpc.emailSettings.testSmtp.useMutation({
+    onSuccess: (result) => {
+      setSmtpTestResult(result);
+    },
+    onError: (err) => {
+      setSmtpTestResult({ success: false, message: err.message });
+    },
+  });
+
+  const [smtpTestResult, setSmtpTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
   if (isLoading) {
     return (
@@ -337,8 +355,18 @@ export default function AdminEmailSettings({ clientId }: Props) {
         </div>
       </div>
 
-      {/* Save Button */}
-      <div className="flex items-center gap-3">
+      {/* Error Message */}
+      {saveError && (
+        <div className="bg-[rgba(178,58,47,0.08)] border border-[rgba(178,58,47,0.2)] rounded-lg p-4 mb-4">
+          <p className="font-body text-sm text-[#B23A2F]"><strong>Error:</strong> {saveError}</p>
+          <p className="font-body text-xs text-warm-gray mt-1">
+            This usually means the database table does not exist. Run <code className="bg-white px-1 rounded">npm run db:push</code> or contact support.
+          </p>
+        </div>
+      )}
+
+      {/* Save & Test Buttons */}
+      <div className="flex items-center gap-3 flex-wrap">
         <button
           onClick={handleSave}
           disabled={updateSettings.isPending}
@@ -358,6 +386,20 @@ export default function AdminEmailSettings({ clientId }: Props) {
             </>
           )}
         </button>
+        <button
+          onClick={() => {
+            if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
+              setSmtpTestResult({ success: false, message: "Please fill in all SMTP fields first" });
+              return;
+            }
+            setSmtpTestResult(null);
+            testSmtp.mutate({ smtpHost, smtpPort: smtpPort || 587, smtpUser, smtpPass, smtpFrom: smtpFrom || null });
+          }}
+          disabled={testSmtp.isPending}
+          className="flex items-center gap-2 px-4 py-3 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] text-charcoal rounded-lg font-body text-sm font-semibold hover:border-terracotta hover:text-terracotta transition-colors disabled:opacity-50"
+        >
+          {testSmtp.isPending ? 'Testing...' : 'Test Connection'}
+        </button>
         {saved && (
           <motion.span
             initial={{ opacity: 0, x: -10 }}
@@ -368,6 +410,18 @@ export default function AdminEmailSettings({ clientId }: Props) {
           </motion.span>
         )}
       </div>
+
+      {/* SMTP Test Result */}
+      {smtpTestResult && (
+        <div className={`rounded-lg p-4 mt-4 ${smtpTestResult.success ? 'bg-[rgba(45,106,79,0.08)] border border-[rgba(45,106,79,0.2)]' : 'bg-[rgba(178,58,47,0.08)] border border-[rgba(178,58,47,0.2)]'}`}>
+          <p className={`font-body text-sm font-medium ${smtpTestResult.success ? 'text-[#2D6A4F]' : 'text-[#B23A2F]'}`}>
+            {smtpTestResult.success ? 'SMTP Connection OK' : 'SMTP Connection Failed'}
+          </p>
+          <p className={`font-body text-xs mt-1 ${smtpTestResult.success ? 'text-[#2D6A4F]' : 'text-[#B23A2F]'}`}>
+            {smtpTestResult.message}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
