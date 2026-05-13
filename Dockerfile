@@ -15,26 +15,13 @@ RUN if [ -n "$GITHUB_TOKEN" ]; then \
     fi
 
 RUN npm install && npm rebuild esbuild
-
 RUN npx vite build
 
 FROM node:20-slim
 
-WORKDIR /app
+WORKDIR /reservamos-runtime
 
-COPY --from=builder /reservamos/api ./api
-COPY --from=builder /reservamos/db ./db
-COPY --from=builder /reservamos/contracts ./contracts
-COPY --from=builder /reservamos/drizzle.config.ts ./drizzle.config.ts
-COPY --from=builder /reservamos/tsconfig.server.json ./tsconfig.server.json
-COPY --from=builder /reservamos/tsconfig.json ./tsconfig.json
-COPY --from=builder /reservamos/package.json ./package.json
-COPY --from=builder /reservamos/node_modules ./node_modules
-COPY --from=builder /reservamos/dist ./dist
-COPY --from=builder /reservamos/index.html ./index.html
-COPY --from=builder /reservamos/vite.config.ts ./vite.config.ts
-COPY --from=builder /reservamos/src ./src
-COPY --from=builder /reservamos/components.json ./components.json
+COPY --from=builder /reservamos/ .
 
 ENV NODE_ENV=production
 ENV PORT=3000
