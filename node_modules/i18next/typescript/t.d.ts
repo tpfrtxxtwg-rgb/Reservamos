@@ -466,7 +466,7 @@ interface TFunctionNonStrict<
 type TFunctionSignature<
   Ns extends Namespace = DefaultNamespace,
   KPrefix = undefined,
-> = _EnableSelector extends true | 'optimize'
+> = _EnableSelector extends true | 'optimize' | 'strict'
   ? TFunctionSelector<Ns, KPrefix, GetSource<Ns, KPrefix>>
   : _StrictKeyChecks extends true
     ? TFunctionStrict<Ns, KPrefix>
@@ -479,10 +479,23 @@ export interface TFunction<
 
 export type KeyPrefix<Ns extends Namespace> = ResourceKeys<true>[$FirstNamespace<Ns>] | undefined;
 
+/**
+ * Strict variant: every namespace (primary included) is exposed under its own
+ * key on `$`. The flattened-primary form (`Resources[Ns[0]] &`) is dropped, so
+ * `$.foo` no longer typechecks when `foo` is a key in the primary namespace —
+ * callers must write `$.primary.foo`. Applied uniformly to single- and
+ * multi-ns hooks under `enableSelector: 'strict'`.
+ */
+type _NsResourceStrict<Ns extends Namespace> = Ns extends readonly any[]
+  ? PickNamespaces<Resources, Ns[number]>
+  : PickNamespaces<Resources, Ns & keyof Resources>;
+
 /** The raw (unfiltered) resource object for a given namespace. */
-export type NsResource<Ns extends Namespace> = Ns extends readonly [keyof Resources, any, ...any]
-  ? Resources[Ns[0]] & PickNamespaces<Resources, Ns[number]>
-  : Resources[$FirstNamespace<Ns>];
+export type NsResource<Ns extends Namespace> = [_EnableSelector] extends ['strict']
+  ? _NsResourceStrict<Ns>
+  : Ns extends readonly [keyof Resources, any, ...any]
+    ? Resources[Ns[0]] & PickNamespaces<Resources, Ns[number]>
+    : Resources[$FirstNamespace<Ns>];
 
 /** A selector function that can be used as `keyPrefix` to scope `t()` to a sub-tree of the resource. */
 export type KeyPrefixSelector<Ns extends Namespace> = (src: NsResource<Ns>) => object;

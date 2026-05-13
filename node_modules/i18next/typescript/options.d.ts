@@ -110,6 +110,23 @@ export type TypeOptions = $MergeBy<
      * arbitrarily large/deep translation sets without causing any IDE slowdown
      * whatsoever.
      *
+     * Set `enableSelector` to `"strict"` to require an explicit namespace as the
+     * first selector path segment in every call. The selector proxy stops
+     * exposing the primary namespace's keys flat on `$` — even
+     * `useTranslation('only')` must use `$.only.foo`, never `$.foo`. At runtime,
+     * a leading segment matching the scope's namespace list (primary included)
+     * is always rewritten as a namespace prefix, fully decoupling selector
+     * shape from resolution scope. Use this when you want a single mental model
+     * for selector paths regardless of how many namespaces a hook was created
+     * with, and to remove the silent miss that flat-primary paths can otherwise
+     * cause in multi-ns hooks (see [#2429](https://github.com/i18next/i18next/issues/2429)).
+     *
+     * `"strict"` mode is incompatible with the `"optimize"` shortcut. If you
+     * have keys whose names match sibling namespaces (the
+     * [#2405](https://github.com/i18next/i18next/issues/2405) pattern), do not
+     * enable strict mode — the leading-segment rewrite would route those keys
+     * into the wrong namespace.
+     *
      * @default false
      */
     enableSelector: false;
