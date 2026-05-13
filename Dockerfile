@@ -17,7 +17,7 @@ FROM node:22-slim
 
 WORKDIR /app
 
-# Copy full project (source + node_modules)
+# Copy source code from builder
 COPY --from=builder /build-reservamos/api ./api
 COPY --from=builder /build-reservamos/db ./db
 COPY --from=builder /build-reservamos/contracts ./contracts
@@ -25,17 +25,18 @@ COPY --from=builder /build-reservamos/drizzle.config.ts ./drizzle.config.ts
 COPY --from=builder /build-reservamos/tsconfig.server.json ./tsconfig.server.json
 COPY --from=builder /build-reservamos/tsconfig.json ./tsconfig.json
 COPY --from=builder /build-reservamos/package.json ./package.json
-COPY --from=builder /build-reservamos/node_modules ./node_modules
 COPY --from=builder /build-reservamos/dist ./dist
 COPY --from=builder /build-reservamos/index.html ./index.html
 COPY --from=builder /build-reservamos/vite.config.ts ./vite.config.ts
 COPY --from=builder /build-reservamos/src ./src
 COPY --from=builder /build-reservamos/components.json ./components.json
 
+# Install tsx FRESH in runtime (bypasses any Railway cache)
+RUN npm install tsx --save-dev
+
 ENV NODE_ENV=production
 ENV PORT=3000
 
 EXPOSE 3000
 
-# Use tsx directly from node_modules (local, fresh, correct version)
-CMD ["./node_modules/.bin/tsx", "api/boot.ts"]
+CMD ["npx", "tsx", "api/boot.ts"]
