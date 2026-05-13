@@ -1,14 +1,20 @@
 FROM node:20-slim AS builder
 
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm install && npm rebuild esbuild
-
+ARG GITHUB_TOKEN
 ARG RAILWAY_GIT_COMMIT_SHA
-RUN echo "Building commit: ${RAILWAY_GIT_COMMIT_SHA:-unknown}"
+ARG RAILWAY_GIT_BRANCH=main
 
-COPY . .
+RUN if [ -n "$GITHUB_TOKEN" ]; then \
+      git clone --depth 1 --branch "$RAILWAY_GIT_BRANCH" "https://${GITHUB_TOKEN}@github.com/tpfrtxxtwg-rgb/Reservamos.git" . ; \
+    else \
+      git clone --depth 1 --branch "$RAILWAY_GIT_BRANCH" https://github.com/tpfrtxxtwg-rgb/Reservamos.git . ; \
+    fi
+
+RUN npm install && npm rebuild esbuild
 
 RUN npm run build
 
