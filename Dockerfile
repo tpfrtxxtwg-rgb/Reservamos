@@ -1,7 +1,9 @@
 FROM node:20-slim AS builder
 
-# Cache bust: v3
-WORKDIR /app
+# Aggressive cache bust - change this value to force fresh build
+ARG CACHE_BUST=4
+
+WORKDIR /reservamos-build
 
 COPY package.json package-lock.json ./
 RUN npm install && npm rebuild esbuild
@@ -16,12 +18,15 @@ COPY tsconfig.server.json ./
 COPY postcss.config.js ./
 COPY tailwind.config.js ./
 COPY drizzle.config.ts ./
-COPY api/ ./api/
-COPY db/ ./db/
-COPY contracts/ ./contracts/
-COPY src/ ./src/
-COPY public/ ./public/
 COPY components.json ./
+COPY api ./api
+COPY db ./db
+COPY contracts ./contracts
+COPY src ./src
+COPY public ./public
+
+# Verify src exists before building
+RUN ls -la src/main.tsx
 
 RUN ./node_modules/.bin/vite build && \
     ./node_modules/.bin/esbuild api/boot.ts --platform=node --bundle --format=esm --outdir=dist --banner:js="import { createRequire } from 'module';const require = createRequire(import.meta.url);"
@@ -30,14 +35,14 @@ FROM node:20-slim
 
 WORKDIR /app
 
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/api ./api
-COPY --from=builder /app/db ./db
-COPY --from=builder /app/contracts ./contracts
-COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
-COPY --from=builder /app/tsconfig.server.json ./tsconfig.server.json
+COPY --from=builder /reservamos-build/dist ./dist
+COPY --from=builder /reservamos-build/node_modules ./node_modules
+COPY --from=builder /reservamos-build/package.json ./package.json
+COPY --from=builder /reservamos-build/api ./api
+COPY --from=builder /reservamos-build/db ./db
+COPY --from=builder /reservamos-build/contracts ./contracts
+COPY --from=builder /reservamos-build/drizzle.config.ts ./drizzle.config.ts
+COPY --from=builder /reservamos-build/tsconfig.server.json ./tsconfig.server.json
 
 ENV NODE_ENV=production
 ENV PORT=3000
