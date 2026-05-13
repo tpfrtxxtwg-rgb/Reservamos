@@ -1,2 +1,2 @@
 #!/bin/sh
-exec node dist/server/api/boot.js
+exec node dist/server/boot.js

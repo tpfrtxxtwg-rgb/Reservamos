@@ -13,8 +13,14 @@ RUN git clone --depth 1 --branch ${RAILWAY_GIT_BRANCH} https://github.com/tpfrtx
 RUN npm install && npm rebuild esbuild
 RUN npx vite build
 
-# Compile backend with tsc (allow type errors - generate JS anyway)
-RUN npx tsc --project tsconfig.build.json --noEmitOnError false 2>&1 || echo "tsc finished"
+# Compile backend with tsup (bundle to single file with correct .js extensions)
+RUN npx tsup api/boot.ts \
+    --format esm \
+    --outDir dist/server \
+    --bundle \
+    --platform node \
+    --clean \
+    --tsconfig tsconfig.server.json
 
 FROM node:22-slim
 
