@@ -17,17 +17,27 @@ RUN if [ -n "$GITHUB_TOKEN" ]; then \
 RUN npm install && npm rebuild esbuild
 RUN npx vite build
 
+# Compile backend to plain JavaScript
+RUN node_modules/.bin/esbuild api/boot.ts \
+    --platform=node \
+    --bundle \
+    --format=esm \
+    --outdir=dist/server \
+    --tsconfig=tsconfig.server.json \
+    --resolve-extensions=.ts,.tsx,.js,.jsx,.mjs \
+    --banner:js="import { createRequire } from 'module';const require = createRequire(import.meta.url);"
+
 FROM node:20-slim
 
-WORKDIR /reservamos-runtime
+WORKDIR /app
 
-COPY --from=builder /reservamos/ .
-
-RUN npm install -g tsx && tsx --version
+COPY --from=builder /reservamos/dist ./dist
+COPY --from=builder /reservamos/node_modules ./node_modules
+COPY --from=builder /reservamos/package.json ./package.json
 
 ENV NODE_ENV=production
 ENV PORT=3000
 
 EXPOSE 3000
 
-CMD ["tsx", "api/boot.ts"]
+CMD ["node", "dist/server/boot.js"]
