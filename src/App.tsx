@@ -1,34 +1,35 @@
-import { useState, useCallback } from 'react';
-import Header from '@/sections/Header';
-import Hero from '@/sections/Hero';
-import DemoWidget from '@/sections/DemoWidget';
-import Features from '@/sections/Features';
-import Pricing from '@/sections/Pricing';
-import IntegrationCTA from '@/sections/IntegrationCTA';
-import Footer from '@/sections/Footer';
+import { Routes, Route } from 'react-router';
+import LandingPage from '@/pages/LandingPage';
 import AdminPanel from '@/sections/AdminPanel';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import WidgetPreview from '@/pages/WidgetPreview';
+import NotFound from '@/pages/NotFound';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function App() {
-  const [page, setPage] = useState<'landing' | 'admin'>('landing');
-
-  const scrollToDemo = useCallback(() => {
-    const el = document.getElementById('demo');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  }, []);
-
-  if (page === 'admin') {
-    return <AdminPanel onBack={() => setPage('landing')} />;
-  }
-
   return (
-    <div className="min-h-screen bg-sand-light">
-      <Header onNavigate={(target) => target === 'admin' ? setPage('admin') : undefined} />
-      <Hero onScrollToDemo={scrollToDemo} />
-      <DemoWidget />
-      <Features />
-      <Pricing />
-      <IntegrationCTA />
-      <Footer />
-    </div>
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            <AdminPanel />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/preview"
+        element={
+          <ProtectedRoute>
+            <WidgetPreview />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }

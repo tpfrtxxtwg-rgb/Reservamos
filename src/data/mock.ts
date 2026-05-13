@@ -1,10 +1,10 @@
 import type { Service, Vehicle, Reservation, Client } from '@/types';
 
 export const services: Service[] = [
-  { id: 'airport-to-hotel', name: 'Aeropuerto \u2192 Hotel', icon: 'AirplaneInbound', description: 'Traslado desde el aeropuerto a tu hotel' },
-  { id: 'hotel-to-airport', name: 'Hotel \u2192 Aeropuerto', icon: 'AirplaneOutbound', description: 'Traslado desde tu hotel al aeropuerto' },
-  { id: 'private-tour', name: 'Tour Privado', icon: 'MapTrifold', description: 'Tour personalizado por la zona' },
-  { id: 'hourly', name: 'Por Horas', icon: 'Clock', description: 'Servicio de transporte por horas' },
+  { id: 'airport-to-hotel', name: 'Aeropuerto → Hotel', slug: 'airport-transfer', icon: 'AirplaneInbound', description: 'Traslado desde el aeropuerto a tu hotel' },
+  { id: 'hotel-to-airport', name: 'Hotel → Aeropuerto', slug: 'airport-transfer', icon: 'AirplaneOutbound', description: 'Traslado desde tu hotel al aeropuerto' },
+  { id: 'private-tour', name: 'Tour Privado', slug: 'private-tour', icon: 'MapTrifold', description: 'Tour personalizado por la zona' },
+  { id: 'hourly', name: 'Por Horas', slug: 'hourly', icon: 'Clock', description: 'Servicio de transporte por horas' },
 ];
 
 export const vehicles: Vehicle[] = [
@@ -12,31 +12,28 @@ export const vehicles: Vehicle[] = [
     id: 'suburban-premium',
     name: 'Suburban Premium',
     image: '/vehicle-suburban.jpg',
-    capacity: '1-6 pasajeros',
-    minPassengers: 1,
-    maxPassengers: 6,
+    capacityMin: 1,
+    capacityMax: 6,
     features: ['WiFi', 'A/C', 'Agua'],
-    basePrice: 125,
+    price: '125',
   },
   {
     id: 'van-ejecutiva',
     name: 'Van Ejecutiva',
     image: '/vehicle-van.jpg',
-    capacity: '1-10 pasajeros',
-    minPassengers: 1,
-    maxPassengers: 10,
+    capacityMin: 1,
+    capacityMax: 10,
     features: ['WiFi', 'A/C', 'Agua', 'TV'],
-    basePrice: 165,
+    price: '165',
   },
   {
     id: 'sprinter-luxury',
     name: 'Sprinter Luxury',
     image: '/vehicle-sprinter.jpg',
-    capacity: '1-16 pasajeros',
-    minPassengers: 1,
-    maxPassengers: 16,
+    capacityMin: 1,
+    capacityMax: 16,
     features: ['WiFi', 'A/C', 'Bar', 'TV'],
-    basePrice: 245,
+    price: '245',
   },
 ];
 

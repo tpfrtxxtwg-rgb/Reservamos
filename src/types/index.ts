@@ -1,6 +1,37 @@
+export interface Booking {
+  id: number;
+  code: string;
+  serviceId: number;
+  zoneId: number;
+  destinationId: number;
+  tripType: 'one_way' | 'round_trip';
+  origin: string;
+  destination: string;
+  date: string;
+  time: string;
+  passengers: number;
+  vehicleId: number;
+  passengerName: string;
+  passengerLastName: string;
+  passengerEmail: string;
+  passengerPhone: string | null;
+  passengerNotes: string | null;
+  flightNumber: string | null;
+  airline: string | null;
+  departureDate: string | null;
+  departureTime: string | null;
+  paymentMethod: string;
+  status: 'confirmed' | 'pending' | 'cancelled';
+  price: string;
+  tax: string;
+  total: string;
+  createdAt: Date;
+}
+
 export interface Service {
   id: string;
   name: string;
+  slug: string;
   icon: string;
   description: string;
 }
@@ -9,17 +40,32 @@ export interface Vehicle {
   id: string;
   name: string;
   image: string;
-  capacity: string;
-  minPassengers: number;
-  maxPassengers: number;
+  capacityMin: number;
+  capacityMax: number;
   features: string[];
-  basePrice: number;
+  price: string;
+}
+
+export interface Zone {
+  id: number;
+  name: string;
+  active: boolean;
+}
+
+export interface Destination {
+  id: number;
+  name: string;
+  zoneId: number;
+  active: boolean;
 }
 
 export interface BookingData {
+  tripType: 'one_way' | 'round_trip' | null;
   serviceId: string | null;
+  airportId: string | null;
+  tourId: string | null;
+  destinationId: string | null;
   origin: string;
-  destination: string;
   date: string;
   time: string;
   passengers: number;
@@ -29,6 +75,13 @@ export interface BookingData {
   passengerEmail: string;
   passengerPhone: string;
   passengerNotes: string;
+  selectedOptionalServices: number[];
+  luggage: 'standard' | 'oversized' | 'extra';
+  paymentOption: 'full' | 'deposit';
+  flightNumber: string;
+  airline: string;
+  departureDate: string;
+  departureTime: string;
   paymentMethod: 'card' | 'paypal' | 'cash';
 }
 
