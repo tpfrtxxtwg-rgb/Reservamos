@@ -4,12 +4,16 @@ import { createRouter, clientAuthedQuery } from "./middleware";
 import { getDb } from "./queries/connection";
 import { clientEmailSettings } from "@db/schema";
 
+// Helper to safely get column - handles missing columns gracefully
+function safeColumn(row: any, columnName: string, fallback: any = null) {
+  return row && columnName in row ? row[columnName] : fallback;
+}
+
 async function testSmtpConnection(settings: {
   smtpHost: string;
   smtpPort: number;
   smtpUser: string;
   smtpPass: string;
-  smtpFrom: string | null;
 }) {
   try {
     const nodemailerMod = await import("nodemailer");
@@ -50,7 +54,6 @@ async function testResend(apiKey: string) {
       headers: { Authorization: `Bearer ${apiKey}` },
     });
     if (response.ok || response.status === 403) {
-      // 403 means key works but doesn't have that endpoint permission
       return { success: true, message: "Resend API key is valid" };
     }
     return { success: false, message: `Resend API error: ${response.status}` };
@@ -63,28 +66,56 @@ export const emailSettingsRouter = createRouter({
   get: clientAuthedQuery.query(async ({ ctx }) => {
     const db = getDb();
     const clientId = ctx.clientUser.clientId;
-    const settings = await db.query.clientEmailSettings.findFirst({
-      where: eq(clientEmailSettings.clientId, clientId),
-    });
-    if (!settings) {
+    try {
+      const settings = await db.query.clientEmailSettings.findFirst({
+        where: eq(clientEmailSettings.clientId, clientId),
+      });
+      if (!settings) {
+        return {
+          enabled: true,
+          subject: "Your Reservation Confirmation",
+          message: "Thank you for your reservation. We look forward to serving you.",
+          pickupInstructions: "",
+          smtpHost: "",
+          smtpPort: 587,
+          smtpUser: "",
+          smtpPass: "",
+          smtpFrom: "",
+          companyPhone: "",
+          companyWebsite: "",
+          // These may not exist in DB yet - default to empty
+          emailProvider: "smtp",
+          sendgridApiKey: "",
+          resendApiKey: "",
+        };
+      }
+      // Return all fields, using safeColumn for potentially missing columns
+      return {
+        ...settings,
+        emailProvider: safeColumn(settings, "email_provider", "smtp"),
+        sendgridApiKey: safeColumn(settings, "sendgrid_api_key", ""),
+        resendApiKey: safeColumn(settings, "resend_api_key", ""),
+      };
+    } catch (err: any) {
+      console.error("[EmailSettings] get error:", err.message);
+      // Return defaults on any error (missing table, missing columns, etc.)
       return {
         enabled: true,
         subject: "Your Reservation Confirmation",
         message: "Thank you for your reservation. We look forward to serving you.",
         pickupInstructions: "",
-        emailProvider: "smtp" as const,
         smtpHost: "",
         smtpPort: 587,
         smtpUser: "",
         smtpPass: "",
         smtpFrom: "",
-        sendgridApiKey: "",
-        resendApiKey: "",
         companyPhone: "",
         companyWebsite: "",
+        emailProvider: "smtp",
+        sendgridApiKey: "",
+        resendApiKey: "",
       };
     }
-    return settings;
   }),
 
   update: clientAuthedQuery
@@ -107,40 +138,96 @@ export const emailSettingsRouter = createRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      try {
-        const db = getDb();
-        const clientId = ctx.clientUser.clientId;
-        console.log(`[EmailSettings] Saving for clientId=${clientId}`, JSON.stringify(input));
+      const db = getDb();
+      const clientId = ctx.clientUser.clientId;
+      console.log(`[EmailSettings] Saving for clientId=${clientId}`);
 
+      // Build update object with only columns that exist in DB
+      const dbInput: any = {
+        enabled: input.enabled,
+        subject: input.subject,
+        message: input.message,
+        pickupInstructions: input.pickupInstructions,
+        smtpHost: input.smtpHost,
+        smtpPort: input.smtpPort,
+        smtpUser: input.smtpUser,
+        smtpPass: input.smtpPass,
+        smtpFrom: input.smtpFrom,
+        companyPhone: input.companyPhone,
+        companyWebsite: input.companyWebsite,
+      };
+
+      // Only include new columns if they have values (may not exist in DB)
+      if (input.emailProvider && input.emailProvider !== "smtp") {
+        dbInput.emailProvider = input.emailProvider;
+      }
+      if (input.sendgridApiKey) {
+        dbInput.sendgridApiKey = input.sendgridApiKey;
+      }
+      if (input.resendApiKey) {
+        dbInput.resendApiKey = input.resendApiKey;
+      }
+
+      try {
         const existing = await db.query.clientEmailSettings.findFirst({
           where: eq(clientEmailSettings.clientId, clientId),
         });
-        console.log(`[EmailSettings] Existing record:`, !!existing);
 
         if (existing) {
           await db
             .update(clientEmailSettings)
-            .set(input)
+            .set(dbInput)
             .where(eq(clientEmailSettings.clientId, clientId));
-          const result = await db.query.clientEmailSettings.findFirst({
+          return db.query.clientEmailSettings.findFirst({
             where: eq(clientEmailSettings.clientId, clientId),
           });
-          console.log(`[EmailSettings] Updated successfully`);
-          return result;
         } else {
-          console.log(`[EmailSettings] Inserting new record for clientId=${clientId}`);
           const [{ id }] = await db
             .insert(clientEmailSettings)
-            .values({ ...input, clientId })
+            .values({ ...dbInput, clientId })
             .$returningId();
-          const result = await db.query.clientEmailSettings.findFirst({
+          return db.query.clientEmailSettings.findFirst({
             where: eq(clientEmailSettings.id, id),
           });
-          console.log(`[EmailSettings] Inserted successfully, id=${id}`);
-          return result;
         }
       } catch (err: any) {
-        console.error(`[EmailSettings] Database error:`, err.message, err.code);
+        console.error(`[EmailSettings] Error:`, err.message);
+        // If error is about missing columns, retry without new columns
+        if (err.message?.includes("Unknown column")) {
+          console.log("[EmailSettings] Retrying without new columns...");
+          const basicInput: any = {
+            enabled: input.enabled,
+            subject: input.subject,
+            message: input.message,
+            pickupInstructions: input.pickupInstructions,
+            smtpHost: input.smtpHost,
+            smtpPort: input.smtpPort,
+            smtpUser: input.smtpUser,
+            smtpPass: input.smtpPass,
+            smtpFrom: input.smtpFrom,
+            companyPhone: input.companyPhone,
+            companyWebsite: input.companyWebsite,
+          };
+
+          const existing = await db.query.clientEmailSettings.findFirst({
+            where: eq(clientEmailSettings.clientId, clientId),
+          });
+
+          if (existing) {
+            await db
+              .update(clientEmailSettings)
+              .set(basicInput)
+              .where(eq(clientEmailSettings.clientId, clientId));
+          } else {
+            await db
+              .insert(clientEmailSettings)
+              .values({ ...basicInput, clientId })
+              .$returningId();
+          }
+          return db.query.clientEmailSettings.findFirst({
+            where: eq(clientEmailSettings.clientId, clientId),
+          });
+        }
         throw new Error(`Database error: ${err.message}`);
       }
     }),
@@ -179,7 +266,6 @@ export const emailSettingsRouter = createRouter({
         smtpPort: input.smtpPort || 587,
         smtpUser: input.smtpUser,
         smtpPass: input.smtpPass,
-        smtpFrom: null,
       });
     }),
 });
