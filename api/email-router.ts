@@ -218,22 +218,33 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
     }
     console.log(`[Email] Found booking #${booking.code} for clientId=${booking.clientId}`);
 
-    // Fetch client email settings
-    const emailSettings = await db.query.clientEmailSettings.findFirst({
-      where: eq(clientEmailSettings.clientId, booking.clientId),
-    });
-    console.log(`[Email] Email settings found:`, !!emailSettings);
-    if (emailSettings) {
-      console.log(`[Email] Settings: enabled=${emailSettings.enabled}, host=${emailSettings.smtpHost}, user=${emailSettings.smtpUser}, from=${emailSettings.smtpFrom}`);
-    }
+    // Fetch client email settings using raw SQL (avoids Drizzle selecting non-existent columns)
+    const settingsRows = await db.execute(
+      `SELECT enabled, subject, message, pickupInstructions, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_from, company_phone, company_website
+       FROM client_email_settings WHERE clientId = ? LIMIT 1`,
+      [booking.clientId]
+    );
+    const rawSettings = settingsRows[0];
+    console.log(`[Email] Email settings found:`, !!rawSettings);
 
-    if (!emailSettings || !emailSettings.enabled) {
+    if (!rawSettings || !rawSettings.enabled) {
       console.log("[Email] Email notifications disabled for client:", booking.clientId);
       return { sent: false, reason: "Email notifications disabled" };
     }
-    if (!emailSettings.smtpHost || !emailSettings.smtpUser || !emailSettings.smtpPass) {
-      console.log("[Email] SMTP not configured. host:", emailSettings.smtpHost, "user:", emailSettings.smtpUser, "pass:", emailSettings.smtpPass ? "***" : "empty");
+
+    // Detect provider from smtp_host ("sendgrid" or "resend" are magic values)
+    const smtpHost = rawSettings.smtp_host || "";
+    const smtpUser = rawSettings.smtp_user || "";
+    const provider = smtpHost === "sendgrid" ? "sendgrid" : smtpHost === "resend" ? "resend" : "smtp";
+    console.log(`[Email] Using provider: ${provider} (smtp_host=${smtpHost})`);
+
+    if (provider === "smtp" && (!smtpHost || !smtpUser || !rawSettings.smtp_pass)) {
+      console.log("[Email] SMTP not configured. host:", smtpHost, "user:", smtpUser, "pass:", rawSettings.smtp_pass ? "***" : "empty");
       return { sent: false, reason: "SMTP not configured" };
+    }
+    if ((provider === "sendgrid" || provider === "resend") && !smtpUser) {
+      console.log("[Email] API key not configured for provider:", provider);
+      return { sent: false, reason: `${provider} API key not configured` };
     }
 
     // Build optional services list
@@ -258,19 +269,25 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
 
     const companyName = booking.client?.name || "ReserVamos";
     console.log(`[Email] Building email for company: ${companyName}`);
+
+    // Map raw DB columns to camelCase for email builder functions
+    const emailSettings = {
+      subject: rawSettings.subject,
+      message: rawSettings.message,
+      pickupInstructions: rawSettings.pickupInstructions,
+      companyPhone: rawSettings.company_phone,
+      companyWebsite: rawSettings.company_website,
+    };
+
     const htmlContent = buildHtmlEmail(enrichedBooking, emailSettings, companyName);
     const textContent = buildTextEmail(enrichedBooking, emailSettings, companyName);
 
-    const subject = emailSettings.subject || "Your Reservation Confirmation";
-    const fromEmail = emailSettings.smtpFrom || `"${companyName}" <noreply@reservamos.app>`;
-
-    // Route to the correct provider
-    const provider = emailSettings.emailProvider || "smtp";
-    console.log(`[Email] Using provider: ${provider}`);
+    const subject = rawSettings.subject || "Your Reservation Confirmation";
+    const fromEmail = rawSettings.smtp_from || `"${companyName}" <noreply@reservamos.app>`;
 
     if (provider === "sendgrid") {
       return await sendViaSendGrid({
-        apiKey: emailSettings.sendgridApiKey,
+        apiKey: smtpUser, // API key stored in smtp_user
         from: fromEmail,
         to: booking.passengerEmail,
         adminEmail: booking.client?.email,
@@ -285,7 +302,7 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
 
     if (provider === "resend") {
       return await sendViaResend({
-        apiKey: emailSettings.resendApiKey,
+        apiKey: smtpUser, // API key stored in smtp_user
         from: fromEmail,
         to: booking.passengerEmail,
         adminEmail: booking.client?.email,
