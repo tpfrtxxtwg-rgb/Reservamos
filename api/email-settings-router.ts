@@ -30,6 +30,35 @@ async function testSmtpConnection(settings: {
   }
 }
 
+async function testSendgrid(apiKey: string) {
+  try {
+    const response = await fetch("https://api.sendgrid.com/v3/user/profile", {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    if (response.ok) {
+      return { success: true, message: "SendGrid API key is valid" };
+    }
+    return { success: false, message: `SendGrid API error: ${response.status}` };
+  } catch (err: any) {
+    return { success: false, message: err.message || "SendGrid connection failed" };
+  }
+}
+
+async function testResend(apiKey: string) {
+  try {
+    const response = await fetch("https://api.resend.com/api-keys", {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    if (response.ok || response.status === 403) {
+      // 403 means key works but doesn't have that endpoint permission
+      return { success: true, message: "Resend API key is valid" };
+    }
+    return { success: false, message: `Resend API error: ${response.status}` };
+  } catch (err: any) {
+    return { success: false, message: err.message || "Resend connection failed" };
+  }
+}
+
 export const emailSettingsRouter = createRouter({
   get: clientAuthedQuery.query(async ({ ctx }) => {
     const db = getDb();
@@ -38,17 +67,19 @@ export const emailSettingsRouter = createRouter({
       where: eq(clientEmailSettings.clientId, clientId),
     });
     if (!settings) {
-      // Return default settings without inserting
       return {
         enabled: true,
         subject: "Your Reservation Confirmation",
         message: "Thank you for your reservation. We look forward to serving you.",
         pickupInstructions: "",
+        emailProvider: "smtp" as const,
         smtpHost: "",
         smtpPort: 587,
         smtpUser: "",
         smtpPass: "",
         smtpFrom: "",
+        sendgridApiKey: "",
+        resendApiKey: "",
         companyPhone: "",
         companyWebsite: "",
       };
@@ -63,11 +94,14 @@ export const emailSettingsRouter = createRouter({
         subject: z.string().max(255).optional(),
         message: z.string().optional(),
         pickupInstructions: z.string().optional(),
+        emailProvider: z.enum(["smtp", "sendgrid", "resend"]).optional(),
         smtpHost: z.string().max(255).optional().nullable(),
         smtpPort: z.number().min(1).max(65535).optional().nullable(),
         smtpUser: z.string().max(255).optional().nullable(),
         smtpPass: z.string().max(255).optional().nullable(),
         smtpFrom: z.string().email().max(320).optional().nullable(),
+        sendgridApiKey: z.string().max(255).optional().nullable(),
+        resendApiKey: z.string().max(255).optional().nullable(),
         companyPhone: z.string().max(50).optional().nullable(),
         companyWebsite: z.string().max(255).optional().nullable(),
       })
@@ -114,14 +148,38 @@ export const emailSettingsRouter = createRouter({
   testSmtp: clientAuthedQuery
     .input(
       z.object({
-        smtpHost: z.string().min(1),
-        smtpPort: z.number().min(1).max(65535),
-        smtpUser: z.string().min(1),
-        smtpPass: z.string().min(1),
-        smtpFrom: z.string().email().optional().nullable(),
+        emailProvider: z.enum(["smtp", "sendgrid", "resend"]),
+        smtpHost: z.string().optional().nullable(),
+        smtpPort: z.number().optional().nullable(),
+        smtpUser: z.string().optional().nullable(),
+        smtpPass: z.string().optional().nullable(),
+        sendgridApiKey: z.string().optional().nullable(),
+        resendApiKey: z.string().optional().nullable(),
       })
     )
     .mutation(async ({ input }) => {
-      return testSmtpConnection(input);
+      const { emailProvider } = input;
+
+      if (emailProvider === "sendgrid") {
+        if (!input.sendgridApiKey) return { success: false, message: "SendGrid API key is required" };
+        return testSendgrid(input.sendgridApiKey);
+      }
+
+      if (emailProvider === "resend") {
+        if (!input.resendApiKey) return { success: false, message: "Resend API key is required" };
+        return testResend(input.resendApiKey);
+      }
+
+      // Default: SMTP
+      if (!input.smtpHost || !input.smtpUser || !input.smtpPass) {
+        return { success: false, message: "SMTP host, user, and password are required" };
+      }
+      return testSmtpConnection({
+        smtpHost: input.smtpHost,
+        smtpPort: input.smtpPort || 587,
+        smtpUser: input.smtpUser,
+        smtpPass: input.smtpPass,
+        smtpFrom: null,
+      });
     }),
 });

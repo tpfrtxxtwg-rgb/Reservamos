@@ -238,12 +238,17 @@ export const clientEmailSettings = mysqlTable("client_email_settings", {
   subject: varchar("subject", { length: 255 }).default("Your Reservation Confirmation").notNull(),
   message: text("message").default("Thank you for your reservation. We look forward to serving you.").notNull(),
   pickupInstructions: text("pickupInstructions").default("").notNull(),
+  // Email provider selection
+  emailProvider: mysqlEnum("email_provider", ["smtp", "sendgrid", "resend"]).default("smtp").notNull(),
   // SMTP configuration
   smtpHost: varchar("smtp_host", { length: 255 }),
   smtpPort: int("smtp_port").default(587),
   smtpUser: varchar("smtp_user", { length: 255 }),
   smtpPass: varchar("smtp_pass", { length: 255 }),
   smtpFrom: varchar("smtp_from", { length: 320 }),
+  // API keys for HTTP-based providers (SendGrid, Resend)
+  sendgridApiKey: varchar("sendgrid_api_key", { length: 255 }),
+  resendApiKey: varchar("resend_api_key", { length: 255 }),
   // Company contact info for the PDF/email
   companyPhone: varchar("company_phone", { length: 50 }),
   companyWebsite: varchar("company_website", { length: 255 }),

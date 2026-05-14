@@ -261,70 +261,215 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
     const htmlContent = buildHtmlEmail(enrichedBooking, emailSettings, companyName);
     const textContent = buildTextEmail(enrichedBooking, emailSettings, companyName);
 
-    // Try to send via nodemailer
-    let nodemailer: any;
-    try {
-      const nodemailerMod = await import("nodemailer");
-      nodemailer = nodemailerMod.default || nodemailerMod;
-      console.log("[Email] nodemailer loaded successfully");
-    } catch (err: any) {
-      console.error("[Email] nodemailer import failed:", err.message);
-      return { sent: false, reason: "nodemailer not available: " + err.message };
-    }
-
-    console.log(`[Email] Creating transport: host=${emailSettings.smtpHost}, port=${emailSettings.smtpPort || 587}`);
-    const transporter = nodemailer.createTransport({
-      host: emailSettings.smtpHost,
-      port: emailSettings.smtpPort || 587,
-      secure: (emailSettings.smtpPort || 587) === 465,
-      auth: {
-        user: emailSettings.smtpUser,
-        pass: emailSettings.smtpPass,
-      },
-    });
-
-    // Verify connection
-    console.log("[Email] Verifying SMTP connection...");
-    try {
-      await transporter.verify();
-      console.log("[Email] SMTP connection verified OK");
-    } catch (verifyErr: any) {
-      console.error("[Email] SMTP verification failed:", verifyErr.message);
-      return { sent: false, reason: "SMTP connection failed: " + verifyErr.message };
-    }
-
     const subject = emailSettings.subject || "Your Reservation Confirmation";
+    const fromEmail = emailSettings.smtpFrom || `"${companyName}" <noreply@reservamos.app>`;
 
-    // Send to passenger
-    console.log(`[Email] Sending to passenger: ${booking.passengerEmail}`);
-    const passengerResult = await transporter.sendMail({
-      from: emailSettings.smtpFrom || `"${companyName}" <noreply@reservamos.app>`,
-      to: booking.passengerEmail,
-      subject: `${subject} - #${booking.code}`,
-      text: textContent,
-      html: htmlContent,
-    });
-    console.log("[Email] Passenger email sent. MessageId:", passengerResult.messageId);
+    // Route to the correct provider
+    const provider = emailSettings.emailProvider || "smtp";
+    console.log(`[Email] Using provider: ${provider}`);
 
-    // Send notification to admin
-    const adminEmail = booking.client?.email;
-    if (adminEmail) {
-      console.log(`[Email] Sending admin notification to: ${adminEmail}`);
-      const adminResult = await transporter.sendMail({
-        from: emailSettings.smtpFrom || `"${companyName}" <noreply@reservamos.app>`,
-        to: adminEmail,
-        subject: `New Reservation - #${booking.code}`,
-        text: `A new reservation has been received.\n\nCode: ${booking.code}\nPassenger: ${booking.passengerName} ${booking.passengerLastName}\nService: ${booking.tripType === "round_trip" ? "Round Trip" : "One Way"}\nDate: ${booking.date} at ${booking.time}\nTotal: $${booking.total}`,
-        html: `<p>A new reservation has been received.</p><p><strong>Code:</strong> ${booking.code}</p><p><strong>Passenger:</strong> ${booking.passengerName} ${booking.passengerLastName}</p><p><strong>Service:</strong> ${booking.tripType === "round_trip" ? "Round Trip" : "One Way"}</p><p><strong>Date:</strong> ${booking.date} at ${booking.time}</p><p><strong>Total:</strong> $${booking.total}</p>`,
+    if (provider === "sendgrid") {
+      return await sendViaSendGrid({
+        apiKey: emailSettings.sendgridApiKey,
+        from: fromEmail,
+        to: booking.passengerEmail,
+        adminEmail: booking.client?.email,
+        subject: `${subject} - #${booking.code}`,
+        html: htmlContent,
+        text: textContent,
+        adminSubject: `New Reservation - #${booking.code}`,
+        adminText: `A new reservation has been received.\n\nCode: ${booking.code}\nPassenger: ${booking.passengerName} ${booking.passengerLastName}\nService: ${booking.tripType === "round_trip" ? "Round Trip" : "One Way"}\nDate: ${booking.date} at ${booking.time}\nTotal: $${booking.total}`,
+        adminHtml: `<p>A new reservation has been received.</p><p><strong>Code:</strong> ${booking.code}</p><p><strong>Passenger:</strong> ${booking.passengerName} ${booking.passengerLastName}</p><p><strong>Service:</strong> ${booking.tripType === "round_trip" ? "Round Trip" : "One Way"}</p><p><strong>Date:</strong> ${booking.date} at ${booking.time}</p><p><strong>Total:</strong> $${booking.total}</p>`,
       });
-      console.log("[Email] Admin email sent. MessageId:", adminResult.messageId);
     }
 
-    console.log("[Email] All emails sent successfully for booking:", booking.code);
-    return { sent: true, bookingCode: booking.code };
+    if (provider === "resend") {
+      return await sendViaResend({
+        apiKey: emailSettings.resendApiKey,
+        from: fromEmail,
+        to: booking.passengerEmail,
+        adminEmail: booking.client?.email,
+        subject: `${subject} - #${booking.code}`,
+        html: htmlContent,
+        text: textContent,
+        adminSubject: `New Reservation - #${booking.code}`,
+        adminText: `A new reservation has been received.\n\nCode: ${booking.code}\nPassenger: ${booking.passengerName} ${booking.passengerLastName}\nService: ${booking.tripType === "round_trip" ? "Round Trip" : "One Way"}\nDate: ${booking.date} at ${booking.time}\nTotal: $${booking.total}`,
+        adminHtml: `<p>A new reservation has been received.</p><p><strong>Code:</strong> ${booking.code}</p><p><strong>Passenger:</strong> ${booking.passengerName} ${booking.passengerLastName}</p><p><strong>Service:</strong> ${booking.tripType === "round_trip" ? "Round Trip" : "One Way"}</p><p><strong>Date:</strong> ${booking.date} at ${booking.time}</p><p><strong>Total:</strong> $${booking.total}</p>`,
+      });
+    }
+
+    // Default: SMTP via nodemailer
+    return await sendViaSmtp({
+      emailSettings,
+      from: fromEmail,
+      to: booking.passengerEmail,
+      adminEmail: booking.client?.email,
+      subject: `${subject} - #${booking.code}`,
+      html: htmlContent,
+      text: textContent,
+      adminSubject: `New Reservation - #${booking.code}`,
+      adminText: `A new reservation has been received.\n\nCode: ${booking.code}\nPassenger: ${booking.passengerName} ${booking.passengerLastName}\nService: ${booking.tripType === "round_trip" ? "Round Trip" : "One Way"}\nDate: ${booking.date} at ${booking.time}\nTotal: $${booking.total}`,
+      adminHtml: `<p>A new reservation has been received.</p><p><strong>Code:</strong> ${booking.code}</p><p><strong>Passenger:</strong> ${booking.passengerName} ${booking.passengerLastName}</p><p><strong>Service:</strong> ${booking.tripType === "round_trip" ? "Round Trip" : "One Way"}</p><p><strong>Date:</strong> ${booking.date} at ${booking.time}</p><p><strong>Total:</strong> $${booking.total}</p>`,
+    });
   } catch (error: any) {
     console.error("[Email] CRITICAL ERROR:", error.message, error.stack);
     return { sent: false, reason: error.message };
+  }
+}
+
+// ─── Send via SMTP ──────────────────────────────────────────────
+async function sendViaSmtp(params: {
+  emailSettings: any;
+  from: string;
+  to: string;
+  adminEmail?: string;
+  subject: string;
+  html: string;
+  text: string;
+  adminSubject: string;
+  adminText: string;
+  adminHtml: string;
+}) {
+  const { emailSettings, from, to, adminEmail, subject, html, text, adminSubject, adminText, adminHtml } = params;
+
+  let nodemailer: any;
+  try {
+    const nodemailerMod = await import("nodemailer");
+    nodemailer = nodemailerMod.default || nodemailerMod;
+  } catch (err: any) {
+    return { sent: false, reason: "nodemailer not available: " + err.message };
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: emailSettings.smtpHost,
+    port: emailSettings.smtpPort || 587,
+    secure: (emailSettings.smtpPort || 587) === 465,
+    auth: {
+      user: emailSettings.smtpUser,
+      pass: emailSettings.smtpPass,
+    },
+  });
+
+  try {
+    await transporter.verify();
+  } catch (verifyErr: any) {
+    return { sent: false, reason: "SMTP connection failed: " + verifyErr.message };
+  }
+
+  const passengerResult = await transporter.sendMail({ from, to, subject, text, html });
+  console.log("[Email/SMTP] Passenger email sent:", passengerResult.messageId);
+
+  if (adminEmail) {
+    const adminResult = await transporter.sendMail({
+      from, to: adminEmail, subject: adminSubject, text: adminText, html: adminHtml,
+    });
+    console.log("[Email/SMTP] Admin email sent:", adminResult.messageId);
+  }
+
+  return { sent: true };
+}
+
+// ─── Send via SendGrid API ──────────────────────────────────────
+async function sendViaSendGrid(params: {
+  apiKey?: string | null;
+  from: string;
+  to: string;
+  adminEmail?: string;
+  subject: string;
+  html: string;
+  text: string;
+  adminSubject: string;
+  adminText: string;
+  adminHtml: string;
+}) {
+  const { apiKey, from, to, adminEmail, subject, html, text, adminSubject, adminText, adminHtml } = params;
+  if (!apiKey) return { sent: false, reason: "SendGrid API key not configured" };
+
+  const sendEmail = async (recipient: string, emailSubject: string, emailHtml: string, emailText: string) => {
+    const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        personalizations: [{ to: [{ email: recipient }] }],
+        from: { email: from },
+        subject: emailSubject,
+        content: [
+          { type: "text/plain", value: emailText },
+          { type: "text/html", value: emailHtml },
+        ],
+      }),
+    });
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`SendGrid HTTP ${response.status}: ${errorBody}`);
+    }
+    return response;
+  };
+
+  try {
+    await sendEmail(to, subject, html, text);
+    console.log("[Email/SendGrid] Passenger email sent");
+    if (adminEmail) {
+      await sendEmail(adminEmail, adminSubject, adminHtml, adminText);
+      console.log("[Email/SendGrid] Admin email sent");
+    }
+    return { sent: true };
+  } catch (err: any) {
+    return { sent: false, reason: "SendGrid error: " + err.message };
+  }
+}
+
+// ─── Send via Resend API ────────────────────────────────────────
+async function sendViaResend(params: {
+  apiKey?: string | null;
+  from: string;
+  to: string;
+  adminEmail?: string;
+  subject: string;
+  html: string;
+  text: string;
+  adminSubject: string;
+  adminText: string;
+  adminHtml: string;
+}) {
+  const { apiKey, from, to, adminEmail, subject, html, text, adminSubject, adminText, adminHtml } = params;
+  if (!apiKey) return { sent: false, reason: "Resend API key not configured" };
+
+  const sendEmail = async (recipient: string, emailSubject: string, emailHtml: string) => {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: from,
+        to: recipient,
+        subject: emailSubject,
+        html: emailHtml,
+        text: text,
+      }),
+    });
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`Resend HTTP ${response.status}: ${errorBody}`);
+    }
+    return response.json();
+  };
+
+  try {
+    await sendEmail(to, subject, html);
+    console.log("[Email/Resend] Passenger email sent");
+    if (adminEmail) {
+      await sendEmail(adminEmail, adminSubject, adminHtml);
+      console.log("[Email/Resend] Admin email sent");
+    }
+    return { sent: true };
+  } catch (err: any) {
+    return { sent: false, reason: "Resend error: " + err.message };
   }
 }
 
