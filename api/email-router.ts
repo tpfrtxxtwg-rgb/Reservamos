@@ -256,8 +256,8 @@ function buildTextEmail(
   if (isRoundTrip) {
     text += `DEPARTURE INFORMATION\n`;
     text += `----------------------\n`;
-    text += `Pickup Location (Hotel): ${booking.destinationName || booking.destination}\n`;
-    text += `Destination (Airport): ${booking.origin}\n`;
+    text += `Pickup Location (Hotel): ${booking.origin}\n`;
+    text += `Destination (Airport): ${booking.destinationName || booking.destination}\n`;
     text += `Departure Date & Time: ${booking.departureDate || "N/A"}${booking.departureTime ? ` at ${booking.departureTime}` : ""}\n`;
     text += `Airline: ${booking.airline || "N/A"}\n`;
     text += `Flight Number: ${booking.flightNumber || "N/A"}\n`;
@@ -309,8 +309,8 @@ function buildAdminHtmlEmail(
   const roundTripHtml = isRoundTrip
     ? `<div style="margin-bottom:24px;"><div style="background:#F5EFE6;padding:10px 12px;font-size:12px;font-weight:bold;color:#3D3833;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;border-radius:6px;">DEPARTURE INFORMATION</div>
         <div style="display:flex;flex-wrap:wrap;"><div style="flex:1;min-width:200px;padding-right:12px;">
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Pickup Location (Hotel)</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.destinationName || booking.destination}</div>
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Destination (Airport)</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.origin}</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Pickup Location (Hotel)</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.origin}</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Destination (Airport)</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.destinationName || booking.destination}</div>
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Departure Date & Time</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.departureDate || "N/A"}${booking.departureTime ? ` at ${booking.departureTime}` : ""}</div>
         </div><div style="flex:1;min-width:200px;">
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Hotel Pickup Time</div><div style="font-size:13px;color:#2D6A4F;font-weight:700;">${pickupTime || "N/A"}${pickupTime ? " (3 hours before flight)" : ""}</div>
@@ -474,8 +474,8 @@ function buildAdminTextEmail(
   if (isRoundTrip) {
     text += `DEPARTURE INFORMATION\n`;
     text += `----------------------\n`;
-    text += `Pickup Location (Hotel): ${booking.destinationName || booking.destination}\n`;
-    text += `Destination (Airport): ${booking.origin}\n`;
+    text += `Pickup Location (Hotel): ${booking.origin}\n`;
+    text += `Destination (Airport): ${booking.destinationName || booking.destination}\n`;
     text += `Departure Date & Time: ${booking.departureDate || "N/A"}${booking.departureTime ? ` at ${booking.departureTime}` : ""}\n`;
     text += `Airline: ${booking.airline || "N/A"}\n`;
     text += `Flight Number: ${booking.flightNumber || "N/A"}\n`;
