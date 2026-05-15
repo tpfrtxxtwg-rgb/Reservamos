@@ -153,10 +153,16 @@ function buildHtmlEmail(
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.passengerName} ${booking.passengerLastName}</div>
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Email</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.passengerEmail}</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Phone</div>
+          <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.passengerPhone || "N/A"}</div>
         </div>
         <div style="flex:1;min-width:200px;">
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Phone</div>
-          <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.passengerPhone || "N/A"}</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Service Type</div>
+          <div style="font-size:13px;color:#3D3833;font-weight:600;"><span style="display:inline-block;background:#C75E3A;color:#FFF;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:bold;">${isRoundTrip ? "Round Trip" : "One Way"}</span></div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Vehicle</div>
+          <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.vehicleName || "N/A"}</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Passengers</div>
+          <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.passengers}</div>
         </div>
       </div>
     </div>
@@ -165,21 +171,15 @@ function buildHtmlEmail(
       <div style="background:#F5EFE6;padding:10px 12px;font-size:12px;font-weight:bold;color:#3D3833;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;border-radius:6px;">ARRIVAL INFORMATION</div>
       <div style="display:flex;flex-wrap:wrap;">
         <div style="flex:1;min-width:200px;padding-right:12px;">
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Service Type</div>
-          <div style="font-size:13px;color:#3D3833;font-weight:600;"><span style="display:inline-block;background:#C75E3A;color:#FFF;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:bold;">${isRoundTrip ? "Round Trip" : "One Way"}</span></div>
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Vehicle</div>
-          <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.vehicleName || "N/A"}</div>
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Passengers</div>
-          <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.passengers}</div>
-        </div>
-        <div style="flex:1;min-width:200px;">
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Pickup Location</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.origin}</div>
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Destination</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.destinationName || booking.destination}</div>
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Arrival Date & Time</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.date} at ${booking.time}</div>
-          ${booking.flightNumber ? `<div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Flight Number</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.flightNumber}</div>` : ""}
+        </div>
+        <div style="flex:1;min-width:200px;">
+          ${booking.flightNumber ? `<div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Flight Number</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.flightNumber}</div>` : ""}
           ${booking.airline ? `<div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Airline</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.airline}</div>` : ""}
         </div>
       </div>
@@ -234,8 +234,10 @@ function buildTextEmail(
   text += `Company: ${companyName}\n\n`;
   text += `Passenger: ${booking.passengerName} ${booking.passengerLastName}\n`;
   text += `Email: ${booking.passengerEmail}\n`;
-  text += `Phone: ${booking.passengerPhone || "N/A"}\n\n`;
-  text += `Service: ${isRoundTrip ? "Round Trip" : "One Way"}\n`;
+  text += `Phone: ${booking.passengerPhone || "N/A"}\n`;
+  text += `Service Type: ${isRoundTrip ? "Round Trip" : "One Way"}\n`;
+  text += `Vehicle: ${booking.vehicleName || "N/A"}\n`;
+  text += `Passengers: ${booking.passengers}\n\n`;
   text += `Pickup Location: ${booking.origin}\n`;
   text += `Destination: ${booking.destinationName || booking.destination}\n`;
   text += `Arrival Date & Time: ${booking.date} at ${booking.time}\n`;
@@ -254,8 +256,8 @@ function buildTextEmail(
   if (isRoundTrip) {
     text += `DEPARTURE INFORMATION\n`;
     text += `----------------------\n`;
-    text += `Pickup Location (Hotel): ${booking.origin}\n`;
-    text += `Destination (Airport): ${booking.destinationName || booking.destination}\n`;
+    text += `Pickup Location (Hotel): ${booking.destinationName || booking.destination}\n`;
+    text += `Destination (Airport): ${booking.origin}\n`;
     text += `Departure Date & Time: ${booking.departureDate || "N/A"}${booking.departureTime ? ` at ${booking.departureTime}` : ""}\n`;
     text += `Airline: ${booking.airline || "N/A"}\n`;
     text += `Flight Number: ${booking.flightNumber || "N/A"}\n`;
@@ -307,12 +309,12 @@ function buildAdminHtmlEmail(
   const roundTripHtml = isRoundTrip
     ? `<div style="margin-bottom:24px;"><div style="background:#F5EFE6;padding:10px 12px;font-size:12px;font-weight:bold;color:#3D3833;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;border-radius:6px;">DEPARTURE INFORMATION</div>
         <div style="display:flex;flex-wrap:wrap;"><div style="flex:1;min-width:200px;padding-right:12px;">
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Pickup Location (Hotel)</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.origin || "N/A"}</div>
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Destination (Airport)</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.destinationName || booking.destination}</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Pickup Location (Hotel)</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.destinationName || booking.destination}</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Destination (Airport)</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.origin}</div>
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Departure Date & Time</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.departureDate || "N/A"}${booking.departureTime ? ` at ${booking.departureTime}` : ""}</div>
         </div><div style="flex:1;min-width:200px;">
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Hotel Pickup Time</div><div style="font-size:13px;color:#2D6A4F;font-weight:700;">${pickupTime || "N/A"} ${pickupTime ? "(3 hours before flight)" : ""}</div>
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Airline</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.airline || "N/A"}</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Hotel Pickup Time</div><div style="font-size:13px;color:#2D6A4F;font-weight:700;">${pickupTime || "N/A"}${pickupTime ? " (3 hours before flight)" : ""}</div>
+          ${booking.airline ? `<div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Airline</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.airline}</div>` : ""}
           ${booking.flightNumber ? `<div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Flight Number</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.flightNumber}</div>` : ""}
         </div></div></div>`
     : "";
@@ -368,10 +370,16 @@ function buildAdminHtmlEmail(
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.passengerName} ${booking.passengerLastName}</div>
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Email</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.passengerEmail}</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Phone</div>
+          <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.passengerPhone || "N/A"}</div>
         </div>
         <div style="flex:1;min-width:200px;">
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Phone</div>
-          <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.passengerPhone || "N/A"}</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Service Type</div>
+          <div style="font-size:13px;color:#3D3833;font-weight:600;"><span style="display:inline-block;background:#8B5E3C;color:#FFF;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:bold;">${isRoundTrip ? "Round Trip" : "One Way"}</span></div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Vehicle</div>
+          <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.vehicleName || "N/A"}</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Passengers</div>
+          <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.passengers}</div>
         </div>
       </div>
     </div>
@@ -388,11 +396,7 @@ function buildAdminHtmlEmail(
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.date} at ${booking.time}</div>
         </div>
         <div style="flex:1;min-width:200px;">
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Vehicle</div>
-          <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.vehicleName || "N/A"}</div>
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Passengers</div>
-          <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.passengers}</div>
-          ${booking.flightNumber ? `<div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Flight Number</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.flightNumber}</div>` : ""}
+          ${booking.flightNumber ? `<div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Flight Number</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.flightNumber}</div>` : ""}
           ${booking.airline ? `<div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Airline</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.airline}</div>` : ""}
         </div>
       </div>
@@ -452,16 +456,17 @@ function buildAdminTextEmail(
   text += `----------------------\n`;
   text += `Name: ${booking.passengerName} ${booking.passengerLastName}\n`;
   text += `Email: ${booking.passengerEmail}\n`;
-  text += `Phone: ${booking.passengerPhone || "N/A"}\n\n`;
+  text += `Phone: ${booking.passengerPhone || "N/A"}\n`;
+  text += `Service Type: ${isRoundTrip ? "Round Trip" : "One Way"}\n`;
+  text += `Vehicle: ${booking.vehicleName || "N/A"}\n`;
+  text += `Passengers: ${booking.passengers}\n\n`;
   text += `ARRIVAL INFORMATION\n`;
   text += `--------------------\n`;
   text += `Pickup Location: ${booking.origin}\n`;
   text += `Destination: ${booking.destinationName || booking.destination}\n`;
   text += `Arrival Date & Time: ${booking.date} at ${booking.time}\n`;
   if (booking.flightNumber) text += `Flight Number: ${booking.flightNumber}\n`;
-  if (booking.airline) text += `Airline: ${booking.airline}\n`;
-  text += `Vehicle: ${booking.vehicleName || "N/A"}\n`;
-  text += `Passengers: ${booking.passengers}\n`;
+  if (booking.airline) text += `Airline: ${booking.airline}\n\n`;
   text += `Total: $${booking.total}\n\n`;
   if (booking.optionalServicesList?.length) {
     text += `Additional Services: ${booking.optionalServicesList.join(", ")}\n\n`;
@@ -469,8 +474,8 @@ function buildAdminTextEmail(
   if (isRoundTrip) {
     text += `DEPARTURE INFORMATION\n`;
     text += `----------------------\n`;
-    text += `Pickup Location (Hotel): ${booking.origin}\n`;
-    text += `Destination (Airport): ${booking.destinationName || booking.destination}\n`;
+    text += `Pickup Location (Hotel): ${booking.destinationName || booking.destination}\n`;
+    text += `Destination (Airport): ${booking.origin}\n`;
     text += `Departure Date & Time: ${booking.departureDate || "N/A"}${booking.departureTime ? ` at ${booking.departureTime}` : ""}\n`;
     text += `Airline: ${booking.airline || "N/A"}\n`;
     text += `Flight Number: ${booking.flightNumber || "N/A"}\n`;
