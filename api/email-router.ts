@@ -298,9 +298,9 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
     }
 
     // Default: SendGrid
+    console.log(`[Email] Sending via SendGrid to passenger=${booking.passengerEmail}, admin=${booking.client?.email || "none"}`);
     return await sendViaSendGrid({
       apiKey: smtpUser,
-      emailSettings,
       from: fromEmail,
       to: booking.passengerEmail,
       adminEmail: booking.client?.email,
@@ -334,38 +334,48 @@ async function sendViaSendGrid(params: {
   if (!apiKey) return { sent: false, reason: "SendGrid API key not configured" };
 
   const sendEmail = async (recipient: string, emailSubject: string, emailHtml: string, emailText: string) => {
+    console.log(`[Email/SendGrid] Sending to ${recipient}, from ${from}, subject: ${emailSubject.substring(0, 50)}...`);
+    const body = {
+      personalizations: [{ to: [{ email: recipient }] }],
+      from: { email: from },
+      subject: emailSubject,
+      content: [
+        { type: "text/plain", value: emailText },
+        { type: "text/html", value: emailHtml },
+      ],
+    };
+    console.log(`[Email/SendGrid] Request body:`, JSON.stringify(body).substring(0, 200));
+
     const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        personalizations: [{ to: [{ email: recipient }] }],
-        from: { email: from },
-        subject: emailSubject,
-        content: [
-          { type: "text/plain", value: emailText },
-          { type: "text/html", value: emailHtml },
-        ],
-      }),
+      body: JSON.stringify(body),
     });
     if (!response.ok) {
       const errorBody = await response.text();
+      console.error(`[Email/SendGrid] HTTP ${response.status} error:`, errorBody);
       throw new Error(`SendGrid HTTP ${response.status}: ${errorBody}`);
     }
+    console.log(`[Email/SendGrid] HTTP ${response.status} - Success`);
     return response;
   };
 
   try {
     await sendEmail(to, subject, html, text);
-    console.log("[Email/SendGrid] Passenger email sent");
+    console.log("[Email/SendGrid] Passenger email sent OK");
     if (adminEmail) {
+      console.log(`[Email/SendGrid] Sending admin email to ${adminEmail}`);
       await sendEmail(adminEmail, adminSubject, adminHtml, adminText);
-      console.log("[Email/SendGrid] Admin email sent");
+      console.log("[Email/SendGrid] Admin email sent OK");
+    } else {
+      console.log("[Email/SendGrid] No admin email configured (booking.client?.email is empty)");
     }
-    return { sent: true };
+    return { sent: true, to, adminEmail: adminEmail || null };
   } catch (err: any) {
+    console.error("[Email/SendGrid] Send failed:", err.message);
     return { sent: false, reason: "SendGrid error: " + err.message };
   }
 }
