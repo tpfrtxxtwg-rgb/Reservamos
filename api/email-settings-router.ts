@@ -33,6 +33,7 @@ async function testResend(apiKey: string) {
 function mapRowToSettings(row: any) {
   const smtpHost = row.smtp_host || "";
   const smtpUser = row.smtp_user || "";
+  const smtpPass = row.smtp_pass || "";
   const smtpFrom = row.smtp_from || "";
   const emailProvider = smtpHost === "resend" ? "resend" : "sendgrid";
 
@@ -49,6 +50,7 @@ function mapRowToSettings(row: any) {
     emailProvider,
     sendgridApiKey: emailProvider === "sendgrid" ? smtpUser : "",
     resendApiKey: emailProvider === "resend" ? smtpUser : "",
+    timezone: smtpPass || "America/Los_Angeles", // stored in smtp_pass column
   };
 }
 
@@ -64,6 +66,7 @@ function defaultSettings() {
     emailProvider: "sendgrid" as const,
     sendgridApiKey: "",
     resendApiKey: "",
+    timezone: "America/Los_Angeles",
   };
 }
 
@@ -101,6 +104,7 @@ export const emailSettingsRouter = createRouter({
         resendApiKey: z.string().max(255).optional().nullable(),
         companyPhone: z.string().max(50).optional().nullable(),
         companyWebsite: z.string().max(255).optional().nullable(),
+        timezone: z.string().optional().nullable(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -111,6 +115,7 @@ export const emailSettingsRouter = createRouter({
       const isSendgrid = input.emailProvider === "sendgrid" || !input.emailProvider;
       const smtpHost = isSendgrid ? "sendgrid" : "resend";
       const smtpUser = isSendgrid ? input.sendgridApiKey : input.resendApiKey;
+      const timezone = input.timezone || "America/Los_Angeles";
 
       try {
         // Check if record exists
@@ -124,7 +129,7 @@ export const emailSettingsRouter = createRouter({
           await pool.execute(
             `UPDATE client_email_settings SET
               enabled = ?, subject = ?, message = ?, pickupInstructions = ?,
-              smtp_host = ?, smtp_user = ?, smtp_from = ?,
+              smtp_host = ?, smtp_user = ?, smtp_pass = ?, smtp_from = ?,
               company_phone = ?, company_website = ?
              WHERE clientId = ?`,
             [
@@ -134,6 +139,7 @@ export const emailSettingsRouter = createRouter({
               input.pickupInstructions ?? "",
               smtpHost,
               smtpUser,
+              timezone,
               input.smtpFrom ?? "",
               input.companyPhone ?? "",
               input.companyWebsite ?? "",
@@ -145,9 +151,9 @@ export const emailSettingsRouter = createRouter({
           await pool.execute(
             `INSERT INTO client_email_settings
               (clientId, enabled, subject, message, pickupInstructions,
-               smtp_host, smtp_user, smtp_from,
+               smtp_host, smtp_user, smtp_pass, smtp_from,
                company_phone, company_website)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               clientId,
               input.enabled ?? true,
@@ -156,6 +162,7 @@ export const emailSettingsRouter = createRouter({
               input.pickupInstructions ?? "",
               smtpHost,
               smtpUser,
+              timezone,
               input.smtpFrom ?? "",
               input.companyPhone ?? "",
               input.companyWebsite ?? "",
