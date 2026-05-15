@@ -93,6 +93,20 @@ function buildHtmlEmail(
     ${emailSettings.message ? `<div style="margin-bottom:20px;font-size:13px;color:#3D3833;line-height:1.5;">${emailSettings.message.replace(/\n/g, "<br/>")}</div>` : ""}
 
     <div style="margin-bottom:24px;">
+      <div style="background:#F5EFE6;padding:10px 12px;font-size:12px;font-weight:bold;color:#3D3833;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;border-radius:6px;">Reservation Information</div>
+      <div style="display:flex;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;padding-right:12px;">
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Reservation Code</div>
+          <div style="font-size:13px;color:#C75E3A;font-weight:700;">${booking.code}</div>
+        </div>
+        <div style="flex:1;min-width:200px;">
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Reservation Date</div>
+          <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.createdAt ? new Date(booking.createdAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }) : "N/A"}</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:24px;">
       <div style="background:#F5EFE6;padding:10px 12px;font-size:12px;font-weight:bold;color:#3D3833;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;border-radius:6px;">Passenger Information</div>
       <div style="display:flex;flex-wrap:wrap;">
         <div style="flex:1;min-width:200px;padding-right:12px;">
@@ -104,8 +118,6 @@ function buildHtmlEmail(
         <div style="flex:1;min-width:200px;">
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Phone</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.passengerPhone || "N/A"}</div>
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Reservation Code</div>
-          <div style="font-size:13px;color:#C75E3A;font-weight:700;">${booking.code}</div>
         </div>
       </div>
     </div>
@@ -175,8 +187,13 @@ function buildTextEmail(
   companyName: string
 ): string {
   const isRoundTrip = booking.tripType === "round_trip";
+  const reservationDate = booking.createdAt
+    ? new Date(booking.createdAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })
+    : "N/A";
+
   let text = `RESERVATION CONFIRMED - ${booking.code}\n\n`;
-  text += `Company: ${companyName}\n`;
+  text += `Reservation Date: ${reservationDate}\n`;
+  text += `Company: ${companyName}\n\n`;
   text += `Passenger: ${booking.passengerName} ${booking.passengerLastName}\n`;
   text += `Email: ${booking.passengerEmail}\n`;
   text += `Phone: ${booking.passengerPhone || "N/A"}\n\n`;
