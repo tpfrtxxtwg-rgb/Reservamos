@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
   Check,
+  Clock,
   Envelope,
   EnvelopeSimple,
   Gear,
@@ -53,6 +54,8 @@ export default function AdminEmailSettings({ clientId }: Props) {
   const [resendApiKey, setResendApiKey] = useState('');
   // From email (required for both providers)
   const [fromEmail, setFromEmail] = useState('');
+  // Timezone for date display in emails
+  const [timezone, setTimezone] = useState('America/Los_Angeles');
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -67,6 +70,7 @@ export default function AdminEmailSettings({ clientId }: Props) {
       setFromEmail(settings.smtpFrom || '');
       setSendgridApiKey(settings.sendgridApiKey || '');
       setResendApiKey(settings.resendApiKey || '');
+      setTimezone((settings as any).timezone || 'America/Los_Angeles');
     }
   }, [settings]);
 
@@ -82,6 +86,7 @@ export default function AdminEmailSettings({ clientId }: Props) {
       resendApiKey: resendApiKey || null,
       companyPhone: companyPhone || null,
       companyWebsite: companyWebsite || null,
+      timezone: timezone || null,
     });
   };
 
@@ -314,6 +319,33 @@ export default function AdminEmailSettings({ clientId }: Props) {
             className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all"
           />
           <p className="font-body text-xs text-warm-gray mt-1">This is the sender address your customers will see. Must be verified in your provider.</p>
+        </div>
+
+        {/* Timezone */}
+        <div className="mb-5">
+          <label className="font-body text-sm font-medium text-charcoal mb-2 block flex items-center gap-2">
+            <Clock size={14} className="text-terracotta" />
+            Timezone
+          </label>
+          <select
+            value={timezone}
+            onChange={(e) => setTimezone(e.target.value)}
+            className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all"
+          >
+            <option value="America/Los_Angeles">Pacific (Los Angeles, Cabo) UTC-7</option>
+            <option value="America/Denver">Mountain (Denver, Phoenix) UTC-6</option>
+            <option value="America/Chicago">Central (Chicago, CDMX) UTC-5</option>
+            <option value="America/New_York">Eastern (New York, Cancun) UTC-4</option>
+            <option value="America/Anchorage">Alaska (Anchorage) UTC-8</option>
+            <option value="Pacific/Honolulu">Hawaii (Honolulu) UTC-10</option>
+            <option value="America/Toronto">Toronto UTC-4</option>
+            <option value="Europe/Madrid">Madrid UTC+2</option>
+            <option value="Europe/London">London UTC+1</option>
+            <option value="America/Argentina/Buenos_Aires">Buenos Aires UTC-3</option>
+            <option value="America/Bogota">Bogota UTC-5</option>
+            <option value="America/Santiago">Santiago UTC-4</option>
+          </select>
+          <p className="font-body text-xs text-warm-gray mt-1">All dates and times in confirmation emails will be displayed in this timezone.</p>
         </div>
 
         {/* SendGrid Fields */}
