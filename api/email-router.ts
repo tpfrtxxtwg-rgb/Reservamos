@@ -186,7 +186,8 @@ function buildHtmlEmail(
     </div>
 
     ${optionalServicesHtml}
-    ${isRoundTrip ? buildRoundTripHtml(booking) : flightHtml}
+    ${roundTripHtml}
+    ${flightHtml}
 
     <div style="margin-bottom:24px;">
       <div style="background:#F5EFE6;padding:10px 12px;font-size:12px;font-weight:bold;color:#3D3833;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;border-radius:6px;">Payment Summary</div>
