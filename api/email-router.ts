@@ -5,12 +5,50 @@ import { getDb, getRawDb } from "./queries/connection";
 import { bookings, clientEmailSettings, optionalServices } from "@db/schema";
 import type { Booking } from "@db/schema";
 
+// Format a date with a specific IANA timezone (e.g., "America/Los_Angeles")
+function formatDateTime(date: Date | string | null, timezone: string = "America/Los_Angeles", opts?: Intl.DateTimeFormatOptions): string {
+  if (!date) return "N/A";
+  try {
+    const d = typeof date === "string" ? new Date(date) : date;
+    const options: Intl.DateTimeFormatOptions = opts || {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZoneName: "short",
+    };
+    return d.toLocaleString("en-US", { ...options, timeZone: timezone });
+  } catch {
+    return String(date);
+  }
+}
+
+function formatDateOnly(date: Date | string | null, timezone: string = "America/Los_Angeles"): string {
+  return formatDateTime(date, timezone, {
+    weekday: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function formatTimeOnly(date: Date | string | null, timezone: string = "America/Los_Angeles"): string {
+  return formatDateTime(date, timezone, {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZoneName: "short",
+  });
+}
+
 // Helper to build HTML email (works without any external dependencies)
 function buildHtmlEmail(
   booking: Booking & { vehicleName?: string; destinationName?: string; optionalServicesList?: string[]; clientName?: string; clientEmail?: string },
-  emailSettings: { subject?: string; message?: string; pickupInstructions?: string | null; companyPhone?: string | null; companyWebsite?: string | null },
+  emailSettings: { subject?: string; message?: string; pickupInstructions?: string | null; companyPhone?: string | null; companyWebsite?: string | null; timezone?: string },
   companyName: string
 ): string {
+  const tz = emailSettings.timezone || "America/Los_Angeles";
   const isRoundTrip = booking.tripType === "round_trip";
   const pickupTime = booking.departureTime
     ? (() => {
@@ -101,7 +139,7 @@ function buildHtmlEmail(
         </div>
         <div style="flex:1;min-width:200px;">
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Reservation Date</div>
-          <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.createdAt ? new Date(booking.createdAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }) : "N/A"}</div>
+          <div style="font-size:13px;color:#3D3833;font-weight:600;">${formatDateTime(booking.createdAt, tz, { dateStyle: "medium", timeStyle: "short" })}</div>
         </div>
       </div>
     </div>
@@ -183,13 +221,12 @@ function buildHtmlEmail(
 // Build simple text fallback
 function buildTextEmail(
   booking: Booking & { vehicleName?: string; destinationName?: string; optionalServicesList?: string[] },
-  emailSettings: { pickupInstructions?: string | null },
+  emailSettings: { pickupInstructions?: string | null; timezone?: string },
   companyName: string
 ): string {
+  const tz = emailSettings.timezone || "America/Los_Angeles";
   const isRoundTrip = booking.tripType === "round_trip";
-  const reservationDate = booking.createdAt
-    ? new Date(booking.createdAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })
-    : "N/A";
+  const reservationDate = formatDateTime(booking.createdAt, tz, { dateStyle: "medium", timeStyle: "short" });
 
   let text = `RESERVATION CONFIRMED - ${booking.code}\n\n`;
   text += `Reservation Date: ${reservationDate}\n`;
@@ -225,13 +262,12 @@ function buildTextEmail(
 // Build admin HTML email - same visual format as client but with "New Reservation" header
 function buildAdminHtmlEmail(
   booking: Booking & { vehicleName?: string; destinationName?: string; optionalServicesList?: string[]; clientName?: string; clientEmail?: string },
-  emailSettings: { subject?: string; message?: string; pickupInstructions?: string | null; companyPhone?: string | null; companyWebsite?: string | null },
+  emailSettings: { subject?: string; message?: string; pickupInstructions?: string | null; companyPhone?: string | null; companyWebsite?: string | null; timezone?: string },
   companyName: string
 ): string {
+  const tz = emailSettings.timezone || "America/Los_Angeles";
   const isRoundTrip = booking.tripType === "round_trip";
-  const reservationDate = booking.createdAt
-    ? new Date(booking.createdAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })
-    : "N/A";
+  const reservationDate = formatDateTime(booking.createdAt, tz, { dateStyle: "medium", timeStyle: "short" });
 
   const pickupTime = booking.departureTime
     ? (() => {
@@ -380,13 +416,12 @@ function buildAdminHtmlEmail(
 // Build admin text email
 function buildAdminTextEmail(
   booking: Booking & { vehicleName?: string; destinationName?: string; optionalServicesList?: string[]; clientName?: string; clientEmail?: string },
-  emailSettings: { subject?: string; message?: string; pickupInstructions?: string | null; companyPhone?: string | null; companyWebsite?: string | null },
+  emailSettings: { subject?: string; message?: string; pickupInstructions?: string | null; companyPhone?: string | null; companyWebsite?: string | null; timezone?: string },
   companyName: string
 ): string {
+  const tz = emailSettings.timezone || "America/Los_Angeles";
   const isRoundTrip = booking.tripType === "round_trip";
-  const reservationDate = booking.createdAt
-    ? new Date(booking.createdAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })
-    : "N/A";
+  const reservationDate = formatDateTime(booking.createdAt, tz, { dateStyle: "medium", timeStyle: "short" });
 
   let text = `NEW RESERVATION - ${companyName}\n`;
   text += `========================================\n\n`;
@@ -493,7 +528,8 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
     };
 
     const companyName = booking.client?.name || "ReserVamos";
-    console.log(`[Email] Building email for company: ${companyName}`);
+    const timezone = rawSettings.smtp_pass || "America/Los_Angeles";
+    console.log(`[Email] Building email for company: ${companyName}, timezone: ${timezone}`);
 
     // Map raw DB columns to camelCase for email builder functions
     const emailSettings = {
@@ -502,6 +538,7 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
       pickupInstructions: rawSettings.pickupInstructions,
       companyPhone: rawSettings.company_phone,
       companyWebsite: rawSettings.company_website,
+      timezone,
     };
 
     const htmlContent = buildHtmlEmail(enrichedBooking, emailSettings, companyName);
