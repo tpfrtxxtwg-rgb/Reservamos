@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { eq, and } from "drizzle-orm";
 import { createRouter, publicQuery } from "./middleware";
-import { getDb } from "./queries/connection";
+import { getDb, getRawDb } from "./queries/connection";
 import { bookings, clientEmailSettings, optionalServices } from "@db/schema";
 import type { Booking } from "@db/schema";
 
@@ -219,12 +219,13 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
     console.log(`[Email] Found booking #${booking.code} for clientId=${booking.clientId}`);
 
     // Fetch client email settings using raw SQL (avoids Drizzle selecting non-existent columns)
-    const settingsRows = await db.execute(
+    const rawPool = getRawDb();
+    const [settingsRows] = await rawPool.execute(
       `SELECT enabled, subject, message, pickupInstructions, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_from, company_phone, company_website
        FROM client_email_settings WHERE clientId = ? LIMIT 1`,
       [booking.clientId]
     );
-    const rawSettings = settingsRows[0];
+    const rawSettings = (settingsRows as any[])[0];
     console.log(`[Email] Email settings found:`, !!rawSettings);
 
     if (!rawSettings || !rawSettings.enabled) {
