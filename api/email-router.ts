@@ -71,21 +71,22 @@ function buildHtmlEmail(
 
   const roundTripHtml = isRoundTrip
     ? `<div style="margin-bottom:24px;">
-        <div style="background:#F5EFE6;padding:10px 12px;font-size:12px;font-weight:bold;color:#3D3833;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;border-radius:6px;">RETURN TRIP DETAILS</div>
+        <div style="background:#F5EFE6;padding:10px 12px;font-size:12px;font-weight:bold;color:#3D3833;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;border-radius:6px;">DEPARTURE INFORMATION</div>
         <div style="display:flex;flex-wrap:wrap;">
           <div style="flex:1;min-width:200px;padding-right:12px;">
-            <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Return Date</div>
-            <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.departureDate || "N/A"}</div>
-            <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Pickup Location</div>
+            <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Pickup Location (Hotel)</div>
             <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.origin || "N/A"}</div>
+            <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Destination (Airport)</div>
+            <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.destinationName || booking.destination}</div>
+            <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Departure Date & Time</div>
+            <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.departureDate || "N/A"}${booking.departureTime ? ` at ${booking.departureTime}` : ""}</div>
           </div>
           <div style="flex:1;min-width:200px;">
-            <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Flight Number</div>
-            <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.flightNumber || "N/A"}</div>
+            <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Hotel Pickup Time</div>
+            <div style="font-size:13px;color:#2D6A4F;font-weight:700;">${pickupTime || "N/A"} ${pickupTime ? "(3 hours before flight)" : ""}</div>
             <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Airline</div>
             <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.airline || "N/A"}</div>
-            ${booking.departureTime ? `<div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Flight Time</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.departureTime}</div>` : ""}
-            ${pickupTime ? `<div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Suggested Pickup Time</div><div style="font-size:13px;color:#2D6A4F;font-weight:700;">${pickupTime} (3 hours before flight)</div>` : ""}
+            ${booking.flightNumber ? `<div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Flight Number</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.flightNumber}</div>` : ""}
           </div>
         </div>
       </div>`
@@ -161,7 +162,7 @@ function buildHtmlEmail(
     </div>
 
     <div style="margin-bottom:24px;">
-      <div style="background:#F5EFE6;padding:10px 12px;font-size:12px;font-weight:bold;color:#3D3833;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;border-radius:6px;">Service Details</div>
+      <div style="background:#F5EFE6;padding:10px 12px;font-size:12px;font-weight:bold;color:#3D3833;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;border-radius:6px;">ARRIVAL INFORMATION</div>
       <div style="display:flex;flex-wrap:wrap;">
         <div style="flex:1;min-width:200px;padding-right:12px;">
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Service Type</div>
@@ -176,7 +177,7 @@ function buildHtmlEmail(
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.origin}</div>
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Destination</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.destinationName || booking.destination}</div>
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Date & Time</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Arrival Date & Time</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.date} at ${booking.time}</div>
           ${booking.flightNumber ? `<div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Flight Number</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.flightNumber}</div>` : ""}
           ${booking.airline ? `<div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Airline</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.airline}</div>` : ""}
@@ -185,8 +186,7 @@ function buildHtmlEmail(
     </div>
 
     ${optionalServicesHtml}
-    ${roundTripHtml}
-    ${flightHtml}
+    ${isRoundTrip ? buildRoundTripHtml(booking) : flightHtml}
 
     <div style="margin-bottom:24px;">
       <div style="background:#F5EFE6;padding:10px 12px;font-size:12px;font-weight:bold;color:#3D3833;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;border-radius:6px;">Payment Summary</div>
@@ -237,7 +237,7 @@ function buildTextEmail(
   text += `Service: ${isRoundTrip ? "Round Trip" : "One Way"}\n`;
   text += `Pickup Location: ${booking.origin}\n`;
   text += `Destination: ${booking.destinationName || booking.destination}\n`;
-  text += `Date: ${booking.date} at ${booking.time}\n`;
+  text += `Arrival Date & Time: ${booking.date} at ${booking.time}\n`;
   if (booking.flightNumber) {
     text += `Flight Number: ${booking.flightNumber}\n`;
   }
@@ -251,12 +251,30 @@ function buildTextEmail(
     text += `Additional Services: ${booking.optionalServicesList.join(", ")}\n\n`;
   }
   if (isRoundTrip) {
-    text += `Return Date: ${booking.departureDate || "N/A"}\n\n`;
+    text += `DEPARTURE INFORMATION\n`;
+    text += `----------------------\n`;
+    text += `Pickup Location (Hotel): ${booking.origin}\n`;
+    text += `Destination (Airport): ${booking.destinationName || booking.destination}\n`;
+    text += `Departure Date & Time: ${booking.departureDate || "N/A"}${booking.departureTime ? ` at ${booking.departureTime}` : ""}\n`;
+    text += `Airline: ${booking.airline || "N/A"}\n`;
+    text += `Flight Number: ${booking.flightNumber || "N/A"}\n`;
+    text += `Hotel Pickup Time: ${booking.departureTime ? calculatePickupTime(booking.departureTime) : "N/A"} (3 hours before flight)\n\n`;
   }
   if (emailSettings.pickupInstructions) {
     text += `Pickup Instructions:\n${emailSettings.pickupInstructions}\n\n`;
   }
   return text;
+}
+
+// Calculate hotel pickup time (3 hours before flight)
+function calculatePickupTime(departureTime: string): string {
+  const [h, m] = departureTime.split(":");
+  let hh = parseInt(h);
+  let mm = parseInt(m) - 3 * 60;
+  if (mm < 0) { mm += 60; hh -= 1; }
+  while (mm < 0) { mm += 60; hh -= 1; }
+  if (hh < 0) hh += 24;
+  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
 }
 
 // Build admin HTML email - same visual format as client but with "New Reservation" header
@@ -286,15 +304,15 @@ function buildAdminHtmlEmail(
     : "";
 
   const roundTripHtml = isRoundTrip
-    ? `<div style="margin-bottom:24px;"><div style="background:#F5EFE6;padding:10px 12px;font-size:12px;font-weight:bold;color:#3D3833;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;border-radius:6px;">RETURN TRIP DETAILS</div>
+    ? `<div style="margin-bottom:24px;"><div style="background:#F5EFE6;padding:10px 12px;font-size:12px;font-weight:bold;color:#3D3833;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;border-radius:6px;">DEPARTURE INFORMATION</div>
         <div style="display:flex;flex-wrap:wrap;"><div style="flex:1;min-width:200px;padding-right:12px;">
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Return Date</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.departureDate || "N/A"}</div>
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Pickup Location</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.origin || "N/A"}</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Pickup Location (Hotel)</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.origin || "N/A"}</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Destination (Airport)</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.destinationName || booking.destination}</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Departure Date & Time</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.departureDate || "N/A"}${booking.departureTime ? ` at ${booking.departureTime}` : ""}</div>
         </div><div style="flex:1;min-width:200px;">
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Flight Number</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.flightNumber || "N/A"}</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Hotel Pickup Time</div><div style="font-size:13px;color:#2D6A4F;font-weight:700;">${pickupTime || "N/A"} ${pickupTime ? "(3 hours before flight)" : ""}</div>
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Airline</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.airline || "N/A"}</div>
-          ${booking.departureTime ? `<div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Flight Time</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.departureTime}</div>` : ""}
-          ${pickupTime ? `<div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Suggested Pickup Time</div><div style="font-size:13px;color:#2D6A4F;font-weight:700;">${pickupTime} (3 hours before flight)</div>` : ""}
+          ${booking.flightNumber ? `<div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Flight Number</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.flightNumber}</div>` : ""}
         </div></div></div>`
     : "";
 
@@ -358,14 +376,14 @@ function buildAdminHtmlEmail(
     </div>
 
     <div style="margin-bottom:24px;">
-      <div style="background:#F5EFE6;padding:10px 12px;font-size:12px;font-weight:bold;color:#3D3833;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;border-radius:6px;">Service Details</div>
+      <div style="background:#F5EFE6;padding:10px 12px;font-size:12px;font-weight:bold;color:#3D3833;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;border-radius:6px;">ARRIVAL INFORMATION</div>
       <div style="display:flex;flex-wrap:wrap;">
         <div style="flex:1;min-width:200px;padding-right:12px;">
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Pickup Location</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.origin}</div>
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Destination</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.destinationName || booking.destination}</div>
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Date & Time</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Arrival Date & Time</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.date} at ${booking.time}</div>
         </div>
         <div style="flex:1;min-width:200px;">
@@ -434,11 +452,11 @@ function buildAdminTextEmail(
   text += `Name: ${booking.passengerName} ${booking.passengerLastName}\n`;
   text += `Email: ${booking.passengerEmail}\n`;
   text += `Phone: ${booking.passengerPhone || "N/A"}\n\n`;
-  text += `SERVICE DETAILS\n`;
-  text += `----------------\n`;
+  text += `ARRIVAL INFORMATION\n`;
+  text += `--------------------\n`;
   text += `Pickup Location: ${booking.origin}\n`;
   text += `Destination: ${booking.destinationName || booking.destination}\n`;
-  text += `Date: ${booking.date} at ${booking.time}\n`;
+  text += `Arrival Date & Time: ${booking.date} at ${booking.time}\n`;
   if (booking.flightNumber) text += `Flight Number: ${booking.flightNumber}\n`;
   if (booking.airline) text += `Airline: ${booking.airline}\n`;
   text += `Vehicle: ${booking.vehicleName || "N/A"}\n`;
@@ -448,9 +466,14 @@ function buildAdminTextEmail(
     text += `Additional Services: ${booking.optionalServicesList.join(", ")}\n\n`;
   }
   if (isRoundTrip) {
-    text += `RETURN TRIP\n`;
-    text += `Return Date: ${booking.departureDate || "N/A"}\n`;
-    text += `Flight: ${booking.flightNumber || "N/A"} (${booking.airline || "N/A"})\n\n`;
+    text += `DEPARTURE INFORMATION\n`;
+    text += `----------------------\n`;
+    text += `Pickup Location (Hotel): ${booking.origin}\n`;
+    text += `Destination (Airport): ${booking.destinationName || booking.destination}\n`;
+    text += `Departure Date & Time: ${booking.departureDate || "N/A"}${booking.departureTime ? ` at ${booking.departureTime}` : ""}\n`;
+    text += `Airline: ${booking.airline || "N/A"}\n`;
+    text += `Flight Number: ${booking.flightNumber || "N/A"}\n`;
+    text += `Hotel Pickup Time: ${booking.departureTime ? calculatePickupTime(booking.departureTime) : "N/A"} (3 hours before flight)\n\n`;
   }
   text += `Payment Status: ${booking.paymentStatus?.toUpperCase() || "PENDING"}\n`;
   if (emailSettings.pickupInstructions) {
