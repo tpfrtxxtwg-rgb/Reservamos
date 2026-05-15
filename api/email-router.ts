@@ -122,12 +122,12 @@ function buildHtmlEmail(
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.passengers}</div>
         </div>
         <div style="flex:1;min-width:200px;">
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Destination</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Pickup Location</div>
+          <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.origin}</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Destination</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.destinationName || booking.destination}</div>
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Date & Time</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.date} at ${booking.time}</div>
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Pickup Location</div>
-          <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.origin}</div>
           ${booking.flightNumber ? `<div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Flight Number</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.flightNumber}</div>` : ""}
           ${booking.airline ? `<div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Airline</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.airline}</div>` : ""}
         </div>
@@ -181,9 +181,9 @@ function buildTextEmail(
   text += `Email: ${booking.passengerEmail}\n`;
   text += `Phone: ${booking.passengerPhone || "N/A"}\n\n`;
   text += `Service: ${isRoundTrip ? "Round Trip" : "One Way"}\n`;
+  text += `Pickup Location: ${booking.origin}\n`;
   text += `Destination: ${booking.destinationName || booking.destination}\n`;
   text += `Date: ${booking.date} at ${booking.time}\n`;
-  text += `Pickup Location: ${booking.origin}\n`;
   if (booking.flightNumber) {
     text += `Flight Number: ${booking.flightNumber}\n`;
   }
@@ -308,12 +308,12 @@ function buildAdminHtmlEmail(
       <div style="background:#F5EFE6;padding:10px 12px;font-size:12px;font-weight:bold;color:#3D3833;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;border-radius:6px;">Service Details</div>
       <div style="display:flex;flex-wrap:wrap;">
         <div style="flex:1;min-width:200px;padding-right:12px;">
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Destination</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Pickup Location</div>
+          <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.origin}</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Destination</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.destinationName || booking.destination}</div>
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Date & Time</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.date} at ${booking.time}</div>
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Pickup Location</div>
-          <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.origin}</div>
         </div>
         <div style="flex:1;min-width:200px;">
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Vehicle</div>
@@ -384,9 +384,9 @@ function buildAdminTextEmail(
   text += `Phone: ${booking.passengerPhone || "N/A"}\n\n`;
   text += `SERVICE DETAILS\n`;
   text += `----------------\n`;
+  text += `Pickup Location: ${booking.origin}\n`;
   text += `Destination: ${booking.destinationName || booking.destination}\n`;
   text += `Date: ${booking.date} at ${booking.time}\n`;
-  text += `Pickup Location: ${booking.origin}\n`;
   if (booking.flightNumber) text += `Flight Number: ${booking.flightNumber}\n`;
   if (booking.airline) text += `Airline: ${booking.airline}\n`;
   text += `Vehicle: ${booking.vehicleName || "N/A"}\n`;
