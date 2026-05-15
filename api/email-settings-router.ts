@@ -9,31 +9,6 @@ function safeColumn(row: any, columnName: string, fallback: any = null) {
   return row && columnName in row ? row[columnName] : fallback;
 }
 
-async function testSmtpConnection(settings: {
-  smtpHost: string;
-  smtpPort: number;
-  smtpUser: string;
-  smtpPass: string;
-}) {
-  try {
-    const nodemailerMod = await import("nodemailer");
-    const nodemailer = nodemailerMod.default || nodemailerMod;
-    const transporter = nodemailer.createTransport({
-      host: settings.smtpHost,
-      port: settings.smtpPort || 587,
-      secure: (settings.smtpPort || 587) === 465,
-      auth: {
-        user: settings.smtpUser,
-        pass: settings.smtpPass,
-      },
-    });
-    await transporter.verify();
-    return { success: true, message: "SMTP connection successful" };
-  } catch (err: any) {
-    return { success: false, message: err.message || "SMTP connection failed" };
-  }
-}
-
 async function testSendgrid(apiKey: string) {
   try {
     const response = await fetch("https://api.sendgrid.com/v3/user/profile", {
@@ -68,24 +43,10 @@ function mapRowToSettings(row: any) {
   const smtpUser = row.smtp_user || "";
   const smtpFrom = row.smtp_from || "";
 
-  // Detect provider from smtp_host value
-  let emailProvider = "smtp";
-  let sendgridApiKey = "";
-  let resendApiKey = "";
-  let smtpHostValue = smtpHost;
-  let smtpPortValue = row.smtp_port || 587;
-  let smtpUserValue = smtpUser;
-  let smtpPassValue = row.smtp_pass || "";
-
-  if (smtpHost === "sendgrid") {
-    emailProvider = "sendgrid";
-    sendgridApiKey = smtpUser; // API key stored in smtp_user
-    smtpHostValue = "";
-  } else if (smtpHost === "resend") {
-    emailProvider = "resend";
-    resendApiKey = smtpUser; // API key stored in smtp_user
-    smtpHostValue = "";
-  }
+  // Detect provider from smtp_host value ("sendgrid" or "resend")
+  const emailProvider = smtpHost === "resend" ? "resend" : "sendgrid";
+  const sendgridApiKey = emailProvider === "sendgrid" ? smtpUser : "";
+  const resendApiKey = emailProvider === "resend" ? smtpUser : "";
 
   return {
     id: row.id,
@@ -94,11 +55,7 @@ function mapRowToSettings(row: any) {
     subject: row.subject || "Your Reservation Confirmation",
     message: row.message || "Thank you for your reservation. We look forward to serving you.",
     pickupInstructions: row.pickupInstructions || "",
-    smtpHost: smtpHostValue,
-    smtpPort: smtpPortValue,
-    smtpUser: smtpUserValue,
-    smtpPass: smtpPassValue,
-    smtpFrom: smtpFrom,
+    smtpFrom,
     companyPhone: row.company_phone || "",
     companyWebsite: row.company_website || "",
     emailProvider,
@@ -113,14 +70,10 @@ function defaultSettings() {
     subject: "Your Reservation Confirmation",
     message: "Thank you for your reservation. We look forward to serving you.",
     pickupInstructions: "",
-    smtpHost: "",
-    smtpPort: 587,
-    smtpUser: "",
-    smtpPass: "",
     smtpFrom: "",
     companyPhone: "",
     companyWebsite: "",
-    emailProvider: "smtp",
+    emailProvider: "sendgrid" as const,
     sendgridApiKey: "",
     resendApiKey: "",
   };
@@ -160,11 +113,7 @@ export const emailSettingsRouter = createRouter({
         subject: z.string().max(255).optional(),
         message: z.string().optional(),
         pickupInstructions: z.string().optional(),
-        emailProvider: z.enum(["smtp", "sendgrid", "resend"]).optional(),
-        smtpHost: z.string().max(255).optional().nullable(),
-        smtpPort: z.number().min(1).max(65535).optional().nullable(),
-        smtpUser: z.string().max(255).optional().nullable(),
-        smtpPass: z.string().max(255).optional().nullable(),
+        emailProvider: z.enum(["sendgrid", "resend"]).optional(),
         smtpFrom: z.string().email().max(320).optional().nullable(),
         sendgridApiKey: z.string().max(255).optional().nullable(),
         resendApiKey: z.string().max(255).optional().nullable(),
@@ -177,26 +126,12 @@ export const emailSettingsRouter = createRouter({
       const clientId = ctx.clientUser.clientId;
       console.log(`[EmailSettings] Saving for clientId=${clientId}`);
 
-      // Map virtual fields to DB columns based on provider
+      // Map provider to DB columns
       // For SendGrid: smtp_host = "sendgrid", smtp_user = API key
       // For Resend: smtp_host = "resend", smtp_user = API key
-      // For SMTP: normal mapping
-      let smtpHost = input.smtpHost;
-      let smtpUser = input.smtpUser;
-      let smtpPass = input.smtpPass;
-      let smtpPort = input.smtpPort;
-
-      if (input.emailProvider === "sendgrid" && input.sendgridApiKey) {
-        smtpHost = "sendgrid";
-        smtpUser = input.sendgridApiKey;
-        smtpPass = null; // not needed
-        smtpPort = null; // not needed
-      } else if (input.emailProvider === "resend" && input.resendApiKey) {
-        smtpHost = "resend";
-        smtpUser = input.resendApiKey;
-        smtpPass = null; // not needed
-        smtpPort = null; // not needed
-      }
+      const isSendgrid = input.emailProvider === "sendgrid" || !input.emailProvider;
+      const smtpHost = isSendgrid ? "sendgrid" : "resend";
+      const smtpUser = isSendgrid ? input.sendgridApiKey : input.resendApiKey;
 
       // Only use columns that exist in the DB
       const dbInput = {
@@ -205,9 +140,9 @@ export const emailSettingsRouter = createRouter({
         message: input.message,
         pickupInstructions: input.pickupInstructions,
         smtpHost,
-        smtpPort,
+        smtpPort: null, // not used for API providers
         smtpUser,
-        smtpPass,
+        smtpPass: null, // not used for API providers
         smtpFrom: input.smtpFrom,
         companyPhone: input.companyPhone,
         companyWebsite: input.companyWebsite,
@@ -268,37 +203,18 @@ export const emailSettingsRouter = createRouter({
   testSmtp: clientAuthedQuery
     .input(
       z.object({
-        emailProvider: z.enum(["smtp", "sendgrid", "resend"]),
-        smtpHost: z.string().optional().nullable(),
-        smtpPort: z.number().optional().nullable(),
-        smtpUser: z.string().optional().nullable(),
-        smtpPass: z.string().optional().nullable(),
+        emailProvider: z.enum(["sendgrid", "resend"]),
         sendgridApiKey: z.string().optional().nullable(),
         resendApiKey: z.string().optional().nullable(),
       })
     )
     .mutation(async ({ input }) => {
-      const { emailProvider } = input;
-
-      if (emailProvider === "sendgrid") {
+      if (input.emailProvider === "sendgrid") {
         if (!input.sendgridApiKey) return { success: false, message: "SendGrid API key is required" };
         return testSendgrid(input.sendgridApiKey);
       }
-
-      if (emailProvider === "resend") {
-        if (!input.resendApiKey) return { success: false, message: "Resend API key is required" };
-        return testResend(input.resendApiKey);
-      }
-
-      // Default: SMTP
-      if (!input.smtpHost || !input.smtpUser || !input.smtpPass) {
-        return { success: false, message: "SMTP host, user, and password are required" };
-      }
-      return testSmtpConnection({
-        smtpHost: input.smtpHost,
-        smtpPort: input.smtpPort || 587,
-        smtpUser: input.smtpUser,
-        smtpPass: input.smtpPass,
-      });
+      // resend
+      if (!input.resendApiKey) return { success: false, message: "Resend API key is required" };
+      return testResend(input.resendApiKey);
     }),
 });

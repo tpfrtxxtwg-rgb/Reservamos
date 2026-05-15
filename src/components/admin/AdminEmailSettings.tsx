@@ -46,17 +46,13 @@ export default function AdminEmailSettings({ clientId }: Props) {
   const [pickupInstructions, setPickupInstructions] = useState('');
   const [companyPhone, setCompanyPhone] = useState('');
   const [companyWebsite, setCompanyWebsite] = useState('');
-  // Email provider
-  const [emailProvider, setEmailProvider] = useState<'smtp' | 'sendgrid' | 'resend'>('smtp');
-  // SMTP
-  const [smtpHost, setSmtpHost] = useState('');
-  const [smtpPort, setSmtpPort] = useState(587);
-  const [smtpUser, setSmtpUser] = useState('');
-  const [smtpPass, setSmtpPass] = useState('');
-  const [smtpFrom, setSmtpFrom] = useState('');
+  // Email provider: only sendgrid or resend
+  const [emailProvider, setEmailProvider] = useState<'sendgrid' | 'resend'>('sendgrid');
   // API keys
   const [sendgridApiKey, setSendgridApiKey] = useState('');
   const [resendApiKey, setResendApiKey] = useState('');
+  // From email (required for both providers)
+  const [fromEmail, setFromEmail] = useState('');
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -67,12 +63,8 @@ export default function AdminEmailSettings({ clientId }: Props) {
       setPickupInstructions(settings.pickupInstructions || '');
       setCompanyPhone(settings.companyPhone || '');
       setCompanyWebsite(settings.companyWebsite || '');
-      setEmailProvider((settings.emailProvider as any) || 'smtp');
-      setSmtpHost(settings.smtpHost || '');
-      setSmtpPort(settings.smtpPort || 587);
-      setSmtpUser(settings.smtpUser || '');
-      setSmtpPass(settings.smtpPass || '');
-      setSmtpFrom(settings.smtpFrom || '');
+      setEmailProvider((settings.emailProvider as any) === 'resend' ? 'resend' : 'sendgrid');
+      setFromEmail(settings.smtpFrom || '');
       setSendgridApiKey(settings.sendgridApiKey || '');
       setResendApiKey(settings.resendApiKey || '');
     }
@@ -85,25 +77,17 @@ export default function AdminEmailSettings({ clientId }: Props) {
       message,
       pickupInstructions,
       emailProvider,
-      companyPhone: companyPhone || null,
-      companyWebsite: companyWebsite || null,
-      smtpHost: smtpHost || null,
-      smtpPort: smtpPort || null,
-      smtpUser: smtpUser || null,
-      smtpPass: smtpPass || null,
-      smtpFrom: smtpFrom || null,
+      smtpFrom: fromEmail || null,
       sendgridApiKey: sendgridApiKey || null,
       resendApiKey: resendApiKey || null,
+      companyPhone: companyPhone || null,
+      companyWebsite: companyWebsite || null,
     });
   };
 
-  const isConfigured = emailProvider === 'smtp'
-    ? (smtpHost && smtpUser && smtpPass && smtpFrom)
-    : emailProvider === 'sendgrid'
-      ? (sendgridApiKey && smtpFrom)
-      : emailProvider === 'resend'
-        ? (resendApiKey && smtpFrom)
-        : false;
+  const isConfigured = emailProvider === 'sendgrid'
+    ? (sendgridApiKey && fromEmail)
+    : (resendApiKey && fromEmail);
 
   const testSmtp = trpc.emailSettings.testSmtp.useMutation({
     onSuccess: (result) => {
@@ -291,112 +275,46 @@ export default function AdminEmailSettings({ clientId }: Props) {
         </p>
 
         {/* Provider Selector */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          {[
-            { key: 'smtp' as const, label: 'SMTP', desc: 'Your hosting' },
-            { key: 'sendgrid' as const, label: 'SendGrid', desc: 'Free 100/day' },
-            { key: 'resend' as const, label: 'Resend', desc: 'Free 100/day' },
-          ].map((p) => (
-            <button
-              key={p.key}
-              onClick={() => setEmailProvider(p.key)}
-              className={`p-3 rounded-lg border text-center transition-all ${
-                emailProvider === p.key
-                  ? 'border-terracotta bg-[rgba(199,94,58,0.08)]'
-                  : 'border-[rgba(138,130,120,0.15)] bg-[#FAFAF8] hover:border-[rgba(138,130,120,0.3)]'
-              }`}
-            >
-              <p className={`font-body text-sm font-semibold ${emailProvider === p.key ? 'text-terracotta' : 'text-charcoal'}`}>{p.label}</p>
-              <p className="font-body text-xs text-warm-gray mt-0.5">{p.desc}</p>
-            </button>
-          ))}
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <button
+            onClick={() => setEmailProvider('sendgrid')}
+            className={`p-3 rounded-lg border text-center transition-all ${
+              emailProvider === 'sendgrid'
+                ? 'border-terracotta bg-[rgba(199,94,58,0.08)]'
+                : 'border-[rgba(138,130,120,0.15)] bg-[#FAFAF8] hover:border-[rgba(138,130,120,0.3)]'
+            }`}
+          >
+            <p className={`font-body text-sm font-semibold ${emailProvider === 'sendgrid' ? 'text-terracotta' : 'text-charcoal'}`}>SendGrid</p>
+            <p className="font-body text-xs text-warm-gray mt-0.5">Free 100 emails/day</p>
+          </button>
+          <button
+            onClick={() => setEmailProvider('resend')}
+            className={`p-3 rounded-lg border text-center transition-all ${
+              emailProvider === 'resend'
+                ? 'border-terracotta bg-[rgba(199,94,58,0.08)]'
+                : 'border-[rgba(138,130,120,0.15)] bg-[#FAFAF8] hover:border-[rgba(138,130,120,0.3)]'
+            }`}
+          >
+            <p className={`font-body text-sm font-semibold ${emailProvider === 'resend' ? 'text-terracotta' : 'text-charcoal'}`}>Resend</p>
+            <p className="font-body text-xs text-warm-gray mt-0.5">Free 100 emails/day</p>
+          </button>
         </div>
 
-        {/* From Email (always shown) */}
-        <div className="mb-4">
+        {/* From Email */}
+        <div className="mb-5">
           <label className="font-body text-sm font-medium text-charcoal mb-2 block flex items-center gap-2">
             <Envelope size={14} className="text-terracotta" />
-            {t('admin.smtpFrom') || 'From Email Address'}
+            From Email Address
           </label>
           <input
             type="email"
-            value={smtpFrom}
-            onChange={(e) => setSmtpFrom(e.target.value)}
+            value={fromEmail}
+            onChange={(e) => setFromEmail(e.target.value)}
             placeholder="bookings@yourcompany.com"
             className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all"
           />
-          <p className="font-body text-xs text-warm-gray mt-1">{t('admin.smtpFromDesc') || 'This is the sender address customers will see'}</p>
+          <p className="font-body text-xs text-warm-gray mt-1">This is the sender address your customers will see. Must be verified in your provider.</p>
         </div>
-
-        {/* SMTP Fields */}
-        {emailProvider === 'smtp' && (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="font-body text-sm font-medium text-charcoal mb-2 block">{t('admin.smtpHost') || 'SMTP Host'}</label>
-                <input
-                  type="text"
-                  value={smtpHost}
-                  onChange={(e) => setSmtpHost(e.target.value)}
-                  placeholder="smtp.gmail.com"
-                  className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all"
-                />
-              </div>
-              <div>
-                <label className="font-body text-sm font-medium text-charcoal mb-2 block">{t('admin.smtpPort') || 'SMTP Port'}</label>
-                <input
-                  type="number"
-                  value={smtpPort}
-                  onChange={(e) => setSmtpPort(parseInt(e.target.value) || 587)}
-                  placeholder="587"
-                  className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="font-body text-sm font-medium text-charcoal mb-2 block">{t('admin.smtpUser') || 'SMTP Username'}</label>
-                <input
-                  type="text"
-                  value={smtpUser}
-                  onChange={(e) => setSmtpUser(e.target.value)}
-                  placeholder="your-email@gmail.com"
-                  className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all"
-                />
-              </div>
-              <div>
-                <label className="font-body text-sm font-medium text-charcoal mb-2 block">{t('admin.smtpPass') || 'SMTP Password'}</label>
-                <input
-                  type="password"
-                  value={smtpPass}
-                  onChange={(e) => setSmtpPass(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all"
-                />
-              </div>
-            </div>
-            {/* SMTP Quick Select */}
-            <div className="mt-2 bg-[#FAFAF8] rounded-lg p-4">
-              <p className="font-body text-xs font-medium text-charcoal mb-2">{t('admin.smtpProviders') || 'Quick Select:'}</p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[
-                  { name: 'Gmail', host: 'smtp.gmail.com', port: '587' },
-                  { name: 'Outlook', host: 'smtp.office365.com', port: '587' },
-                  { name: 'Your Host', host: 'mail.midominio.com', port: '587' },
-                  { name: 'Yahoo', host: 'smtp.mail.yahoo.com', port: '587' },
-                ].map((p) => (
-                  <button
-                    key={p.name}
-                    onClick={() => { setSmtpHost(p.host); setSmtpPort(parseInt(p.port)); }}
-                    className="px-3 py-2 bg-white border border-[rgba(138,130,120,0.15)] rounded-md font-body text-xs text-charcoal hover:border-terracotta hover:text-terracotta transition-all text-center"
-                  >
-                    {p.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
 
         {/* SendGrid Fields */}
         {emailProvider === 'sendgrid' && (
@@ -405,7 +323,7 @@ export default function AdminEmailSettings({ clientId }: Props) {
               <p className="font-body text-xs text-warm-gray mb-3">
                 <strong>1.</strong> Create a free account at <a href="https://signup.sendgrid.com" target="_blank" rel="noopener noreferrer" className="text-terracotta hover:underline">signup.sendgrid.com</a><br />
                 <strong>2.</strong> Verify your sender email (Settings → Sender Authentication)<br />
-                <strong>3.</strong> Create an API key (Settings → API Keys → Create API Key)
+                <strong>3.</strong> Create an API key (Settings → API Keys → Create API Key → Full Access)
               </p>
             </div>
             <div>
@@ -417,7 +335,7 @@ export default function AdminEmailSettings({ clientId }: Props) {
                 placeholder="SG.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
                 className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all"
               />
-              <p className="font-body text-xs text-warm-gray mt-1">Your API key with Mail Send permissions. Starts with SG.</p>
+              <p className="font-body text-xs text-warm-gray mt-1">Your API key. Starts with SG.</p>
             </div>
           </>
         )}
@@ -480,10 +398,6 @@ export default function AdminEmailSettings({ clientId }: Props) {
         </button>
         <button
           onClick={() => {
-            if (emailProvider === 'smtp' && (!smtpHost || !smtpUser || !smtpPass)) {
-              setSmtpTestResult({ success: false, message: "Please fill in all SMTP fields first" });
-              return;
-            }
             if (emailProvider === 'sendgrid' && !sendgridApiKey) {
               setSmtpTestResult({ success: false, message: "Please enter your SendGrid API key" });
               return;
@@ -495,10 +409,10 @@ export default function AdminEmailSettings({ clientId }: Props) {
             setSmtpTestResult(null);
             testSmtp.mutate({
               emailProvider,
-              smtpHost: smtpHost || null,
-              smtpPort: smtpPort || null,
-              smtpUser: smtpUser || null,
-              smtpPass: smtpPass || null,
+              smtpHost: null,
+              smtpPort: null,
+              smtpUser: null,
+              smtpPass: null,
               sendgridApiKey: sendgridApiKey || null,
               resendApiKey: resendApiKey || null,
             });

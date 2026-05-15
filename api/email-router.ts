@@ -235,14 +235,10 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
     // Detect provider from smtp_host ("sendgrid" or "resend" are magic values)
     const smtpHost = rawSettings.smtp_host || "";
     const smtpUser = rawSettings.smtp_user || "";
-    const provider = smtpHost === "sendgrid" ? "sendgrid" : smtpHost === "resend" ? "resend" : "smtp";
+    const provider = smtpHost === "resend" ? "resend" : "sendgrid"; // default to sendgrid
     console.log(`[Email] Using provider: ${provider} (smtp_host=${smtpHost})`);
 
-    if (provider === "smtp" && (!smtpHost || !smtpUser || !rawSettings.smtp_pass)) {
-      console.log("[Email] SMTP not configured. host:", smtpHost, "user:", smtpUser, "pass:", rawSettings.smtp_pass ? "***" : "empty");
-      return { sent: false, reason: "SMTP not configured" };
-    }
-    if ((provider === "sendgrid" || provider === "resend") && !smtpUser) {
+    if (!smtpUser) {
       console.log("[Email] API key not configured for provider:", provider);
       return { sent: false, reason: `${provider} API key not configured` };
     }
@@ -285,21 +281,6 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
     const subject = rawSettings.subject || "Your Reservation Confirmation";
     const fromEmail = rawSettings.smtp_from || `"${companyName}" <noreply@reservamos.app>`;
 
-    if (provider === "sendgrid") {
-      return await sendViaSendGrid({
-        apiKey: smtpUser, // API key stored in smtp_user
-        from: fromEmail,
-        to: booking.passengerEmail,
-        adminEmail: booking.client?.email,
-        subject: `${subject} - #${booking.code}`,
-        html: htmlContent,
-        text: textContent,
-        adminSubject: `New Reservation - #${booking.code}`,
-        adminText: `A new reservation has been received.\n\nCode: ${booking.code}\nPassenger: ${booking.passengerName} ${booking.passengerLastName}\nService: ${booking.tripType === "round_trip" ? "Round Trip" : "One Way"}\nDate: ${booking.date} at ${booking.time}\nTotal: $${booking.total}`,
-        adminHtml: `<p>A new reservation has been received.</p><p><strong>Code:</strong> ${booking.code}</p><p><strong>Passenger:</strong> ${booking.passengerName} ${booking.passengerLastName}</p><p><strong>Service:</strong> ${booking.tripType === "round_trip" ? "Round Trip" : "One Way"}</p><p><strong>Date:</strong> ${booking.date} at ${booking.time}</p><p><strong>Total:</strong> $${booking.total}</p>`,
-      });
-    }
-
     if (provider === "resend") {
       return await sendViaResend({
         apiKey: smtpUser, // API key stored in smtp_user
@@ -315,8 +296,9 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
       });
     }
 
-    // Default: SMTP via nodemailer
-    return await sendViaSmtp({
+    // Default: SendGrid
+    return await sendViaSendGrid({
+      apiKey: smtpUser,
       emailSettings,
       from: fromEmail,
       to: booking.passengerEmail,
@@ -332,58 +314,6 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
     console.error("[Email] CRITICAL ERROR:", error.message, error.stack);
     return { sent: false, reason: error.message };
   }
-}
-
-// ─── Send via SMTP ──────────────────────────────────────────────
-async function sendViaSmtp(params: {
-  emailSettings: any;
-  from: string;
-  to: string;
-  adminEmail?: string;
-  subject: string;
-  html: string;
-  text: string;
-  adminSubject: string;
-  adminText: string;
-  adminHtml: string;
-}) {
-  const { emailSettings, from, to, adminEmail, subject, html, text, adminSubject, adminText, adminHtml } = params;
-
-  let nodemailer: any;
-  try {
-    const nodemailerMod = await import("nodemailer");
-    nodemailer = nodemailerMod.default || nodemailerMod;
-  } catch (err: any) {
-    return { sent: false, reason: "nodemailer not available: " + err.message };
-  }
-
-  const transporter = nodemailer.createTransport({
-    host: emailSettings.smtpHost,
-    port: emailSettings.smtpPort || 587,
-    secure: (emailSettings.smtpPort || 587) === 465,
-    auth: {
-      user: emailSettings.smtpUser,
-      pass: emailSettings.smtpPass,
-    },
-  });
-
-  try {
-    await transporter.verify();
-  } catch (verifyErr: any) {
-    return { sent: false, reason: "SMTP connection failed: " + verifyErr.message };
-  }
-
-  const passengerResult = await transporter.sendMail({ from, to, subject, text, html });
-  console.log("[Email/SMTP] Passenger email sent:", passengerResult.messageId);
-
-  if (adminEmail) {
-    const adminResult = await transporter.sendMail({
-      from, to: adminEmail, subject: adminSubject, text: adminText, html: adminHtml,
-    });
-    console.log("[Email/SMTP] Admin email sent:", adminResult.messageId);
-  }
-
-  return { sent: true };
 }
 
 // ─── Send via SendGrid API ──────────────────────────────────────
