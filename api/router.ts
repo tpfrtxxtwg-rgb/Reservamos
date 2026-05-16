@@ -14,6 +14,7 @@ import { serviceAirportRouter } from "./service-airport-router";
 import { serviceTourRouter } from "./service-tour-router";
 import { emailSettingsRouter } from "./email-settings-router";
 import { emailRouter } from "./email-router";
+import { companyProfileRouter } from "./company-profile-router";
 import { createRouter, publicQuery } from "./middleware";
 
 export const appRouter = createRouter({
@@ -34,6 +35,7 @@ export const appRouter = createRouter({
   serviceTour: serviceTourRouter,
   emailSettings: emailSettingsRouter,
   email: emailRouter,
+  companyProfile: companyProfileRouter,
 });
 
 export type AppRouter = typeof appRouter;

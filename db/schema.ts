@@ -45,6 +45,9 @@ export const clients = mysqlTable("clients", {
   depositEnabled: boolean("depositEnabled").default(false).notNull(),
   depositPercentage: decimal("depositPercentage", { precision: 5, scale: 2 }).default("30.00").notNull(),
   logoUrl: text("logoUrl"),
+  website: varchar("website", { length: 255 }),
+  phone: varchar("phone", { length: 50 }),
+  description: text("description"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => new Date()),
 }, (table) => ({
@@ -207,6 +210,23 @@ export const vehicles = mysqlTable("vehicles", {
 
 export type Vehicle = typeof vehicles.$inferSelect;
 export type InsertVehicle = typeof vehicles.$inferInsert;
+
+// ─── Vehicle Image Presets ─────────────────────────────────────
+// Each client can configure default images for common vehicle types.
+// These are used as fallback/default images when creating vehicles.
+export const vehicleImages = mysqlTable("vehicle_images", {
+  id: serial("id").primaryKey(),
+  clientId: bigint("clientId", { mode: "number", unsigned: true }).notNull(),
+  vehicleType: varchar("vehicle_type", { length: 100 }).notNull(),
+  imageUrl: text("image_url").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => new Date()),
+}, (table) => ({
+  clientTypeIdx: index("vehicle_image_client_type_idx").on(table.clientId, table.vehicleType),
+}));
+
+export type VehicleImage = typeof vehicleImages.$inferSelect;
+export type InsertVehicleImage = typeof vehicleImages.$inferInsert;
 
 // ─── Optional Services ─────────────────────────────────────────
 // Optional add-on services that can be selected during booking
