@@ -14,7 +14,7 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
   const { t } = useTranslation();
   const utils = trpc.useUtils();
 
-  const { data: profile, isLoading } = trpc.companyProfile.get.useQuery(
+  const { data: profile, isLoading, error: queryError } = trpc.companyProfile.get.useQuery(
     undefined,
     { refetchOnMount: 'always', staleTime: 0 }
   );
@@ -22,8 +22,12 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
   const updateProfile = trpc.companyProfile.update.useMutation({
     onSuccess: () => {
       utils.companyProfile.get.invalidate();
+      utils.companyProfile.get.refetch();
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
+    },
+    onError: (err) => {
+      console.error('[CompanyProfile] Save error:', err);
     },
   });
 
@@ -35,16 +39,29 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
   const [logoUrl, setLogoUrl] = useState('');
   const [saved, setSaved] = useState(false);
 
+  // Sync form fields with server data whenever profile changes
   useEffect(() => {
     if (profile) {
-      setName(profile.name || '');
-      setEmail(profile.email || '');
-      setWebsite(profile.website || '');
-      setPhone(profile.phone || '');
-      setDescription(profile.description || '');
-      setLogoUrl(profile.logoUrl || '');
+      setName(profile.name ?? '');
+      setEmail(profile.email ?? '');
+      setWebsite(profile.website ?? '');
+      setPhone(profile.phone ?? '');
+      setDescription(profile.description ?? '');
+      setLogoUrl(profile.logoUrl ?? '');
     }
   }, [profile]);
+
+  // Also sync on mount (in case tab switches)
+  useEffect(() => {
+    if (profile) {
+      setName(profile.name ?? '');
+      setEmail(profile.email ?? '');
+      setWebsite(profile.website ?? '');
+      setPhone(profile.phone ?? '');
+      setDescription(profile.description ?? '');
+      setLogoUrl(profile.logoUrl ?? '');
+    }
+  }, []);
 
   const handleSave = () => {
     updateProfile.mutate({
