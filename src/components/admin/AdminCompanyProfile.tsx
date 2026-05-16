@@ -14,7 +14,10 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
   const { t } = useTranslation();
   const utils = trpc.useUtils();
 
-  const { data: profile, isLoading } = trpc.companyProfile.get.useQuery();
+  const { data: profile, isLoading } = trpc.companyProfile.get.useQuery(
+    undefined,
+    { refetchOnMount: 'always', staleTime: 0 }
+  );
 
   const updateProfile = trpc.companyProfile.update.useMutation({
     onSuccess: () => {
@@ -53,6 +56,17 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
       logoUrl: logoUrl || null,
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="max-w-2xl flex items-center justify-center py-20">
+        <div className="text-center">
+          <div className="w-10 h-10 border-3 border-[#E8E4DF] border-t-terracotta rounded-full animate-spin mx-auto mb-4" />
+          <p className="font-body text-sm text-warm-gray">Loading company profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl">
