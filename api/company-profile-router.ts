@@ -67,7 +67,7 @@ export const companyProfileRouter = createRouter({
 
       return { success: true };
     }),
-
+});
   // Get all vehicle image presets for this client
   getVehicleImages: clientAuthedQuery.query(async ({ ctx }) => {
     const clientId = ctx.clientUser.clientId;
