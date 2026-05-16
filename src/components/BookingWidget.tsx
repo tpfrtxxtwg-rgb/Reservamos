@@ -38,6 +38,9 @@ const initialBooking: BookingData = {
   airline: '',
   departureDate: '',
   departureTime: '',
+  departureAirline: '',
+  departureFlightNumber: '',
+  hotelPickupTime: '',
   paymentMethod: 'card',
   paymentOption: 'full',
 };
@@ -78,6 +81,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
   const [reservationCode, setReservationCode] = useState('');
   const [copied, setCopied] = useState(false);
   const [destSearch, setDestSearch] = useState('');
+  const [showDestSearch, setShowDestSearch] = useState(false);
   const [bookingError, setBookingError] = useState('');
 
   // Query client config from apiKey
@@ -230,7 +234,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
   };
 
   const handleBack = () => { if (currentStep > 1) { setDirection(-1); setCurrentStep(s => s - 1); setBookingError(''); } };
-  const handleReset = () => { setBooking(initialBooking); setCurrentStep(1); setConfirmed(false); setReservationCode(''); setDestSearch(''); setBookingError(''); };
+  const handleReset = () => { setBooking(initialBooking); setCurrentStep(1); setConfirmed(false); setReservationCode(''); setDestSearch(''); setShowDestSearch(false); setBookingError(''); };
   const handleCopyCode = () => { navigator.clipboard.writeText(reservationCode); setCopied(true); setTimeout(() => setCopied(false), 2000); };
 
   const progressWidth = currentStep === 5 ? 100 : ((currentStep - 1) / 4) * 100;
