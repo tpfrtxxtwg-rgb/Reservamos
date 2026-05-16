@@ -1,14 +1,14 @@
 import { z } from "zod";
 import { eq, and } from "drizzle-orm";
 import { createRouter, clientAuthedQuery } from "./middleware";
-import { db } from "./queries/connection";
-import { clients, vehicleImages } from "../db/schema";
+import { getDb } from "./queries/connection";
+import { clients, vehicleImages } from "@db/schema";
 
 export const companyProfileRouter = createRouter({
   // Get current client's company profile
   get: clientAuthedQuery.query(async ({ ctx }) => {
     const clientId = ctx.clientUser.clientId;
-    const [client] = await db
+    const [client] = await getDb()
       .select({
         id: clients.id,
         name: clients.name,
@@ -60,7 +60,7 @@ export const companyProfileRouter = createRouter({
       if (input.logoUrl !== undefined) updateData.logoUrl = input.logoUrl;
       if (input.primaryColor !== undefined) updateData.primaryColor = input.primaryColor;
 
-      await db
+      await getDb()
         .update(clients)
         .set(updateData)
         .where(eq(clients.id, clientId));
@@ -71,7 +71,7 @@ export const companyProfileRouter = createRouter({
   // Get all vehicle image presets for this client
   getVehicleImages: clientAuthedQuery.query(async ({ ctx }) => {
     const clientId = ctx.clientUser.clientId;
-    const images = await db
+    const images = await getDb()
       .select()
       .from(vehicleImages)
       .where(eq(vehicleImages.clientId, clientId));
@@ -92,7 +92,7 @@ export const companyProfileRouter = createRouter({
 
       if (input.id) {
         // Update existing
-        await db
+        await getDb()
           .update(vehicleImages)
           .set({
             vehicleType: input.vehicleType,
@@ -107,7 +107,7 @@ export const companyProfileRouter = createRouter({
         return { id: input.id, success: true };
       } else {
         // Insert new - check if type already exists for this client
-        const [existing] = await db
+        const [existing] = await getDb()
           .select({ id: vehicleImages.id })
           .from(vehicleImages)
           .where(
@@ -120,7 +120,7 @@ export const companyProfileRouter = createRouter({
 
         if (existing) {
           // Update existing by type
-          await db
+          await getDb()
             .update(vehicleImages)
             .set({ imageUrl: input.imageUrl })
             .where(eq(vehicleImages.id, existing.id));
@@ -128,7 +128,7 @@ export const companyProfileRouter = createRouter({
         }
 
         // Insert new
-        const [result] = await db
+        const [result] = await getDb()
           .insert(vehicleImages)
           .values({
             clientId,
@@ -144,7 +144,7 @@ export const companyProfileRouter = createRouter({
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
       const clientId = ctx.clientUser.clientId;
-      await db
+      await getDb()
         .delete(vehicleImages)
         .where(
           and(
@@ -154,4 +154,3 @@ export const companyProfileRouter = createRouter({
         );
       return { success: true };
     }),
-});
