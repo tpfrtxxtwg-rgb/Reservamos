@@ -488,6 +488,28 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                     </div>
                   </div>
 
+                  {/* Flight Info - always shown for one way and round trip */}
+                  <div>
+                    <h3 className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 flex items-center gap-2">
+                      <AirplaneLanding size={14} />{t('widget.flight.flightInfo')}
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.airline')}</label>
+                        <select value={booking.airline} onChange={e => updateBooking({ airline: e.target.value })}
+                          className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all appearance-none">
+                          <option value="">{t('widget.flight.selectAirline')}</option>
+                          {airlines.map(a => <option key={a} value={a}>{a}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.flightNumber')}</label>
+                        <input type="text" value={booking.flightNumber} onChange={e => updateBooking({ flightNumber: e.target.value })}
+                          placeholder="AA1234" className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 focus:border-terracotta outline-none transition-all" />
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Passengers */}
                   <div>
                     <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 block">{t('widget.step2.passengers')}</label>
@@ -518,28 +540,6 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                           <span className={`font-body text-[11px] font-medium ${booking.luggage === opt.id ? 'text-terracotta' : 'text-charcoal'}`}>{opt.label}</span>
                         </button>
                       ))}
-                    </div>
-                  </div>
-
-                  {/* Flight Info - always shown for one way and round trip */}
-                  <div>
-                    <h3 className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 flex items-center gap-2">
-                      <AirplaneLanding size={14} />{t('widget.flight.flightInfo')}
-                    </h3>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.airline')}</label>
-                        <select value={booking.airline} onChange={e => updateBooking({ airline: e.target.value })}
-                          className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all appearance-none">
-                          <option value="">{t('widget.flight.selectAirline')}</option>
-                          {airlines.map(a => <option key={a} value={a}>{a}</option>)}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.flightNumber')}</label>
-                        <input type="text" value={booking.flightNumber} onChange={e => updateBooking({ flightNumber: e.target.value })}
-                          placeholder="AA1234" className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 focus:border-terracotta outline-none transition-all" />
-                      </div>
                     </div>
                   </div>
 
