@@ -26,14 +26,7 @@ export default function WidgetPreview() {
   // Embed code that clients can copy and paste into their website
   const embedCode = `<!-- ReserVamos Booking Widget -->
 <div id="reservamos-widget"></div>
-<script>
-  (function() {
-    var script = document.createElement('script');
-    script.src = "${origin}/widget/embed.js?key=${apiKey}";
-    script.async = true;
-    document.head.appendChild(script);
-  })();
-</script>
+<script src="${origin}/widget/embed.js?key=${apiKey}" crossorigin="anonymous" async></script>
 <!-- End ReserVamos Widget -->`;
 
   // Simple iframe embed as alternative
