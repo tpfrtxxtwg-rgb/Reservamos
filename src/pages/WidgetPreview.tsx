@@ -215,24 +215,24 @@ export default function WidgetPreview() {
               </div>
             </div>
 
-            {/* Direct Link */}
+            {/* Method 3: Direct Link */}
             <div className="bg-white rounded-xl shadow-sm border border-[rgba(138,130,120,0.08)] p-5">
               <h3 className="font-body text-sm font-semibold text-charcoal mb-2">
-                {t('widgetPreview.directLink') || 'Direct Booking Link'}
+                {t('widgetPreview.method3') || 'Method 3: Direct Booking Link'}
               </h3>
               <p className="font-body text-sm text-warm-gray mb-3">
-                {t('widgetPreview.directLinkDesc') || 'Share this link directly with customers via email, WhatsApp, or social media.'}
+                {t('widgetPreview.directLinkDesc') || 'Share this link directly with customers via email, WhatsApp, or social media. Opens a clean widget-only page.'}
               </p>
               <div className="flex items-center gap-3">
                 <code className="flex-1 font-mono text-xs bg-sand px-3 py-2.5 rounded-md text-charcoal truncate">
-                  {origin}/?apiKey={apiKey}
+                  {origin}/?key={apiKey}
                 </code>
                 <button
-                  onClick={() => handleCopy(`${origin}/?apiKey=${apiKey}`)}
+                  onClick={() => handleCopy(`${origin}/?key=${apiKey}`)}
                   className="flex items-center gap-1.5 px-4 py-2.5 border border-[rgba(138,130,120,0.2)] rounded-md font-body text-sm text-charcoal hover:bg-sand transition-colors"
                 >
-                  <Copy size={14} />
-                  Copy
+                  {copied ? <Check size={14} /> : <Copy size={14} />}
+                  {copied ? 'Copied!' : 'Copy'}
                 </button>
               </div>
             </div>
