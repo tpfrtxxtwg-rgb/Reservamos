@@ -3,6 +3,7 @@ import { eq, and } from "drizzle-orm";
 import { createRouter, publicQuery } from "./middleware";
 import { getDb } from "./queries/connection";
 import { clients, services, vehicles, destinations, vehicleZonePrices, bookings, optionalServices, serviceAirports, serviceTours } from "@db/schema";
+import { sendBookingConfirmationEmail } from "./email-router";
 
 function generateCode() {
   const ts = Date.now().toString(36).toUpperCase();
@@ -159,6 +160,9 @@ export const widgetRouter = createRouter({
       airline: z.string().max(100).optional(),
       departureDate: z.string().max(10).optional(),
       departureTime: z.string().max(10).optional(),
+      departureAirline: z.string().max(100).optional(),
+      departureFlightNumber: z.string().max(50).optional(),
+      hotelPickupTime: z.string().max(10).optional(),
       paymentMethod: z.enum(["card", "paypal", "cash"]).default("card"),
       paymentOption: z.enum(["full", "deposit"]).default("full"),
     }))
@@ -250,6 +254,9 @@ export const widgetRouter = createRouter({
         airline: input.airline || null,
         departureDate: input.departureDate || null,
         departureTime: input.departureTime || null,
+        departureAirline: input.departureAirline || null,
+        departureFlightNumber: input.departureFlightNumber || null,
+        hotelPickupTime: input.hotelPickupTime || null,
         paymentMethod: input.paymentMethod,
         status: "confirmed",
         paymentStatus,
@@ -260,6 +267,18 @@ export const widgetRouter = createRouter({
         total: total.toFixed(2),
       }).$returningId();
 
-      return db.query.bookings.findFirst({ where: eq(bookings.id, id) });
+      const createdBooking = await db.query.bookings.findFirst({ where: eq(bookings.id, id) });
+
+      // Send confirmation email asynchronously (don't block the response)
+      if (createdBooking) {
+        console.log(`[Widget] Triggering confirmation email for booking #${createdBooking.id}`);
+        sendBookingConfirmationEmail(createdBooking.id).then((result) => {
+          console.log(`[Widget] Email result:`, JSON.stringify(result));
+        }).catch((err: any) => {
+          console.error("[Widget] Failed to send confirmation email:", err?.message || err);
+        });
+      }
+
+      return createdBooking;
     }),
 });

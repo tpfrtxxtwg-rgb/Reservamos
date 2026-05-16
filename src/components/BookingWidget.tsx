@@ -9,7 +9,7 @@ import {
   ArrowsLeftRight, Buildings,
   ShoppingCart, Suitcase, Package, AirplaneTilt,
 } from '@phosphor-icons/react';
-import { trpc } from '@/providers/trpc';
+import { trpc } from '@/providers/trpc.tsx';
 import type { BookingData } from '@/types';
 
 interface BookingWidgetProps {
@@ -38,6 +38,9 @@ const initialBooking: BookingData = {
   airline: '',
   departureDate: '',
   departureTime: '',
+  departureAirline: '',
+  departureFlightNumber: '',
+  hotelPickupTime: '',
   paymentMethod: 'card',
   paymentOption: 'full',
 };
@@ -78,6 +81,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
   const [reservationCode, setReservationCode] = useState('');
   const [copied, setCopied] = useState(false);
   const [destSearch, setDestSearch] = useState('');
+  const [showDestSearch, setShowDestSearch] = useState(false);
   const [bookingError, setBookingError] = useState('');
 
   // Query client config from apiKey
@@ -185,7 +189,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
       case 2: {
         if (!booking.destinationId || !booking.date || !booking.time) return false;
         if (isAirportService && (!booking.flightNumber || !booking.airline)) return false;
-        if (isRoundTrip && (!booking.departureDate || !booking.departureTime)) return false;
+        if (isRoundTrip && (!booking.departureDate || !booking.departureTime || !booking.hotelPickupTime)) return false;
         return true;
       }
       case 3: return !!booking.vehicleId;
@@ -223,6 +227,9 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
         airline: booking.airline || undefined,
         departureDate: booking.departureDate || undefined,
         departureTime: booking.departureTime || undefined,
+        departureAirline: booking.departureAirline || undefined,
+        departureFlightNumber: booking.departureFlightNumber || undefined,
+        hotelPickupTime: booking.hotelPickupTime || undefined,
         paymentMethod: booking.paymentMethod,
         paymentOption: booking.paymentOption,
       });
@@ -230,7 +237,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
   };
 
   const handleBack = () => { if (currentStep > 1) { setDirection(-1); setCurrentStep(s => s - 1); setBookingError(''); } };
-  const handleReset = () => { setBooking(initialBooking); setCurrentStep(1); setConfirmed(false); setReservationCode(''); setDestSearch(''); setBookingError(''); };
+  const handleReset = () => { setBooking(initialBooking); setCurrentStep(1); setConfirmed(false); setReservationCode(''); setDestSearch(''); setShowDestSearch(false); setBookingError(''); };
   const handleCopyCode = () => { navigator.clipboard.writeText(reservationCode); setCopied(true); setTimeout(() => setCopied(false), 2000); };
 
   const progressWidth = currentStep === 5 ? 100 : ((currentStep - 1) / 4) * 100;
@@ -358,23 +365,24 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
               </div>
             )}
 
-            {/* Step 2 - Destination + Date/Time + Flight + Luggage */}
+            {/* Step 2 - Arrival Information + Departure Information */}
             {currentStep === 2 && (
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <button onClick={handleBack} className="text-warm-gray hover:text-charcoal transition-colors"><ArrowLeft size={20} /></button>
-                  <h2 className="font-display text-[22px] font-bold text-charcoal">{t('widget.step2.title')}</h2>
+                  <h2 className="font-display text-[22px] font-bold text-charcoal">{t('widget.step2.arrivalTitle') || 'Arrival Information'}</h2>
                 </div>
-                <p className="font-body text-[13px] text-warm-gray mb-4">{t('widget.step2.subtitle')}</p>
+                <p className="font-body text-[13px] text-warm-gray mb-4">{t('widget.step2.arrivalSubtitle') || 'Enter your arrival and destination details'}</p>
                 <div className="space-y-4 mb-6">
-                  {/* Origin */}
+
+                  {/* Pickup Location (Origin Airport) - pre-filled */}
                   <div>
-                    <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 block">{t('widget.step2.origin')}</label>
+                    <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 block">{t('widget.step2.pickupLocation') || 'Pickup Location'}</label>
                     <div className="relative">
                       <AirplaneTilt size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
                       <select value={booking.origin} onChange={e => updateBooking({ origin: e.target.value })}
                         className="w-full h-12 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-10 pr-4 font-body text-sm text-charcoal focus:border-terracotta focus:ring-[3px] focus:ring-[rgba(199,94,58,0.1)] outline-none transition-all appearance-none">
-                        <option value="">{t('widget.step2.selectAirport') || 'Select origin'}</option>
+                        <option value="">{t('widget.step2.selectAirport') || 'Select airport'}</option>
                         {airportsList && airportsList.length > 0 ? (
                           airportsList.map((apt: any) => (
                             <option key={apt.id} value={`${apt.name} (${apt.code})`}>{apt.name} ({apt.code}){apt.city ? ` - ${apt.city}` : ''}</option>
@@ -385,75 +393,16 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                             <option value="Tulum Airport (TQO)">Tulum Airport (TQO)</option>
                           </>
                         )}
-                        <option value="Other">{t('widget.step2.otherLocation')}</option>
+                        <option value="Other">{t('widget.step2.otherLocation') || 'Other'}</option>
                       </select>
                     </div>
                     {(booking.origin === 'Other' || !airportsList || airportsList.length === 0) && (
                       <input type="text" value={booking.origin === 'Other' ? '' : booking.origin}
                         onChange={e => updateBooking({ origin: e.target.value })}
-                        placeholder={t('widget.step2.enterLocation')}
+                        placeholder={t('widget.step2.enterLocation') || 'Enter pickup location'}
                         className="w-full h-10 mt-2 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 focus:border-terracotta outline-none transition-all" />
                     )}
                   </div>
-
-                  {/* Destination autocomplete */}
-                  <div>
-                    <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 block">{t('widget.step2.destination')}</label>
-                    <div className="relative">
-                      <Buildings size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
-                      <input type="text" value={destSearch}
-                        onChange={e => { setDestSearch(e.target.value); if (booking.destinationId) updateBooking({ destinationId: null }); }}
-                        placeholder={t('widget.step2.searchDestination')}
-                        className="w-full h-12 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-10 pr-4 font-body text-sm text-charcoal placeholder:text-warm-gray/50 focus:border-terracotta focus:ring-[3px] focus:ring-[rgba(199,94,58,0.1)] outline-none transition-all" />
-                    </div>
-                    {booking.destinationId && selectedDestination && !destSearch && (
-                      <div className="mt-2 flex items-center justify-between bg-[rgba(199,94,58,0.06)] border border-[rgba(199,94,58,0.15)] rounded-md px-3 py-2">
-                        <div className="flex items-center gap-2">
-                          <Check size={14} className="text-terracotta" />
-                          <span className="font-body text-sm font-medium text-charcoal">{selectedDestination.name}</span>
-                        </div>
-                        <button onClick={() => { updateBooking({ destinationId: null }); setDestSearch(''); }} className="text-warm-gray hover:text-[#B23A2F] transition-colors"><ArrowLeft size={14} className="rotate-45" /></button>
-                      </div>
-                    )}
-                    {(!booking.destinationId || destSearch) && (
-                      <div className="mt-2 max-h-40 overflow-y-auto border border-[rgba(138,130,120,0.12)] rounded-md bg-white shadow-sm">
-                        {filteredDestinations.length > 0 ? (
-                          filteredDestinations.slice(0, 10).map(dest => (
-                            <button key={dest.id}
-                              onClick={() => { updateBooking({ destinationId: String(dest.id) }); setDestSearch(''); }}
-                              className="w-full text-left px-3 py-2.5 font-body text-sm text-charcoal hover:bg-sand transition-colors border-b border-[rgba(138,130,120,0.05)] last:border-0 flex items-center gap-2">
-                              <Buildings size={14} className="text-warm-gray flex-shrink-0" />{dest.name}
-                            </button>
-                          ))
-                        ) : destSearch ? (
-                          <div className="px-3 py-3 font-body text-sm text-warm-gray text-center">{t('widget.step2.noResults')}</div>
-                        ) : destinationsList?.slice(0, 8).map(dest => (
-                          <button key={dest.id}
-                            onClick={() => { updateBooking({ destinationId: String(dest.id) }); setDestSearch(''); }}
-                            className="w-full text-left px-3 py-2.5 font-body text-sm text-charcoal hover:bg-sand transition-colors border-b border-[rgba(138,130,120,0.05)] last:border-0 flex items-center gap-2">
-                            <Buildings size={14} className="text-warm-gray flex-shrink-0" />{dest.name}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Tour Selection for Private Tour service */}
-                  {isTourService && toursList && toursList.length > 0 && (
-                    <div>
-                      <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 block">Select Tour</label>
-                      <div className="relative">
-                        <MapTrifold size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
-                        <select value={booking.tourId || ''} onChange={e => updateBooking({ tourId: e.target.value })}
-                          className="w-full h-12 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-10 pr-4 font-body text-sm text-charcoal focus:border-terracotta focus:ring-[3px] focus:ring-[rgba(199,94,58,0.1)] outline-none transition-all appearance-none">
-                          <option value="">Select a tour</option>
-                          {toursList.map((tour: any) => (
-                            <option key={tour.id} value={String(tour.id)}>{tour.name}{tour.duration ? ` (${tour.duration})` : ''} - ${tour.price}</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  )}
 
                   {/* Date & Time */}
                   <div className="grid grid-cols-2 gap-3">
@@ -478,6 +427,94 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                       </div>
                     </div>
                   </div>
+
+                  {/* Flight Info - Airline & Flight Number (right after Date/Time) */}
+                  {isAirportService && (
+                    <div>
+                      <h3 className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 flex items-center gap-2">
+                        <AirplaneLanding size={14} />{t('widget.flight.flightInfo') || 'Flight Information'}
+                      </h3>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.airline')}</label>
+                          <select value={booking.airline} onChange={e => updateBooking({ airline: e.target.value })}
+                            className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all appearance-none">
+                            <option value="">{t('widget.flight.selectAirline') || 'Select airline'}</option>
+                            {airlines.map(a => <option key={a} value={a}>{a}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.flightNumber')}</label>
+                          <input type="text" value={booking.flightNumber} onChange={e => updateBooking({ flightNumber: e.target.value })}
+                            placeholder="AA1234" className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 focus:border-terracotta outline-none transition-all" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Hotel Destination - Collapsible Search */}
+                  <div>
+                    <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 block">{t('widget.step2.destination') || 'Hotel / Destination'}</label>
+
+                    {/* Selected destination badge */}
+                    {booking.destinationId && selectedDestination && (
+                      <div className="mb-2 flex items-center justify-between bg-[rgba(199,94,58,0.06)] border border-[rgba(199,94,58,0.15)] rounded-md px-3 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <Check size={14} className="text-terracotta" />
+                          <span className="font-body text-sm font-medium text-charcoal">{selectedDestination.name}</span>
+                        </div>
+                        <button onClick={() => { updateBooking({ destinationId: null }); setDestSearch(''); setShowDestSearch(true); }} className="text-warm-gray hover:text-[#B23A2F] transition-colors"><ArrowLeft size={14} className="rotate-45" /></button>
+                      </div>
+                    )}
+
+                    {/* Search input - only show when no destination selected or explicitly searching */}
+                    {(!booking.destinationId || showDestSearch) && (
+                      <div className="relative">
+                        <Buildings size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
+                        <input type="text" value={destSearch}
+                          onChange={e => { setDestSearch(e.target.value); if (booking.destinationId) updateBooking({ destinationId: null }); }}
+                          onFocus={() => setShowDestSearch(true)}
+                          placeholder={t('widget.step2.searchDestination') || 'Click to search hotels and destinations...'}
+                          className="w-full h-12 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-10 pr-4 font-body text-sm text-charcoal placeholder:text-warm-gray/50 focus:border-terracotta focus:ring-[3px] focus:ring-[rgba(199,94,58,0.1)] outline-none transition-all" />
+                      </div>
+                    )}
+
+                    {/* Dropdown results - only show when searching */}
+                    {showDestSearch && (!booking.destinationId || destSearch) && (
+                      <div className="mt-2 max-h-40 overflow-y-auto border border-[rgba(138,130,120,0.12)] rounded-md bg-white shadow-sm">
+                        {filteredDestinations.length > 0 ? (
+                          filteredDestinations.slice(0, 10).map(dest => (
+                            <button key={dest.id}
+                              onClick={() => { updateBooking({ destinationId: String(dest.id) }); setDestSearch(''); setShowDestSearch(false); }}
+                              className="w-full text-left px-3 py-2.5 font-body text-sm text-charcoal hover:bg-sand transition-colors border-b border-[rgba(138,130,120,0.05)] last:border-0 flex items-center gap-2">
+                              <Buildings size={14} className="text-warm-gray flex-shrink-0" />{dest.name}
+                            </button>
+                          ))
+                        ) : destSearch ? (
+                          <div className="px-3 py-3 font-body text-sm text-warm-gray text-center">{t('widget.step2.noResults') || 'No results found'}</div>
+                        ) : (
+                          <div className="px-3 py-3 font-body text-sm text-warm-gray text-center">{t('widget.step2.typeToSearch') || 'Type to search destinations'}</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Tour Selection for Private Tour service */}
+                  {isTourService && toursList && toursList.length > 0 && (
+                    <div>
+                      <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 block">Select Tour</label>
+                      <div className="relative">
+                        <MapTrifold size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
+                        <select value={booking.tourId || ''} onChange={e => updateBooking({ tourId: e.target.value })}
+                          className="w-full h-12 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-10 pr-4 font-body text-sm text-charcoal focus:border-terracotta focus:ring-[3px] focus:ring-[rgba(199,94,58,0.1)] outline-none transition-all appearance-none">
+                          <option value="">Select a tour</option>
+                          {toursList.map((tour: any) => (
+                            <option key={tour.id} value={String(tour.id)}>{tour.name}{tour.duration ? ` (${tour.duration})` : ''} - ${tour.price}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Passengers */}
                   <div>
@@ -512,37 +549,15 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                     </div>
                   </div>
 
-                  {/* Flight Info */}
-                  {isAirportService && (
-                    <div className="border-t border-[rgba(138,130,120,0.12)] pt-4">
-                      <h3 className="font-body text-sm font-semibold text-charcoal mb-3 flex items-center gap-2">
-                        <AirplaneLanding size={16} className="text-terracotta" />{t('widget.flight.title')}
-                      </h3>
-                      <div className="grid grid-cols-2 gap-3 mb-3">
-                        <div>
-                          <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.flightNumber')}</label>
-                          <input type="text" value={booking.flightNumber} onChange={e => updateBooking({ flightNumber: e.target.value })}
-                            placeholder="AA1234" className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 focus:border-terracotta outline-none transition-all" />
-                        </div>
-                        <div>
-                          <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.airline')}</label>
-                          <select value={booking.airline} onChange={e => updateBooking({ airline: e.target.value })}
-                            className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all appearance-none">
-                            <option value="">Select airline</option>
-                            {airlines.map(a => <option key={a} value={a}>{a}</option>)}
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Round Trip */}
+                  {/* Departure Information (renamed from Round Trip) */}
                   {isRoundTrip && (
                     <div className="border-t border-[rgba(138,130,120,0.12)] pt-4">
                       <h3 className="font-body text-sm font-semibold text-charcoal mb-3 flex items-center gap-2">
-                        <ArrowsLeftRight size={16} className="text-terracotta" />{t('widget.flight.roundTripDetails')}
+                        <ArrowsLeftRight size={16} className="text-terracotta" />{t('widget.flight.departureTitle') || 'Departure Information'}
                       </h3>
-                      <div className="grid grid-cols-2 gap-3">
+
+                      {/* Departure Date & Departure Flight Time */}
+                      <div className="grid grid-cols-2 gap-3 mb-3">
                         <div>
                           <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.departureDate')}</label>
                           <div className="relative">
@@ -553,7 +568,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                           </div>
                         </div>
                         <div>
-                          <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.departureTime')}</label>
+                          <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.departureTime') || 'Departure Flight Time'}</label>
                           <div className="relative">
                             <Clock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
                             <select value={booking.departureTime} onChange={e => updateBooking({ departureTime: e.target.value })}
@@ -564,6 +579,41 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                           </div>
                         </div>
                       </div>
+
+                      {/* Departure Airline & Flight Number */}
+                      <div className="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                          <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.departureAirline') || 'Airline'}</label>
+                          <select value={booking.departureAirline} onChange={e => updateBooking({ departureAirline: e.target.value })}
+                            className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all appearance-none">
+                            <option value="">{t('widget.flight.selectAirline') || 'Select airline'}</option>
+                            {airlines.map(a => <option key={a} value={a}>{a}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.departureFlightNumber') || 'Flight Number'}</label>
+                          <input type="text" value={booking.departureFlightNumber} onChange={e => updateBooking({ departureFlightNumber: e.target.value })}
+                            placeholder="AA1234" className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 focus:border-terracotta outline-none transition-all" />
+                        </div>
+                      </div>
+
+                      {/* Hotel Pickup Time */}
+                      <div className="mb-2">
+                        <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.hotelPickupTime') || 'Hotel Pickup Time'}</label>
+                        <div className="relative">
+                          <Clock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
+                          <select value={booking.hotelPickupTime} onChange={e => updateBooking({ hotelPickupTime: e.target.value })}
+                            className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-9 pr-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all appearance-none">
+                            <option value="">{t('widget.step2.selectTime')}</option>
+                            {timeSlots.map(o => <option key={o} value={o}>{o}</option>)}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Recommendation comment */}
+                      <p className="font-body text-[11px] text-terracotta/80 italic mt-1">
+                        * {t('widget.flight.pickupRecommendation') || 'Se recomienda agendar la reserva 3 horas antes de su vuelo'}
+                      </p>
                     </div>
                   )}
                 </div>
