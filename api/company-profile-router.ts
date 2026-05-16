@@ -1,11 +1,10 @@
 import { z } from "zod";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { createRouter, clientAuthedQuery } from "./middleware";
 import { getDb } from "./queries/connection";
-import { clients, vehicleImages } from "@db/schema";
+import { clients } from "@db/schema";
 
 export const companyProfileRouter = createRouter({
-  // Get current client's company profile
   get: clientAuthedQuery.query(async ({ ctx }) => {
     const clientId = ctx.clientUser.clientId;
     const [client] = await getDb()
@@ -29,11 +28,9 @@ export const companyProfileRouter = createRouter({
       .from(clients)
       .where(eq(clients.id, clientId))
       .limit(1);
-
     return client || null;
   }),
 
-  // Update company profile
   update: clientAuthedQuery
     .input(
       z.object({
@@ -49,7 +46,6 @@ export const companyProfileRouter = createRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const clientId = ctx.clientUser.clientId;
-
       const updateData: Record<string, unknown> = {};
       if (input.name !== undefined) updateData.name = input.name;
       if (input.email !== undefined) updateData.email = input.email;
@@ -64,94 +60,6 @@ export const companyProfileRouter = createRouter({
         .update(clients)
         .set(updateData)
         .where(eq(clients.id, clientId));
-
-      return { success: true };
-    }),
-
-  // Get all vehicle image presets for this client
-  getVehicleImages: clientAuthedQuery.query(async ({ ctx }) => {
-    const clientId = ctx.clientUser.clientId;
-    const images = await getDb()
-      .select()
-      .from(vehicleImages)
-      .where(eq(vehicleImages.clientId, clientId));
-    return images;
-  }),
-
-  // Upsert (create or update) a vehicle image preset
-  upsertVehicleImage: clientAuthedQuery
-    .input(
-      z.object({
-        id: z.number().optional(),
-        vehicleType: z.string().min(1).max(100),
-        imageUrl: z.string().min(1),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const clientId = ctx.clientUser.clientId;
-
-      if (input.id) {
-        // Update existing
-        await getDb()
-          .update(vehicleImages)
-          .set({
-            vehicleType: input.vehicleType,
-            imageUrl: input.imageUrl,
-          })
-          .where(
-            and(
-              eq(vehicleImages.id, input.id),
-              eq(vehicleImages.clientId, clientId)
-            )
-          );
-        return { id: input.id, success: true };
-      } else {
-        // Insert new - check if type already exists for this client
-        const [existing] = await getDb()
-          .select({ id: vehicleImages.id })
-          .from(vehicleImages)
-          .where(
-            and(
-              eq(vehicleImages.clientId, clientId),
-              eq(vehicleImages.vehicleType, input.vehicleType)
-            )
-          )
-          .limit(1);
-
-        if (existing) {
-          // Update existing by type
-          await getDb()
-            .update(vehicleImages)
-            .set({ imageUrl: input.imageUrl })
-            .where(eq(vehicleImages.id, existing.id));
-          return { id: existing.id, success: true };
-        }
-
-        // Insert new
-        const [result] = await getDb()
-          .insert(vehicleImages)
-          .values({
-            clientId,
-            vehicleType: input.vehicleType,
-            imageUrl: input.imageUrl,
-          });
-        return { id: Number(result.insertId), success: true };
-      }
-    }),
-
-  // Delete a vehicle image preset
-  deleteVehicleImage: clientAuthedQuery
-    .input(z.object({ id: z.number() }))
-    .mutation(async ({ ctx, input }) => {
-      const clientId = ctx.clientUser.clientId;
-      await getDb()
-        .delete(vehicleImages)
-        .where(
-          and(
-            eq(vehicleImages.id, input.id),
-            eq(vehicleImages.clientId, clientId)
-          )
-        );
       return { success: true };
     }),
 });

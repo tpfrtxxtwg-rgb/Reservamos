@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { trpc } from '@/providers/trpc.tsx';
 import {
   Buildings, Globe, Phone, EnvelopeSimple,
-  Image, Check, ArrowCounterClockwise, Warning,
+  Image, Check, ArrowCounterClockwise,
 } from '@phosphor-icons/react';
 
 interface AdminCompanyProfileProps {
@@ -20,16 +20,10 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
     onSuccess: () => {
       utils.companyProfile.get.invalidate();
       setSaved(true);
-      setError(null);
-      setTimeout(() => setSaved(false), 3000);
-    },
-    onError: (err) => {
-      setError(err.message || 'Failed to save. Please try again.');
-      setSaved(false);
+      setTimeout(() => setSaved(false), 2000);
     },
   });
 
-  // Form state
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [website, setWebsite] = useState('');
@@ -37,7 +31,6 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
   const [description, setDescription] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
   const [saved, setSaved] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (profile) {
@@ -50,9 +43,7 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
     }
   }, [profile]);
 
-  const handleSaveProfile = () => {
-    setError(null);
-    setSaved(false);
+  const handleSave = () => {
     updateProfile.mutate({
       name,
       email,
@@ -63,19 +54,10 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
     });
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <ArrowCounterClockwise size={24} className="text-terracotta animate-spin" />
-        <span className="ml-3 font-body text-sm text-warm-gray">{t('common.loading') || 'Loading...'}</span>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6 max-w-3xl">
+    <div className="max-w-2xl">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="font-display text-xl font-bold text-charcoal">
             {t('admin.companyProfile') || 'Company Profile'}
@@ -85,44 +67,20 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
           </p>
         </div>
         <button
-          onClick={handleSaveProfile}
+          onClick={handleSave}
           disabled={updateProfile.isPending}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-body text-sm font-medium transition-all ${
             saved
               ? 'bg-[#2D6A4F] text-white'
               : 'bg-terracotta text-white hover:bg-terracotta-dark'
-          } disabled:opacity-60`}
+          }`}
         >
-          {updateProfile.isPending ? (
-            <ArrowCounterClockwise size={16} className="animate-spin" />
-          ) : saved ? (
-            <Check size={16} />
-          ) : null}
-          {saved
-            ? (t('common.saved') || 'Saved!')
-            : updateProfile.isPending
-              ? (t('common.saving') || 'Saving...')
-              : (t('common.save') || 'Save Changes')}
+          {saved ? <Check size={16} /> : updateProfile.isPending
+            ? <ArrowCounterClockwise size={16} className="animate-spin" />
+            : null}
+          {saved ? 'Saved!' : t('common.save') || 'Save Changes'}
         </button>
       </div>
-
-      {/* Error message */}
-      {error && (
-        <div className="bg-[rgba(178,58,47,0.08)] border border-[rgba(178,58,47,0.2)] rounded-lg px-4 py-3 flex items-start gap-2">
-          <Warning size={16} className="text-[#B23A2F] flex-shrink-0 mt-0.5" />
-          <p className="font-body text-sm text-[#B23A2F]">{error}</p>
-        </div>
-      )}
-
-      {/* Success message */}
-      {saved && !error && (
-        <div className="bg-[rgba(45,106,79,0.08)] border border-[rgba(45,106,79,0.2)] rounded-lg px-4 py-3 flex items-center gap-2">
-          <Check size={16} className="text-[#2D6A4F]" />
-          <p className="font-body text-sm text-[#2D6A4F]">
-            {t('admin.profileSaved') || 'Profile saved successfully'}
-          </p>
-        </div>
-      )}
 
       {/* Company Info */}
       <div className="bg-white rounded-xl shadow-sm border border-[rgba(138,130,120,0.08)] p-6">
@@ -199,7 +157,7 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
             </div>
           </div>
 
-          {/* Description - full width */}
+          {/* Description */}
           <div className="md:col-span-2">
             <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 block">
               {t('admin.description') || 'Company Description'}
@@ -213,7 +171,7 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
             />
           </div>
 
-          {/* Logo URL - full width */}
+          {/* Logo URL */}
           <div className="md:col-span-2">
             <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 block">
               {t('admin.logoUrl') || 'Logo URL'}
