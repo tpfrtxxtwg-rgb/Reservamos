@@ -3,44 +3,30 @@ import { useTranslation } from 'react-i18next';
 import { trpc } from '@/providers/trpc.tsx';
 import {
   Buildings, Globe, Phone, EnvelopeSimple,
-  Image, Plus, Trash, Check, ArrowCounterClockwise,
-  Pencil, Link as LinkIcon, Car, Info,
+  Image, Check, ArrowCounterClockwise, Warning,
 } from '@phosphor-icons/react';
 
 interface AdminCompanyProfileProps {
   clientId: number;
 }
 
-const defaultVehicleTypes = [
-  'Suburban', 'Sprinter', 'Van', 'Sedan', 'Minivan',
-  'Escalade', 'Navigator', 'Expedition', 'Tahoe', 'Yukon',
-  'Bus', 'Limousine', 'Tesla', 'Other',
-];
-
 export default function AdminCompanyProfile({ clientId }: AdminCompanyProfileProps) {
   const { t } = useTranslation();
   const utils = trpc.useUtils();
 
   const { data: profile, isLoading } = trpc.companyProfile.get.useQuery();
-  const { data: vehicleImagesList } = trpc.companyProfile.getVehicleImages.useQuery();
 
   const updateProfile = trpc.companyProfile.update.useMutation({
     onSuccess: () => {
       utils.companyProfile.get.invalidate();
       setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      setError(null);
+      setTimeout(() => setSaved(false), 3000);
     },
-  });
-
-  const upsertVehicleImage = trpc.companyProfile.upsertVehicleImage.useMutation({
-    onSuccess: () => {
-      utils.companyProfile.getVehicleImages.invalidate();
-      setEditingVehicle(null);
+    onError: (err) => {
+      setError(err.message || 'Failed to save. Please try again.');
+      setSaved(false);
     },
-  });
-
-  const deleteVehicleImage = trpc.companyProfile.deleteVehicleImage.useMutation({
-    onSuccess: () => utils.companyProfile.getVehicleImages.invalidate(),
   });
 
   // Form state
@@ -51,13 +37,7 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
   const [description, setDescription] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
   const [saved, setSaved] = useState(false);
-
-  // Vehicle images state
-  const [editingVehicle, setEditingVehicle] = useState<{
-    id?: number;
-    vehicleType: string;
-    imageUrl: string;
-  } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (profile) {
@@ -71,6 +51,8 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
   }, [profile]);
 
   const handleSaveProfile = () => {
+    setError(null);
+    setSaved(false);
     updateProfile.mutate({
       name,
       email,
@@ -81,26 +63,17 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
     });
   };
 
-  const handleSaveVehicleImage = () => {
-    if (!editingVehicle?.vehicleType || !editingVehicle?.imageUrl) return;
-    upsertVehicleImage.mutate({
-      id: editingVehicle.id,
-      vehicleType: editingVehicle.vehicleType,
-      imageUrl: editingVehicle.imageUrl,
-    });
-  };
-
-  const existingTypes = new Set(vehicleImagesList?.map(v => v.vehicleType.toLowerCase()) || []);
-
-  const getPreviewImage = (type: string) => {
-    const found = vehicleImagesList?.find(
-      v => v.vehicleType.toLowerCase() === type.toLowerCase()
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <ArrowCounterClockwise size={24} className="text-terracotta animate-spin" />
+        <span className="ml-3 font-body text-sm text-warm-gray">{t('common.loading') || 'Loading...'}</span>
+      </div>
     );
-    return found?.imageUrl;
-  };
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-3xl">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -108,7 +81,7 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
             {t('admin.companyProfile') || 'Company Profile'}
           </h2>
           <p className="font-body text-sm text-warm-gray mt-1">
-            {t('admin.companyProfileDesc') || 'Manage your company information and vehicle images'}
+            {t('admin.companyProfileDesc') || 'Manage your company information'}
           </p>
         </div>
         <button
@@ -118,14 +91,38 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
             saved
               ? 'bg-[#2D6A4F] text-white'
               : 'bg-terracotta text-white hover:bg-terracotta-dark'
-          }`}
+          } disabled:opacity-60`}
         >
-          {saved ? <Check size={16} /> : updateProfile.isPending
-            ? <ArrowCounterClockwise size={16} className="animate-spin" />
-            : null}
-          {saved ? 'Saved!' : t('common.save') || 'Save Changes'}
+          {updateProfile.isPending ? (
+            <ArrowCounterClockwise size={16} className="animate-spin" />
+          ) : saved ? (
+            <Check size={16} />
+          ) : null}
+          {saved
+            ? (t('common.saved') || 'Saved!')
+            : updateProfile.isPending
+              ? (t('common.saving') || 'Saving...')
+              : (t('common.save') || 'Save Changes')}
         </button>
       </div>
+
+      {/* Error message */}
+      {error && (
+        <div className="bg-[rgba(178,58,47,0.08)] border border-[rgba(178,58,47,0.2)] rounded-lg px-4 py-3 flex items-start gap-2">
+          <Warning size={16} className="text-[#B23A2F] flex-shrink-0 mt-0.5" />
+          <p className="font-body text-sm text-[#B23A2F]">{error}</p>
+        </div>
+      )}
+
+      {/* Success message */}
+      {saved && !error && (
+        <div className="bg-[rgba(45,106,79,0.08)] border border-[rgba(45,106,79,0.2)] rounded-lg px-4 py-3 flex items-center gap-2">
+          <Check size={16} className="text-[#2D6A4F]" />
+          <p className="font-body text-sm text-[#2D6A4F]">
+            {t('admin.profileSaved') || 'Profile saved successfully'}
+          </p>
+        </div>
+      )}
 
       {/* Company Info */}
       <div className="bg-white rounded-xl shadow-sm border border-[rgba(138,130,120,0.08)] p-6">
@@ -140,7 +137,7 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
           {/* Company Name */}
           <div>
             <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 block">
-              {t('admin.companyName') || 'Company Name'}
+              {t('admin.companyName') || 'Company Name'} *
             </label>
             <input
               type="text"
@@ -154,7 +151,7 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
           {/* Admin Email */}
           <div>
             <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 block">
-              {t('admin.adminEmail') || 'Admin Email'}
+              {t('admin.adminEmail') || 'Admin Email'} *
             </label>
             <div className="relative">
               <EnvelopeSimple size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
@@ -216,7 +213,7 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
             />
           </div>
 
-          {/* Logo URL */}
+          {/* Logo URL - full width */}
           <div className="md:col-span-2">
             <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 block">
               {t('admin.logoUrl') || 'Logo URL'}
@@ -245,192 +242,6 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Vehicle Images */}
-      <div className="bg-white rounded-xl shadow-sm border border-[rgba(138,130,120,0.08)] p-6">
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-2">
-            <Car size={18} className="text-terracotta" />
-            <h3 className="font-body text-sm font-semibold text-charcoal uppercase tracking-wide">
-              {t('admin.vehicleImages') || 'Vehicle Images'}
-            </h3>
-          </div>
-          <button
-            onClick={() => setEditingVehicle({ vehicleType: '', imageUrl: '' })}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-terracotta text-white rounded-md font-body text-xs hover:bg-terracotta-dark transition-colors"
-          >
-            <Plus size={14} /> {t('admin.addImage') || 'Add Image'}
-          </button>
-        </div>
-
-        <p className="font-body text-xs text-warm-gray mb-4 flex items-start gap-1.5">
-          <Info size={14} className="flex-shrink-0 mt-0.5" />
-          {t('admin.vehicleImagesDesc') || 'Configure the image URLs for each vehicle type used by your company. These images will be shown to customers during vehicle selection.'}
-        </p>
-
-        {/* Add/Edit Form */}
-        {editingVehicle && (
-          <div className="bg-[#FAFAF8] rounded-lg p-4 mb-4 border border-[rgba(138,130,120,0.1)]">
-            <h4 className="font-body text-xs font-semibold text-charcoal mb-3">
-              {editingVehicle.id
-                ? (t('admin.editImage') || 'Edit Vehicle Image')
-                : (t('admin.addNewImage') || 'Add New Vehicle Image')}
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div>
-                <label className="font-body text-[11px] text-warm-gray mb-1 block">
-                  {t('admin.vehicleType') || 'Vehicle Type'}
-                </label>
-                <input
-                  type="text"
-                  list="vehicle-types"
-                  value={editingVehicle.vehicleType}
-                  onChange={e => setEditingVehicle({ ...editingVehicle, vehicleType: e.target.value })}
-                  placeholder="Suburban"
-                  className="w-full h-10 bg-white border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 focus:border-terracotta outline-none transition-all"
-                />
-                <datalist id="vehicle-types">
-                  {defaultVehicleTypes.map(type => (
-                    <option key={type} value={type} />
-                  ))}
-                </datalist>
-              </div>
-              <div className="md:col-span-2">
-                <label className="font-body text-[11px] text-warm-gray mb-1 block">
-                  {t('admin.imageUrl') || 'Image URL'}
-                </label>
-                <div className="relative">
-                  <LinkIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
-                  <input
-                    type="url"
-                    value={editingVehicle.imageUrl}
-                    onChange={e => setEditingVehicle({ ...editingVehicle, imageUrl: e.target.value })}
-                    placeholder="https://your-cdn.com/vehicles/suburban.jpg"
-                    className="w-full h-10 bg-white border border-[rgba(138,130,120,0.2)] rounded-md pl-9 pr-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 focus:border-terracotta outline-none transition-all"
-                  />
-                </div>
-              </div>
-            </div>
-            {/* Preview */}
-            {editingVehicle.imageUrl && (
-              <div className="mt-3">
-                <span className="font-body text-[11px] text-warm-gray mb-1 block">Preview</span>
-                <div className="w-32 h-20 rounded-lg border border-[rgba(138,130,120,0.15)] overflow-hidden bg-white">
-                  <img
-                    src={editingVehicle.imageUrl}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                    onError={e => { (e.target as HTMLImageElement).src = '/vehicle-suburban.jpg'; }}
-                  />
-                </div>
-              </div>
-            )}
-            <div className="flex items-center gap-2 mt-3">
-              <button
-                onClick={handleSaveVehicleImage}
-                disabled={!editingVehicle.vehicleType || !editingVehicle.imageUrl || upsertVehicleImage.isPending}
-                className="flex items-center gap-1.5 px-4 py-2 bg-terracotta text-white rounded-md font-body text-xs font-medium hover:bg-terracotta-dark transition-colors disabled:opacity-50"
-              >
-                <Check size={14} />
-                {t('common.save') || 'Save'}
-              </button>
-              <button
-                onClick={() => setEditingVehicle(null)}
-                className="px-4 py-2 border border-[rgba(138,130,120,0.2)] rounded-md font-body text-xs text-charcoal hover:bg-sand transition-colors"
-              >
-                {t('common.cancel') || 'Cancel'}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Vehicle Images Table */}
-        {vehicleImagesList && vehicleImagesList.length > 0 ? (
-          <div className="overflow-hidden rounded-lg border border-[rgba(138,130,120,0.08)]">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-[#FAFAF8] border-b border-[rgba(138,130,120,0.08)]">
-                  <th className="text-left px-4 py-3 font-body text-[11px] font-medium text-warm-gray uppercase tracking-wide">
-                    {t('admin.vehicle') || 'Vehicle'}
-                  </th>
-                  <th className="text-left px-4 py-3 font-body text-[11px] font-medium text-warm-gray uppercase tracking-wide">
-                    {t('admin.preview') || 'Preview'}
-                  </th>
-                  <th className="text-left px-4 py-3 font-body text-[11px] font-medium text-warm-gray uppercase tracking-wide">
-                    {t('admin.imageUrl') || 'Image URL'}
-                  </th>
-                  <th className="text-right px-4 py-3 font-body text-[11px] font-medium text-warm-gray uppercase tracking-wide">
-                    {t('admin.actions') || 'Actions'}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {vehicleImagesList.map((item) => (
-                  <tr key={item.id} className="border-b border-[rgba(138,130,120,0.05)] last:border-0 hover:bg-[#FAFAF8]/50 transition-colors">
-                    <td className="px-4 py-3">
-                      <span className="font-body text-sm font-medium text-charcoal">{item.vehicleType}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="w-16 h-10 rounded-md border border-[rgba(138,130,120,0.1)] overflow-hidden bg-white">
-                        <img
-                          src={item.imageUrl}
-                          alt={item.vehicleType}
-                          className="w-full h-full object-cover"
-                          onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                        />
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <code className="font-mono text-[11px] text-warm-gray bg-sand px-2 py-0.5 rounded truncate max-w-[200px] block">
-                        {item.imageUrl}
-                      </code>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => setEditingVehicle({
-                            id: item.id,
-                            vehicleType: item.vehicleType,
-                            imageUrl: item.imageUrl,
-                          })}
-                          className="p-1.5 text-warm-gray hover:text-terracotta transition-colors rounded"
-                          title="Edit"
-                        >
-                          <Pencil size={14} />
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (confirm(t('admin.deleteConfirm') || 'Delete this image?')) {
-                              deleteVehicleImage.mutate({ id: item.id });
-                            }
-                          }}
-                          className="p-1.5 text-warm-gray hover:text-[#B23A2F] transition-colors rounded"
-                          title="Delete"
-                        >
-                          <Trash size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : !editingVehicle ? (
-          <div className="text-center py-8 bg-[#FAFAF8] rounded-lg border border-dashed border-[rgba(138,130,120,0.15)]">
-            <Car size={32} className="text-warm-gray/30 mx-auto mb-3" />
-            <p className="font-body text-sm text-warm-gray">
-              {t('admin.noVehicleImages') || 'No vehicle images configured yet'}
-            </p>
-            <button
-              onClick={() => setEditingVehicle({ vehicleType: '', imageUrl: '' })}
-              className="mt-3 text-terracotta font-body text-sm hover:underline"
-            >
-              {t('admin.addFirstImage') || 'Add your first vehicle image'}
-            </button>
-          </div>
-        ) : null}
       </div>
     </div>
   );
