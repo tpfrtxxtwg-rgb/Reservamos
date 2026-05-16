@@ -7,13 +7,25 @@ import { clients } from "@db/schema";
 export const companyProfileRouter = createRouter({
   get: clientAuthedQuery.query(async ({ ctx }) => {
     const clientId = ctx.clientUser.clientId;
-    // Use raw query to avoid Drizzle column validation issues with TiDB columns
-    const rawDb = await import("./queries/connection").then(m => m.getRawDb());
-    const [rows] = await rawDb.query(
-      "SELECT id, name, email, website, phone, description, domain, logo_url as logoUrl, primary_color as primaryColor, plan, status, api_key as apiKey FROM clients WHERE id = ?",
-      [clientId]
-    );
-    return (rows as any[])[0] || null;
+    const result = await getDb()
+      .select({
+        id: clients.id,
+        name: clients.name,
+        email: clients.email,
+        website: clients.website,
+        phone: clients.phone,
+        description: clients.description,
+        domain: clients.domain,
+        logoUrl: clients.logoUrl,
+        primaryColor: clients.primaryColor,
+        plan: clients.plan,
+        status: clients.status,
+        apiKey: clients.apiKey,
+      })
+      .from(clients)
+      .where(eq(clients.id, clientId))
+      .limit(1);
+    return result[0] || null;
   }),
 
   update: clientAuthedQuery
