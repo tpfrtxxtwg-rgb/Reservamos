@@ -82,6 +82,9 @@ export interface BookingData {
   airline: string;
   departureDate: string;
   departureTime: string;
+  departureAirline: string;
+  departureFlightNumber: string;
+  hotelPickupTime: string;
   paymentMethod: 'card' | 'paypal' | 'cash';
 }
 
