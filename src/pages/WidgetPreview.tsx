@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Copy, Check, Eye, Code, Globe } from '@phosphor-icons/react';
+import { ArrowLeft, Copy, Check, Eye, Code, Globe, Translate } from '@phosphor-icons/react';
 import { trpc } from '@/providers/trpc.tsx';
 import { useClientAuth } from '@/providers/ClientAuthProvider.tsx';
 import BookingWidget from '@/components/BookingWidget';
@@ -13,6 +13,7 @@ export default function WidgetPreview() {
   const { isAuthenticated, isLoading: authLoading, user } = useClientAuth();
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'preview' | 'code'>('preview');
+  const [widgetLang, setWidgetLang] = useState<'auto' | 'en' | 'es' | 'pt'>('auto');
 
   const { data: settings, isLoading: settingsLoading } = trpc.clientSettings.get.useQuery(
     undefined,
@@ -23,20 +24,21 @@ export default function WidgetPreview() {
   const isReady = !!apiKey && isAuthenticated;
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
 
+  const langParam = widgetLang !== 'auto' ? `&lng=${widgetLang}` : '';
   const embedCode = `/* ReserVamos Booking Widget */
 <div id="reservamos-widget"></div>
-<script src="${origin}/widget/embed.js?key=${apiKey}" crossorigin="anonymous" async></script>
-/* Language: Add &lng=en|es|pt to force a language */`;
+<script src="${origin}/widget/embed.js?key=${apiKey}${langParam}" crossorigin="anonymous" async></script>`;
 
   const iframeCode = `/* ReserVamos Booking Widget (Iframe) */
 <iframe 
-  src="${origin}/widget/embed?key=${apiKey}" 
+  src="${origin}/widget/embed?key=${apiKey}${langParam}" 
   width="100%" 
   height="800" 
   frameborder="0"
   style="border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.08);"
-></iframe>
-/* Language: Add &lng=en|es|pt to the src URL to force a language */`;
+></iframe>`;
+
+  const directUrl = `${origin}/?key=${apiKey}${langParam}`;
 
   const handleCopy = useCallback((text: string) => {
     navigator.clipboard.writeText(text).then(() => {
@@ -71,6 +73,21 @@ export default function WidgetPreview() {
           </h1>
         </div>
         <div className="flex items-center gap-3">
+          {/* Language Selector */}
+          <div className="flex items-center gap-2 bg-sand rounded-lg px-3 py-1.5">
+            <Translate size={14} className="text-warm-gray" />
+            <select
+              value={widgetLang}
+              onChange={e => setWidgetLang(e.target.value as typeof widgetLang)}
+              className="bg-transparent font-body text-sm text-charcoal outline-none cursor-pointer"
+            >
+              <option value="auto">Auto (Browser)</option>
+              <option value="en">English</option>
+              <option value="es">Espanol</option>
+              <option value="pt">Portugues</option>
+            </select>
+          </div>
+
           <div className="flex bg-sand rounded-lg p-0.5">
             <button
               onClick={() => setActiveTab('preview')}
@@ -216,19 +233,21 @@ export default function WidgetPreview() {
               </p>
               <div className="flex items-center gap-3">
                 <code className="flex-1 font-mono text-xs bg-sand px-3 py-2.5 rounded-md text-charcoal truncate">
-                  {origin}/?key={apiKey}
+                  {directUrl}
                 </code>
                 <button
-                  onClick={() => handleCopy(`${origin}/?key=${apiKey}`)}
+                  onClick={() => handleCopy(directUrl)}
                   className="flex items-center gap-1.5 px-4 py-2.5 border border-[rgba(138,130,120,0.2)] rounded-md font-body text-sm text-charcoal hover:bg-sand transition-colors"
                 >
                   {copied ? <Check size={14} /> : <Copy size={14} />}
                   {copied ? 'Copied!' : 'Copy'}
                 </button>
               </div>
-              <p className="font-body text-[11px] text-warm-gray/70 mt-2">
-                Language: Add &lng=en|es|pt to force a language. Default: browser detection.
-              </p>
+              {widgetLang === 'auto' && (
+                <p className="font-body text-[11px] text-warm-gray/70 mt-2">
+                  Widget language will match the visitor&apos;s browser language.
+                </p>
+              )}
             </div>
           </motion.div>
         )}
