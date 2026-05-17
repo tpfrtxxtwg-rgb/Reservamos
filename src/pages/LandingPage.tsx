@@ -1,5 +1,6 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router';
+import i18n from '@/i18n';
 import Header from '@/sections/Header';
 import Hero from '@/sections/Hero';
 import DemoWidget from '@/sections/DemoWidget';
@@ -20,6 +21,14 @@ import BookingWidget from '@/components/BookingWidget';
 export default function LandingPage() {
   const [searchParams] = useSearchParams();
   const apiKey = searchParams.get('apiKey') || searchParams.get('key') || '';
+
+  // Set language from ?lng= query param if provided
+  useEffect(() => {
+    const lang = searchParams.get('lng');
+    if (lang && ['en', 'es', 'pt'].includes(lang)) {
+      i18n.changeLanguage(lang);
+    }
+  }, [searchParams]);
 
   const scrollToDemo = useCallback(() => {
     const el = document.getElementById('demo');

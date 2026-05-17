@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router';
+import i18n from '@/i18n';
 import BookingWidget from '@/components/BookingWidget';
 
 /**
  * EmbedWidget - Clean widget-only page for external embedding.
  *
  * Usage:
- *   - Iframe:  <iframe src="https://yoursite.com/widget/embed?key=API_KEY" />
- *   - Direct:  https://yoursite.com/widget/embed?key=API_KEY
+ *   - Iframe:  <iframe src="https://yoursite.com/widget/embed?key=API_KEY&lng=en" />
+ *   - Direct:  https://yoursite.com/widget/embed?key=API_KEY&lng=en
  *
  * This page renders ONLY the booking widget with no header, footer,
  * or landing page chrome. It reads the API key from the ?key= query param.
+ * Language can be set with ?lng=en (en|es|pt). Default: browser detection.
  */
 export default function EmbedWidget() {
   const [searchParams] = useSearchParams();
@@ -20,6 +22,12 @@ export default function EmbedWidget() {
     // Support both ?key= and ?apiKey= for flexibility
     const key = searchParams.get('key') || searchParams.get('apiKey') || '';
     setApiKey(key);
+
+    // Set language from ?lng= query param if provided
+    const lang = searchParams.get('lng');
+    if (lang && ['en', 'es', 'pt'].includes(lang)) {
+      i18n.changeLanguage(lang);
+    }
 
     // Send height to parent window for auto-resize if requested
     const sendHeight = () => {

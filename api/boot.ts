@@ -44,6 +44,7 @@ app.get(Paths.oauthCallback, createOAuthCallbackHandler());
 app.get("/widget/embed.js", async (c) => {
   const url = new URL(c.req.url);
   const apiKey = url.searchParams.get("key") || url.searchParams.get("apiKey") || "";
+  const lang = url.searchParams.get("lng") || "";
   const origin = url.origin;
 
   if (!apiKey) {
@@ -65,7 +66,8 @@ app.get("/widget/embed.js", async (c) => {
     var config = {
       apiKey: ${JSON.stringify(apiKey)},
       origin: ${JSON.stringify(origin)},
-      containerId: CONTAINER_ID
+      containerId: CONTAINER_ID,
+      lang: ${JSON.stringify(lang)}
     };
 
     // Find or create container
@@ -106,7 +108,9 @@ app.get("/widget/embed.js", async (c) => {
 
     // Create iframe
     var iframe = document.createElement("iframe");
-    iframe.src = config.origin + "/widget/embed?key=" + encodeURIComponent(config.apiKey);
+    var iframeUrl = config.origin + "/widget/embed?key=" + encodeURIComponent(config.apiKey);
+    if (config.lang) iframeUrl += "&lng=" + encodeURIComponent(config.lang);
+    iframe.src = iframeUrl;
     iframe.width = "100%";
     iframe.height = "700";
     iframe.frameBorder = "0";

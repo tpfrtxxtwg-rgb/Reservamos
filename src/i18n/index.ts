@@ -19,8 +19,9 @@ i18n
     resources,
     fallbackLng: 'en',
     detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'],
+      order: ['querystring', 'localStorage', 'navigator', 'htmlTag'],
       caches: ['localStorage'],
+      lookupQuerystring: 'lng',
     },
     interpolation: {
       escapeValue: false,
