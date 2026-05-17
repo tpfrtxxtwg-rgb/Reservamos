@@ -44,7 +44,7 @@ function formatTimeOnly(date: Date | string | null, timezone: string = "America/
 
 // Helper to build HTML email (works without any external dependencies)
 function buildHtmlEmail(
-  booking: Booking & { vehicleName?: string; destinationName?: string; optionalServicesList?: string[]; clientName?: string; clientEmail?: string },
+  booking: Booking & { vehicleName?: string; destinationName?: string; optionalServicesList?: string[]; optionalServicesDetails?: { name: string; price: string }[]; clientName?: string; clientEmail?: string },
   emailSettings: { subject?: string; message?: string; pickupInstructions?: string | null; companyPhone?: string | null; companyWebsite?: string | null; timezone?: string },
   companyName: string
 ): string {
@@ -195,6 +195,10 @@ function buildHtmlEmail(
         <div style="flex:1;min-width:200px;padding-right:12px;">
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Service Price</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">$${booking.price}</div>
+          ${booking.optionalServicesDetails && booking.optionalServicesDetails.length > 0 ? booking.optionalServicesDetails.map(s => `
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">${s.name}</div>
+          <div style="font-size:13px;color:#3D3833;font-weight:600;">$${s.price}</div>
+          `).join("") : ""}
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Tax</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">$${booking.tax}</div>
         </div>
@@ -257,6 +261,13 @@ function buildTextEmail(
   }
   text += `Vehicle: ${booking.vehicleName || "N/A"}\n`;
   text += `Passengers: ${booking.passengers}\n`;
+  text += `Service Price: $${booking.price}\n`;
+  if (booking.optionalServicesDetails && booking.optionalServicesDetails.length > 0) {
+    booking.optionalServicesDetails.forEach(s => {
+      text += `${s.name}: $${s.price}\n`;
+    });
+  }
+  text += `Tax: $${booking.tax}\n`;
   text += `Total: $${booking.total}\n`;
   if (booking.depositEnabled) {
     text += `Payment Status: Deposit Paid: $${booking.depositAmount}\n`;
@@ -296,7 +307,7 @@ function calculatePickupTime(departureTime: string): string {
 
 // Build admin HTML email - same visual format as client but with "New Reservation" header
 function buildAdminHtmlEmail(
-  booking: Booking & { vehicleName?: string; destinationName?: string; optionalServicesList?: string[]; clientName?: string; clientEmail?: string },
+  booking: Booking & { vehicleName?: string; destinationName?: string; optionalServicesList?: string[]; optionalServicesDetails?: { name: string; price: string }[]; clientName?: string; clientEmail?: string },
   emailSettings: { subject?: string; message?: string; pickupInstructions?: string | null; companyPhone?: string | null; companyWebsite?: string | null; timezone?: string },
   companyName: string
 ): string {
@@ -426,6 +437,10 @@ function buildAdminHtmlEmail(
         <div style="flex:1;min-width:200px;padding-right:12px;">
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Service Price</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">$${booking.price}</div>
+          ${booking.optionalServicesDetails && booking.optionalServicesDetails.length > 0 ? booking.optionalServicesDetails.map(s => `
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">${s.name}</div>
+          <div style="font-size:13px;color:#3D3833;font-weight:600;">$${s.price}</div>
+          `).join("") : ""}
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Tax</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">$${booking.tax}</div>
         </div>
@@ -460,7 +475,7 @@ function buildAdminHtmlEmail(
 
 // Build admin text email
 function buildAdminTextEmail(
-  booking: Booking & { vehicleName?: string; destinationName?: string; optionalServicesList?: string[]; clientName?: string; clientEmail?: string },
+  booking: Booking & { vehicleName?: string; destinationName?: string; optionalServicesList?: string[]; optionalServicesDetails?: { name: string; price: string }[]; clientName?: string; clientEmail?: string },
   emailSettings: { subject?: string; message?: string; pickupInstructions?: string | null; companyPhone?: string | null; companyWebsite?: string | null; timezone?: string },
   companyName: string
 ): string {
@@ -482,6 +497,13 @@ function buildAdminTextEmail(
   text += `Service Type: ${isRoundTrip ? "Round Trip" : "One Way"}\n`;
   text += `Vehicle: ${booking.vehicleName || "N/A"}\n`;
   text += `Passengers: ${booking.passengers}\n`;
+  text += `Service Price: $${booking.price}\n`;
+  if (booking.optionalServicesDetails && booking.optionalServicesDetails.length > 0) {
+    booking.optionalServicesDetails.forEach(s => {
+      text += `${s.name}: $${s.price}\n`;
+    });
+  }
+  text += `Tax: $${booking.tax}\n`;
   text += `Total: $${booking.total}\n`;
   if (booking.depositEnabled) {
     text += `Payment: Deposit ($${booking.depositAmount} paid) - Balance Due: $${booking.balanceDue}\n`;
@@ -562,8 +584,9 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
       return { sent: false, reason: `${provider} API key not configured` };
     }
 
-    // Build optional services list
+    // Build optional services list with prices
     let optionalServicesList: string[] = [];
+    let optionalServicesDetails: { name: string; price: string }[] = [];
     if (booking.selectedOptionalServices && booking.selectedOptionalServices.length > 0) {
       const optServices = await db.query.optionalServices.findMany({
         where: eq(optionalServices.clientId, booking.clientId),
@@ -571,6 +594,12 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
       optionalServicesList = booking.selectedOptionalServices
         .map((id) => optServices.find((s) => s.id === id)?.name)
         .filter(Boolean) as string[];
+      optionalServicesDetails = booking.selectedOptionalServices
+        .map((id) => {
+          const svc = optServices.find((s) => s.id === id);
+          return svc ? { name: svc.name, price: String(svc.price || 0) } : null;
+        })
+        .filter(Boolean) as { name: string; price: string }[];
     }
 
     // Calculate deposit and balance due
@@ -587,6 +616,7 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
       vehicleName: booking.vehicle?.name,
       destinationName: booking.destination?.name,
       optionalServicesList,
+      optionalServicesDetails,
       createdAt: booking.createdAt,
       depositEnabled,
       depositPercentage,
