@@ -23,17 +23,12 @@ export default function WidgetPreview() {
   const isReady = !!apiKey && isAuthenticated;
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
 
-  // Embed code that clients can copy and paste into their website
-  // Add &lng=en to force English, &lng=es for Spanish, &lng=pt for Portuguese
-  const embedCode = `<!-- ReserVamos Booking Widget -->
+  const embedCode = `/* ReserVamos Booking Widget */
 <div id="reservamos-widget"></div>
 <script src="${origin}/widget/embed.js?key=${apiKey}" crossorigin="anonymous" async></script>
-<!-- End ReserVamos Widget -->
-<!-- Language: Add &lng=en|es|pt to the script URL to force a language -->";
+/* Language: Add &lng=en|es|pt to force a language */`;
 
-  // Simple iframe embed as alternative
-  // Add ?lng=en to force English, ?lng=es for Spanish, ?lng=pt for Portuguese
-  const iframeCode = `<!-- ReserVamos Booking Widget (Iframe) -->
+  const iframeCode = `/* ReserVamos Booking Widget (Iframe) */
 <iframe 
   src="${origin}/widget/embed?key=${apiKey}" 
   width="100%" 
@@ -41,7 +36,7 @@ export default function WidgetPreview() {
   frameborder="0"
   style="border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.08);"
 ></iframe>
-<!-- Language: Add &lng=en|es|pt to the src URL to force a language -->`;
+/* Language: Add &lng=en|es|pt to the src URL to force a language */`;
 
   const handleCopy = useCallback((text: string) => {
     navigator.clipboard.writeText(text).then(() => {
