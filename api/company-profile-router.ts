@@ -11,11 +11,11 @@ export const companyProfileRouter = createRouter({
       console.log("[CompanyProfile] GET clientId:", clientId);
       const rawDb = getRawDb();
       const [rows] = await rawDb.query(
-        "SELECT id, name, email, domain, logo_url as logoUrl, primary_color as primaryColor, plan, status, api_key as apiKey FROM clients WHERE id = ? LIMIT 1",
+        "SELECT id, name, email, website, phone, description, domain, logoUrl, primaryColor, plan, status, apiKey FROM clients WHERE id = ? LIMIT 1",
         [clientId]
       );
       const result = (rows as any[])[0] || null;
-      console.log("[CompanyProfile] GET result:", result ? "found" : "null");
+      console.log("[CompanyProfile] GET result:", result ? JSON.stringify(result).substring(0,200) : "null");
       return result;
     } catch (err: any) {
       console.error("[CompanyProfile] GET ERROR:", err?.message || String(err));
