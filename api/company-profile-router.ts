@@ -48,6 +48,9 @@ export const companyProfileRouter = createRouter({
 
         if (input.name !== undefined) { sets.push("name = ?"); values.push(input.name); }
         if (input.email !== undefined) { sets.push("email = ?"); values.push(input.email); }
+        if (input.website !== undefined) { sets.push("website = ?"); values.push(input.website); }
+        if (input.phone !== undefined) { sets.push("phone = ?"); values.push(input.phone); }
+        if (input.description !== undefined) { sets.push("description = ?"); values.push(input.description); }
         if (input.domain !== undefined) { sets.push("domain = ?"); values.push(input.domain); }
         if (input.logoUrl !== undefined) { sets.push("logoUrl = ?"); values.push(input.logoUrl); }
         if (input.primaryColor !== undefined) { sets.push("primaryColor = ?"); values.push(input.primaryColor); }
