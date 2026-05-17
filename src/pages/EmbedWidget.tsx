@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router';
-import i18n from '@/i18n';
+import { useTranslation } from 'react-i18next';
 import BookingWidget from '@/components/BookingWidget';
 
 /**
@@ -17,6 +17,7 @@ import BookingWidget from '@/components/BookingWidget';
 export default function EmbedWidget() {
   const [searchParams] = useSearchParams();
   const [apiKey, setApiKey] = useState('');
+  const { i18n } = useTranslation();
 
   useEffect(() => {
     // Support both ?key= and ?apiKey= for flexibility
@@ -25,7 +26,7 @@ export default function EmbedWidget() {
 
     // Set language from ?lng= query param if provided
     const lang = searchParams.get('lng');
-    if (lang && ['en', 'es', 'pt'].includes(lang)) {
+    if (lang && ['en', 'es', 'pt'].includes(lang) && i18n.language !== lang) {
       i18n.changeLanguage(lang);
     }
 
