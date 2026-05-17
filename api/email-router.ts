@@ -193,7 +193,7 @@ function buildHtmlEmail(
       <div style="background:#F5EFE6;padding:10px 12px;font-size:12px;font-weight:bold;color:#3D3833;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;border-radius:6px;">Payment Summary</div>
       <div style="display:flex;flex-wrap:wrap;">
         <div style="flex:1;min-width:200px;padding-right:12px;">
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Service Price</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Airport Transfer</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">$${booking.price}</div>
           ${booking.optionalServicesDetails && booking.optionalServicesDetails.length > 0 ? booking.optionalServicesDetails.map(s => `
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">${s.name}</div>
@@ -261,7 +261,7 @@ function buildTextEmail(
   }
   text += `Vehicle: ${booking.vehicleName || "N/A"}\n`;
   text += `Passengers: ${booking.passengers}\n`;
-  text += `Service Price: $${booking.price}\n`;
+  text += `Airport Transfer: $${booking.price}\n`;
   if (booking.optionalServicesDetails && booking.optionalServicesDetails.length > 0) {
     booking.optionalServicesDetails.forEach(s => {
       text += `${s.name}: $${s.price}\n`;
@@ -435,7 +435,7 @@ function buildAdminHtmlEmail(
       <div style="background:#F5EFE6;padding:10px 12px;font-size:12px;font-weight:bold;color:#3D3833;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;border-radius:6px;">Payment Summary</div>
       <div style="display:flex;flex-wrap:wrap;">
         <div style="flex:1;min-width:200px;padding-right:12px;">
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Service Price</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Airport Transfer</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">$${booking.price}</div>
           ${booking.optionalServicesDetails && booking.optionalServicesDetails.length > 0 ? booking.optionalServicesDetails.map(s => `
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">${s.name}</div>
@@ -497,7 +497,7 @@ function buildAdminTextEmail(
   text += `Service Type: ${isRoundTrip ? "Round Trip" : "One Way"}\n`;
   text += `Vehicle: ${booking.vehicleName || "N/A"}\n`;
   text += `Passengers: ${booking.passengers}\n`;
-  text += `Service Price: $${booking.price}\n`;
+  text += `Airport Transfer: $${booking.price}\n`;
   if (booking.optionalServicesDetails && booking.optionalServicesDetails.length > 0) {
     booking.optionalServicesDetails.forEach(s => {
       text += `${s.name}: $${s.price}\n`;
