@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { Plus, Pencil, Trash, Check, Car, Users, WifiHigh, Snowflake, Drop, Television, Wine } from '@phosphor-icons/react';
+import { Plus, Pencil, Trash, Check, Car, Users, WifiHigh, Snowflake, Drop, Television, Wine, Image, Link as LinkIcon, Info } from '@phosphor-icons/react';
 import { trpc } from '@/providers/trpc.tsx';
 
 interface Props {
@@ -20,9 +20,9 @@ export default function AdminVehicles({ clientId }: Props) {
   const [editing, setEditing] = useState<number | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [formData, setFormData] = useState({
-    name: '', capacityMin: 1, capacityMax: 6, features: [] as string[], hourlyRate: '', sortOrder: 0,
+    name: '', image: '', capacityMin: 1, capacityMax: 6, features: [] as string[], hourlyRate: '', sortOrder: 0,
   });
-  const [editData, setEditData] = useState({ name: '', capacityMin: 1, capacityMax: 6, features: [] as string[], hourlyRate: '', sortOrder: 0 });
+  const [editData, setEditData] = useState({ name: '', image: '', capacityMin: 1, capacityMax: 6, features: [] as string[], hourlyRate: '', sortOrder: 0 });
 
   const { data: vehicles, isLoading } = trpc.vehicle.listMine.useQuery();
   const createVeh = trpc.vehicle.create.useMutation({
@@ -35,7 +35,7 @@ export default function AdminVehicles({ clientId }: Props) {
     onSuccess: () => utils.vehicle.listMine.invalidate(),
   });
 
-  const resetForm = () => setFormData({ name: '', capacityMin: 1, capacityMax: 6, features: [], hourlyRate: '', sortOrder: 0 });
+  const resetForm = () => setFormData({ name: '', image: '', capacityMin: 1, capacityMax: 6, features: [], hourlyRate: '', sortOrder: 0 });
 
   const toggleFeature = (feat: string, isEdit: boolean) => {
     if (isEdit) {
@@ -71,13 +71,44 @@ export default function AdminVehicles({ clientId }: Props) {
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-lg shadow-sm border border-[rgba(138,130,120,0.12)] p-5 mb-4">
           <h3 className="font-body text-sm font-semibold text-charcoal mb-4">{t('admin.addVehicle') || 'Add New Vehicle'}</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
             <div>
               <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('admin.vehicleName') || 'Vehicle Name'}</label>
               <input type="text" value={formData.name} onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
                 placeholder="e.g. Suburban"
                 className="w-full h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all" />
             </div>
+            <div>
+              <label className="font-body text-[11px] text-warm-gray mb-1 block flex items-center gap-1">
+                <Image size={12} /> {t('admin.vehicleImage') || 'Image URL'}
+              </label>
+              <div className="relative">
+                <LinkIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
+                <input type="url" value={formData.image}
+                  onChange={e => setFormData(p => ({ ...p, image: e.target.value }))}
+                  placeholder="https://cdn.com/vehicles/suburban.png"
+                  className="w-full h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-9 pr-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 focus:border-terracotta outline-none transition-all" />
+              </div>
+              <p className="font-body text-[10px] text-warm-gray/70 mt-1 flex items-start gap-1">
+                <Info size={10} className="flex-shrink-0 mt-0.5" />
+                Recommended: 600×400 px (3:2 ratio), PNG or JPG with transparent or white background
+              </p>
+            </div>
+          </div>
+
+          {/* Image preview */}
+          {formData.image && (
+            <div className="mb-3 flex items-center gap-3">
+              <div className="w-24 h-16 rounded-md border border-[rgba(138,130,120,0.12)] overflow-hidden bg-white">
+                <img src={formData.image} alt="Preview"
+                  className="w-full h-full object-cover"
+                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              </div>
+              <span className="font-body text-[11px] text-warm-gray">Preview</span>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
             <div>
               <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('admin.capacityMin') || 'Min Passengers'}</label>
               <input type="number" min={1} max={50} value={formData.capacityMin}
@@ -131,21 +162,36 @@ export default function AdminVehicles({ clientId }: Props) {
               className="bg-white rounded-lg shadow-sm border border-[rgba(138,130,120,0.08)] p-4">
               {editing === v.id ? (
                 <div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
                     <input type="text" value={editData.name}
                       onChange={e => setEditData(p => ({ ...p, name: e.target.value }))}
                       className="h-9 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none" />
-                    <input type="number" value={editData.capacityMin}
-                      onChange={e => setEditData(p => ({ ...p, capacityMin: Number(e.target.value) }))}
-                      className="h-9 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none" />
-                    <input type="number" value={editData.capacityMax}
-                      onChange={e => setEditData(p => ({ ...p, capacityMax: Number(e.target.value) }))}
-                      className="h-9 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none" />
-                    <input type="text" value={editData.hourlyRate}
-                      onChange={e => setEditData(p => ({ ...p, hourlyRate: e.target.value }))}
-                      placeholder="Hourly $"
-                      className="h-9 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none" />
+                    <div className="relative">
+                      <LinkIcon size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
+                      <input type="url" value={editData.image}
+                        onChange={e => setEditData(p => ({ ...p, image: e.target.value }))}
+                        placeholder="Image URL"
+                        className="h-9 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-8 pr-2 font-body text-sm text-charcoal placeholder:text-warm-gray/50 focus:border-terracotta outline-none w-full" />
+                    </div>
+                    <div className="flex gap-2">
+                      <input type="number" value={editData.capacityMin}
+                        onChange={e => setEditData(p => ({ ...p, capacityMin: Number(e.target.value) }))}
+                        className="h-9 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-2 font-body text-sm text-charcoal focus:border-terracotta outline-none w-1/2" />
+                      <input type="number" value={editData.capacityMax}
+                        onChange={e => setEditData(p => ({ ...p, capacityMax: Number(e.target.value) }))}
+                        className="h-9 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-2 font-body text-sm text-charcoal focus:border-terracotta outline-none w-1/2" />
+                    </div>
                   </div>
+                  {editData.image && (
+                    <div className="mb-3 flex items-center gap-2">
+                      <div className="w-20 h-12 rounded border border-[rgba(138,130,120,0.1)] overflow-hidden bg-white">
+                        <img src={editData.image} alt="Preview"
+                          className="w-full h-full object-cover"
+                          onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      </div>
+                      <span className="font-body text-[10px] text-warm-gray">600×400px, PNG/JPG</span>
+                    </div>
+                  )}
                   <div className="flex gap-2 flex-wrap mb-3">
                     {featureOptions.map(feat => (
                       <button key={feat} onClick={() => toggleFeature(feat, true)}
@@ -168,9 +214,17 @@ export default function AdminVehicles({ clientId }: Props) {
               ) : (
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-sand flex items-center justify-center text-terracotta">
-                      <Car size={20} />
-                    </div>
+                    {v.image ? (
+                      <div className="w-14 h-10 rounded-lg border border-[rgba(138,130,120,0.1)] overflow-hidden bg-white flex-shrink-0">
+                        <img src={v.image} alt={v.name}
+                          className="w-full h-full object-cover"
+                          onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      </div>
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-sand flex items-center justify-center text-terracotta flex-shrink-0">
+                        <Car size={20} />
+                      </div>
+                    )}
                     <div>
                       <h4 className="font-body text-sm font-semibold text-charcoal">{v.name}</h4>
                       <div className="flex items-center gap-3 mt-1">
@@ -184,7 +238,7 @@ export default function AdminVehicles({ clientId }: Props) {
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <button onClick={() => { setEditing(v.id); setEditData({ name: v.name, capacityMin: v.capacityMin, capacityMax: v.capacityMax, features: v.features || [], hourlyRate: String(v.hourlyRate || ''), sortOrder: v.sortOrder }); }}
+                    <button onClick={() => { setEditing(v.id); setEditData({ name: v.name, image: v.image || '', capacityMin: v.capacityMin, capacityMax: v.capacityMax, features: v.features || [], hourlyRate: String(v.hourlyRate || ''), sortOrder: v.sortOrder }); }}
                       className="p-2 text-warm-gray hover:text-terracotta hover:bg-sand rounded transition-colors"><Pencil size={16} /></button>
                     <button onClick={() => { if (confirm(t('admin.confirmDelete') || 'Delete?')) deleteVeh.mutate({ id: v.id }); }}
                       className="p-2 text-warm-gray hover:text-[#B23A2F] hover:bg-[rgba(178,58,47,0.1)] rounded transition-colors"><Trash size={16} /></button>
