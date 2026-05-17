@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
@@ -89,6 +89,24 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
     { apiKey },
     { enabled: !!apiKey }
   );
+
+  // Apply client's primary color dynamically
+  useEffect(() => {
+    if (!clientConfig?.primaryColor) return;
+    const root = document.documentElement;
+    const color = clientConfig.primaryColor;
+    root.style.setProperty("--terracotta", color);
+    // Compute darker variant for hover states
+    const rgb = hexToRgb(color);
+    if (rgb) {
+      const darker = rgbToHex(
+        Math.max(0, Math.floor(rgb.r * 0.8)),
+        Math.max(0, Math.floor(rgb.g * 0.8)),
+        Math.max(0, Math.floor(rgb.b * 0.8))
+      );
+      root.style.setProperty("--terracotta-dark", darker);
+    }
+  }, [clientConfig?.primaryColor]);
 
   const effectiveClientId = clientConfig?.id || 0;
   const isReady = effectiveClientId > 0;
@@ -961,4 +979,21 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
       </div>
     </div>
   );
+}
+
+/** Convert hex to RGB object */
+function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : null;
+}
+
+/** Convert RGB values to hex string */
+function rgbToHex(r: number, g: number, b: number): string {
+  return "#" + [r, g, b].map((x) => Math.min(255, Math.max(0, x)).toString(16).padStart(2, "0")).join("");
 }
