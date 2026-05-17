@@ -39,21 +39,28 @@ export const companyProfileRouter = createRouter({
     .mutation(async ({ ctx, input }) => {
       try {
         const clientId = ctx.clientUser.clientId;
-        console.log("[CompanyProfile] UPDATE clientId:", clientId, "input:", JSON.stringify(input));
-        const updateData: Record<string, unknown> = {};
-        if (input.name !== undefined) updateData.name = input.name;
-        if (input.email !== undefined) updateData.email = input.email;
-        if (input.website !== undefined) updateData.website = input.website;
-        if (input.phone !== undefined) updateData.phone = input.phone;
-        if (input.description !== undefined) updateData.description = input.description;
-        if (input.domain !== undefined) updateData.domain = input.domain;
-        if (input.logoUrl !== undefined) updateData.logoUrl = input.logoUrl;
-        if (input.primaryColor !== undefined) updateData.primaryColor = input.primaryColor;
+        console.log("[CompanyProfile] UPDATE clientId:", clientId);
+        const rawDb = getRawDb();
 
-        await getDb()
-          .update(clients)
-          .set(updateData)
-          .where(eq(clients.id, clientId));
+        // Build SET clause dynamically - only update fields that exist in TiDB
+        const sets: string[] = [];
+        const values: any[] = [];
+
+        if (input.name !== undefined) { sets.push("name = ?"); values.push(input.name); }
+        if (input.email !== undefined) { sets.push("email = ?"); values.push(input.email); }
+        if (input.domain !== undefined) { sets.push("domain = ?"); values.push(input.domain); }
+        if (input.logoUrl !== undefined) { sets.push("logoUrl = ?"); values.push(input.logoUrl); }
+        if (input.primaryColor !== undefined) { sets.push("primaryColor = ?"); values.push(input.primaryColor); }
+
+        if (sets.length === 0) {
+          return { success: true };
+        }
+
+        values.push(clientId);
+        const sql = `UPDATE clients SET ${sets.join(", ")} WHERE id = ?`;
+        console.log("[CompanyProfile] UPDATE sql:", sql);
+
+        await rawDb.query(sql, values);
         console.log("[CompanyProfile] UPDATE success");
         return { success: true };
       } catch (err: any) {
