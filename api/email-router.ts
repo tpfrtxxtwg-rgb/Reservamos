@@ -201,9 +201,17 @@ function buildHtmlEmail(
         <div style="flex:1;min-width:200px;">
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Total</div>
           <div style="font-size:18px;color:#C75E3A;font-weight:700;">$${booking.total}</div>
+          ${booking.depositEnabled ? `
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Payment Status</div>
+          <div style="font-size:13px;color:#2D6A4F;font-weight:600;">Deposit Paid: $${booking.depositAmount}</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Balance Due</div>
+          <div style="font-size:13px;color:#C75E3A;font-weight:700;">$${booking.balanceDue}</div>
+          <div style="font-size:11px;color:#8A8278;font-style:italic;margin-top:6px;">* Remaining balance due in cash upon arrival.</div>
+          ` : `
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Payment Status</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.paymentStatus?.toUpperCase() || "PENDING"}</div>
           ${balanceDueHtml}
+          `}
         </div>
       </div>
     </div>
@@ -249,7 +257,13 @@ function buildTextEmail(
   }
   text += `Vehicle: ${booking.vehicleName || "N/A"}\n`;
   text += `Passengers: ${booking.passengers}\n`;
-  text += `Total: $${booking.total}\n\n`;
+  text += `Total: $${booking.total}\n`;
+  if (booking.depositEnabled) {
+    text += `Payment Status: Deposit Paid: $${booking.depositAmount}\n`;
+    text += `Balance Due: $${booking.balanceDue}\n`;
+    text += `* Remaining balance due in cash upon arrival.\n`;
+  }
+  text += `\n`;
   if (booking.optionalServicesList?.length) {
     text += `Additional Services: ${booking.optionalServicesList.join(", ")}\n\n`;
   }
@@ -418,9 +432,17 @@ function buildAdminHtmlEmail(
         <div style="flex:1;min-width:200px;">
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Total</div>
           <div style="font-size:18px;color:#C75E3A;font-weight:700;">$${booking.total}</div>
+          ${booking.depositEnabled ? `
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Payment Status</div>
+          <div style="font-size:13px;color:#2D6A4F;font-weight:600;">Deposit Paid: $${booking.depositAmount}</div>
+          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Balance Due</div>
+          <div style="font-size:13px;color:#C75E3A;font-weight:700;">$${booking.balanceDue}</div>
+          <div style="font-size:11px;color:#8A8278;font-style:italic;margin-top:6px;">* Remaining balance due in cash upon arrival.</div>
+          ` : `
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Payment Status</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.paymentStatus?.toUpperCase() || "PENDING"}</div>
           ${balanceDueHtml}
+          `}
         </div>
       </div>
     </div>
@@ -459,7 +481,13 @@ function buildAdminTextEmail(
   text += `Phone: ${booking.passengerPhone || "N/A"}\n`;
   text += `Service Type: ${isRoundTrip ? "Round Trip" : "One Way"}\n`;
   text += `Vehicle: ${booking.vehicleName || "N/A"}\n`;
-  text += `Passengers: ${booking.passengers}\n\n`;
+  text += `Passengers: ${booking.passengers}\n`;
+  text += `Total: $${booking.total}\n`;
+  if (booking.depositEnabled) {
+    text += `Payment: Deposit ($${booking.depositAmount} paid) - Balance Due: $${booking.balanceDue}\n`;
+    text += `Remaining balance due in cash upon arrival.\n`;
+  }
+  text += `\n`;
   text += `ARRIVAL INFORMATION\n`;
   text += `--------------------\n`;
   text += `Pickup Location: ${booking.origin}\n`;
@@ -467,7 +495,6 @@ function buildAdminTextEmail(
   text += `Arrival Date & Time: ${booking.date} at ${booking.time}\n`;
   if (booking.flightNumber) text += `Flight Number: ${booking.flightNumber}\n`;
   if (booking.airline) text += `Airline: ${booking.airline}\n\n`;
-  text += `Total: $${booking.total}\n\n`;
   if (booking.optionalServicesList?.length) {
     text += `Additional Services: ${booking.optionalServicesList.join(", ")}\n\n`;
   }
@@ -546,6 +573,13 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
         .filter(Boolean) as string[];
     }
 
+    // Calculate deposit and balance due
+    const depositEnabled = booking.client?.depositEnabled || false;
+    const depositPercentage = booking.client?.depositPercentage || 100;
+    const total = parseFloat(booking.total || "0");
+    const depositAmount = depositEnabled ? (total * depositPercentage / 100) : total;
+    const balanceDue = depositEnabled ? (total - depositAmount) : 0;
+
     const enrichedBooking = {
       ...booking,
       clientName: booking.client?.name,
@@ -554,6 +588,10 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
       destinationName: booking.destination?.name,
       optionalServicesList,
       createdAt: booking.createdAt,
+      depositEnabled,
+      depositPercentage,
+      depositAmount: depositAmount.toFixed(2),
+      balanceDue: balanceDue > 0 ? balanceDue.toFixed(2) : "0",
     };
 
     const companyName = booking.client?.name || "ReserVamos";
