@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { trpc } from "@/providers/trpc";
+import { useClientTheme } from "@/hooks/useClientTheme";
 
 interface ClientUser {
   id: number;
@@ -53,6 +54,9 @@ export function ClientAuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
     }
   }, [data, isLoading]);
+
+  // Apply client's primary color to the dashboard theme
+  useClientTheme();
 
   return (
     <ClientAuthContext.Provider

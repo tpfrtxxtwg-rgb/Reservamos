@@ -49,8 +49,8 @@ module.exports = {
           ring: "hsl(var(--sidebar-ring))",
         },
         terracotta: {
-          DEFAULT: '#C75E3A',
-          dark: '#A64B2D',
+          DEFAULT: 'var(--terracotta)',
+          dark: 'var(--terracotta-dark)',
         },
         sand: {
           DEFAULT: '#EADDC5',
