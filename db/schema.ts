@@ -12,6 +12,7 @@ import {
   bigint,
   index,
 } from "drizzle-orm/mysql-core";
+import { relations } from "drizzle-orm";
 
 // ─── Users (OAuth) ─────────────────────────────────────────────
 export const users = mysqlTable("users", {
@@ -329,3 +330,15 @@ export const bookings = mysqlTable("bookings", {
 
 export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = typeof bookings.$inferInsert;
+
+// ─── Relations ─────────────────────────────────────────────────
+export const bookingsRelations = relations(bookings, ({ one }) => ({
+  vehicle: one(vehicles, {
+    fields: [bookings.vehicleId],
+    references: [vehicles.id],
+  }),
+}));
+
+export const vehiclesRelations = relations(vehicles, ({ many }) => ({
+  bookings: many(bookings),
+}));
