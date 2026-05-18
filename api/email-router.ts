@@ -823,4 +823,6 @@ export const emailRouter = createRouter({
     .input(z.object({ bookingId: z.number().positive() }))
     .mutation(async ({ input }) => {
       return sendBookingConfirmationEmail(input.bookingId);
+    }),
+});
     
