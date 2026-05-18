@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { trpc } from '@/providers/trpc.tsx';
-import { ChartBar, Calendar, Filter, Car, MapTrifold, ArrowsLeftRight } from '@phosphor-icons/react';
+import { ChartBar, Calendar, Funnel, Car, MapTrifold, ArrowsLeftRight } from '@phosphor-icons/react';
 
 export default function AdminReports() {
   const { t } = useTranslation();
@@ -42,7 +42,7 @@ export default function AdminReports() {
       {/* Date Filter */}
       <div className="bg-white rounded-xl shadow-sm border border-[rgba(138,130,120,0.08)] p-4">
         <div className="flex items-center gap-2 mb-3">
-          <Filter size={16} className="text-terracotta" />
+          <Funnel size={16} className="text-terracotta" />
           <h3 className="font-body text-xs font-semibold text-charcoal uppercase tracking-wide">
             {t('admin.dateRange') || 'Date Range'}
           </h3>
