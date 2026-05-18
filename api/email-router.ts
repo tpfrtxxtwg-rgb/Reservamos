@@ -2,7 +2,7 @@ import { z } from "zod";
 import { eq, and } from "drizzle-orm";
 import { createRouter, publicQuery } from "./middleware";
 import { getDb, getRawDb } from "./queries/connection";
-import { bookings, clientEmailSettings, optionalServices } from "@db/schema";
+import { bookings, clientEmailSettings, optionalServices, vehicleZonePrices, destinations } from "@db/schema";
 import type { Booking } from "@db/schema";
 
 // Format a date with a specific IANA timezone (e.g., "America/Los_Angeles")
@@ -44,7 +44,7 @@ function formatTimeOnly(date: Date | string | null, timezone: string = "America/
 
 // Helper to build HTML email (works without any external dependencies)
 function buildHtmlEmail(
-  booking: Booking & { vehicleName?: string; destinationName?: string; optionalServicesList?: string[]; optionalServicesDetails?: { name: string; price: string }[]; clientName?: string; clientEmail?: string },
+  booking: Booking & { vehicleName?: string; destinationName?: string; optionalServicesList?: string[]; optionalServicesDetails?: { name: string; price: string }[]; clientName?: string; clientEmail?: string; basePrice?: string; depositEnabled?: boolean; depositPercentage?: number; depositAmount?: string; balanceDue?: string },
   emailSettings: { subject?: string; message?: string; pickupInstructions?: string | null; companyPhone?: string | null; companyWebsite?: string | null; timezone?: string },
   companyName: string
 ): string {
@@ -194,7 +194,7 @@ function buildHtmlEmail(
       <div style="display:flex;flex-wrap:wrap;">
         <div style="flex:1;min-width:200px;padding-right:12px;">
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Airport Transfer</div>
-          <div style="font-size:13px;color:#3D3833;font-weight:600;">$${booking.price}</div>
+          <div style="font-size:13px;color:#3D3833;font-weight:600;">$${booking.basePrice}</div>
           ${booking.optionalServicesDetails && booking.optionalServicesDetails.length > 0 ? booking.optionalServicesDetails.map(s => `
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">${s.name}</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">$${s.price}</div>
@@ -261,7 +261,7 @@ function buildTextEmail(
   }
   text += `Vehicle: ${booking.vehicleName || "N/A"}\n`;
   text += `Passengers: ${booking.passengers}\n`;
-  text += `Airport Transfer: $${booking.price}\n`;
+  text += `Airport Transfer: $${booking.basePrice}\n`;
   if (booking.optionalServicesDetails && booking.optionalServicesDetails.length > 0) {
     booking.optionalServicesDetails.forEach(s => {
       text += `${s.name}: $${s.price}\n`;
@@ -307,7 +307,7 @@ function calculatePickupTime(departureTime: string): string {
 
 // Build admin HTML email - same visual format as client but with "New Reservation" header
 function buildAdminHtmlEmail(
-  booking: Booking & { vehicleName?: string; destinationName?: string; optionalServicesList?: string[]; optionalServicesDetails?: { name: string; price: string }[]; clientName?: string; clientEmail?: string },
+  booking: Booking & { vehicleName?: string; destinationName?: string; optionalServicesList?: string[]; optionalServicesDetails?: { name: string; price: string }[]; clientName?: string; clientEmail?: string; basePrice?: string; depositEnabled?: boolean; depositPercentage?: number; depositAmount?: string; balanceDue?: string },
   emailSettings: { subject?: string; message?: string; pickupInstructions?: string | null; companyPhone?: string | null; companyWebsite?: string | null; timezone?: string },
   companyName: string
 ): string {
@@ -436,7 +436,7 @@ function buildAdminHtmlEmail(
       <div style="display:flex;flex-wrap:wrap;">
         <div style="flex:1;min-width:200px;padding-right:12px;">
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Airport Transfer</div>
-          <div style="font-size:13px;color:#3D3833;font-weight:600;">$${booking.price}</div>
+          <div style="font-size:13px;color:#3D3833;font-weight:600;">$${booking.basePrice}</div>
           ${booking.optionalServicesDetails && booking.optionalServicesDetails.length > 0 ? booking.optionalServicesDetails.map(s => `
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">${s.name}</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">$${s.price}</div>
@@ -475,7 +475,7 @@ function buildAdminHtmlEmail(
 
 // Build admin text email
 function buildAdminTextEmail(
-  booking: Booking & { vehicleName?: string; destinationName?: string; optionalServicesList?: string[]; optionalServicesDetails?: { name: string; price: string }[]; clientName?: string; clientEmail?: string },
+  booking: Booking & { vehicleName?: string; destinationName?: string; optionalServicesList?: string[]; optionalServicesDetails?: { name: string; price: string }[]; clientName?: string; clientEmail?: string; basePrice?: string; depositEnabled?: boolean; depositPercentage?: number; depositAmount?: string; balanceDue?: string },
   emailSettings: { subject?: string; message?: string; pickupInstructions?: string | null; companyPhone?: string | null; companyWebsite?: string | null; timezone?: string },
   companyName: string
 ): string {
@@ -497,7 +497,7 @@ function buildAdminTextEmail(
   text += `Service Type: ${isRoundTrip ? "Round Trip" : "One Way"}\n`;
   text += `Vehicle: ${booking.vehicleName || "N/A"}\n`;
   text += `Passengers: ${booking.passengers}\n`;
-  text += `Airport Transfer: $${booking.price}\n`;
+  text += `Airport Transfer: $${booking.basePrice}\n`;
   if (booking.optionalServicesDetails && booking.optionalServicesDetails.length > 0) {
     booking.optionalServicesDetails.forEach(s => {
       text += `${s.name}: $${s.price}\n`;
@@ -602,6 +602,25 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
         .filter(Boolean) as { name: string; price: string }[];
     }
 
+    // Calculate base price (Airport Transfer only - no optional services)
+    let basePrice = parseFloat(booking.price || "0");
+    const destinationRow = booking.destinationId
+      ? await db.query.destinations.findFirst({ where: eq(destinations.id, booking.destinationId) })
+      : null;
+    if (destinationRow && booking.vehicleId) {
+      const priceRow = await db.query.vehicleZonePrices.findFirst({
+        where: and(
+          eq(vehicleZonePrices.zoneId, destinationRow.zoneId),
+          eq(vehicleZonePrices.vehicleId, booking.vehicleId),
+        ),
+      });
+      if (priceRow) {
+        basePrice = booking.tripType === "round_trip"
+          ? parseFloat(String(priceRow.roundTripPrice))
+          : parseFloat(String(priceRow.oneWayPrice));
+      }
+    }
+
     // Calculate deposit and balance due
     const depositEnabled = booking.client?.depositEnabled || false;
     const depositPercentage = booking.client?.depositPercentage || 100;
@@ -622,6 +641,7 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
       depositPercentage,
       depositAmount: depositAmount.toFixed(2),
       balanceDue: balanceDue > 0 ? balanceDue.toFixed(2) : "0",
+      basePrice: basePrice.toFixed(2),
     };
 
     const companyName = booking.client?.name || "ReserVamos";
@@ -803,5 +823,4 @@ export const emailRouter = createRouter({
     .input(z.object({ bookingId: z.number().positive() }))
     .mutation(async ({ input }) => {
       return sendBookingConfirmationEmail(input.bookingId);
-    }),
-});
+    
