@@ -18,13 +18,12 @@ export const reportsRouter = createRouter({
       const rawDb = getRawDb();
 
       try {
-        // Try with clientId (camelCase - from Drizzle schema)
         const [rows] = await rawDb.query(
           `SELECT 
             b.zoneId as zoneId,
-            COALESCE(z.name, 'Unknown Zone') as zoneName,
+            COALESCE(MAX(z.name), 'Unknown Zone') as zoneName,
             b.vehicleId as vehicleId,
-            COALESCE(v.name, 'Unknown Vehicle') as vehicleName,
+            COALESCE(MAX(v.name), 'Unknown Vehicle') as vehicleName,
             COUNT(*) as totalBookings,
             COALESCE(SUM(b.total), 0) as totalRevenue
           FROM bookings b
@@ -76,9 +75,9 @@ export const reportsRouter = createRouter({
           `SELECT 
             b.tripType as tripType,
             b.zoneId as zoneId,
-            COALESCE(z.name, 'Unknown Zone') as zoneName,
+            COALESCE(MAX(z.name), 'Unknown Zone') as zoneName,
             b.vehicleId as vehicleId,
-            COALESCE(v.name, 'Unknown Vehicle') as vehicleName,
+            COALESCE(MAX(v.name), 'Unknown Vehicle') as vehicleName,
             COUNT(*) as totalBookings,
             COALESCE(SUM(b.total), 0) as totalRevenue
           FROM bookings b
