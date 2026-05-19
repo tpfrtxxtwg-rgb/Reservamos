@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { Check, Percent, Money, PaintBrush, Receipt } from '@phosphor-icons/react';
+import { Check, Percent, Money, PaintBrush, Receipt, Trash, Warning } from '@phosphor-icons/react';
 import { trpc } from '@/providers/trpc';
 
 interface Props {
@@ -26,6 +26,17 @@ export default function AdminSettings({ clientId }: Props) {
   const [taxRate, setTaxRate] = useState('16.00');
   const [primaryColor, setPrimaryColor] = useState('#C75E3A');
   const [saved, setSaved] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  const clearAllBookings = trpc.booking.clearAll.useMutation({
+    onSuccess: (data) => {
+      utils.booking.list.invalidate();
+      utils.booking.stats.invalidate();
+      setShowClearConfirm(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    },
+  });
 
   useEffect(() => {
     if (settings) {
@@ -209,7 +220,7 @@ export default function AdminSettings({ clientId }: Props) {
             <span>{t('common.saveChanges') || 'Save Changes'}</span>
           )}
         </button>
-        {saved && (
+        {saved && !showClearConfirm && (
           <motion.span
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
@@ -217,6 +228,75 @@ export default function AdminSettings({ clientId }: Props) {
           >
             {t('admin.settingsSaved') || 'Settings saved successfully'}
           </motion.span>
+        )}
+      </div>
+
+      {/* Danger Zone - Clear Test Data */}
+      <div className="bg-white rounded-lg shadow-sm border border-[rgba(199,94,58,0.2)] p-6 mt-8">
+        <div className="flex items-center gap-2 mb-5">
+          <div className="w-8 h-8 rounded-lg bg-[rgba(199,94,58,0.1)] flex items-center justify-center">
+            <Warning size={18} className="text-terracotta" />
+          </div>
+          <h3 className="font-body text-base font-semibold text-charcoal">{t('admin.dangerZone') || 'Danger Zone'}</h3>
+        </div>
+
+        <p className="font-body text-sm text-warm-gray mb-4">
+          {t('admin.clearTestDataDesc') || 'Permanently delete all booking records for your account. This action cannot be undone.'}
+        </p>
+
+        {!showClearConfirm ? (
+          <button
+            onClick={() => setShowClearConfirm(true)}
+            className="flex items-center gap-2 px-5 py-2.5 border-2 border-terracotta text-terracotta rounded-lg font-body text-sm font-semibold hover:bg-[rgba(199,94,58,0.05)] transition-colors"
+          >
+            <Trash size={16} weight="bold" />
+            <span>{t('admin.clearTestData') || 'Clear Test Data'}</span>
+          </button>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-[rgba(199,94,58,0.05)] border border-terracotta rounded-lg p-4"
+          >
+            <p className="font-body text-sm font-semibold text-terracotta mb-1">
+              {t('admin.clearTestDataConfirm') || 'Are you sure?'}
+            </p>
+            <p className="font-body text-xs text-warm-gray mb-4">
+              {t('admin.clearTestDataWarning') || 'This will permanently delete all your bookings. This action cannot be undone.'}
+            </p>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => clearAllBookings.mutate()}
+                disabled={clearAllBookings.isPending}
+                className="flex items-center gap-2 px-5 py-2.5 bg-terracotta text-white rounded-lg font-body text-sm font-semibold hover:bg-terracotta-dark transition-colors disabled:opacity-50"
+              >
+                {clearAllBookings.isPending ? (
+                  <span>{t('common.deleting') || 'Deleting...'}</span>
+                ) : (
+                  <>
+                    <Trash size={16} weight="bold" />
+                    <span>{t('admin.confirmClear') || 'Yes, Delete All Bookings'}</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => setShowClearConfirm(false)}
+                disabled={clearAllBookings.isPending}
+                className="px-5 py-2.5 border border-[rgba(138,130,120,0.3)] text-warm-gray rounded-lg font-body text-sm font-medium hover:bg-[rgba(138,130,120,0.05)] transition-colors disabled:opacity-50"
+              >
+                {t('common.cancel') || 'Cancel'}
+              </button>
+            </div>
+            {clearAllBookings.isSuccess && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="font-body text-sm text-[#2D6A4F] mt-3"
+              >
+                {t('admin.bookingsDeleted', { count: clearAllBookings.data?.deleted }) || `${clearAllBookings.data?.deleted || 0} bookings deleted successfully`}
+              </motion.p>
+            )}
+          </motion.div>
         )}
       </div>
     </div>

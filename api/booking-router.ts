@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { eq, and, desc, count, sql } from "drizzle-orm";
 import { createRouter, publicQuery, clientAuthedQuery } from "./middleware";
-import { getDb } from "./queries/connection";
+import { getDb, getRawDb } from "./queries/connection";
 import { bookings } from "@db/schema";
 
 export const bookingRouter = createRouter({
@@ -127,4 +127,16 @@ export const bookingRouter = createRouter({
       todayCount: todayResult.count || 0,
     };
   }),
+
+  // Admin: clear all bookings for authenticated client (test data cleanup)
+  clearAll: clientAuthedQuery
+    .mutation(async ({ ctx }) => {
+      const clientId = ctx.clientUser.clientId;
+      const rawDb = getRawDb();
+      const [result] = await rawDb.query(
+        "DELETE FROM bookings WHERE clientId = ?",
+        [clientId]
+      );
+      return { deleted: Number((result as any)?.affectedRows || 0) };
+    }),
 });
