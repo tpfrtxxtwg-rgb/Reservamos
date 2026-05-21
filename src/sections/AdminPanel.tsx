@@ -19,6 +19,7 @@ import AdminServices from '@/components/admin/AdminServices';
 import AdminPricing from '@/components/admin/AdminPricing';
 import AdminOptionalServices from '@/components/admin/AdminOptionalServices';
 import AdminSettings from '@/components/admin/AdminSettings';
+import AdminReports from '@/components/admin/AdminReports';
 
 const statusConfig: Record<string, { label: string; icon: React.ReactNode; bg: string; text: string }> = {
   confirmed: { label: 'common.confirmed', icon: <CheckCircle size={14} weight="fill" />, bg: 'bg-[rgba(45,106,79,0.1)]', text: 'text-[#2D6A4F]' },
@@ -191,6 +192,7 @@ export default function AdminPanel() {
       case 'pricing': return <AdminPricing />;
       case 'optionalServices': return <AdminOptionalServices clientId={clientId} />;
       case 'settings': return <AdminSettings clientId={clientId} />;
+      case 'reports': return <AdminReports />;
       default: return (
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
