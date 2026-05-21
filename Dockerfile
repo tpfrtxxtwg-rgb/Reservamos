@@ -1,4 +1,5 @@
 FROM node:20-alpine AS builder
+LABEL railway.force_dockerfile="true"
 
 WORKDIR /app
 
