@@ -1,15 +1,13 @@
 FROM node:20-alpine AS builder
-LABEL railway.force_dockerfile="true"
 
 WORKDIR /app
+
+# Force cache invalidation on every build
+ARG CACHE_BUST=20250522-1
 
 # Copy package files
 COPY package.json package-lock.json ./
 RUN npm ci
-
-# Cache bust on every commit to ensure fresh source build
-ARG RAILWAY_GIT_COMMIT_SHA
-RUN echo "Building commit: ${RAILWAY_GIT_COMMIT_SHA:-unknown}"
 
 # Copy source code
 COPY . .
