@@ -7,6 +7,7 @@ export const emailSettingsRouter = createRouter({
     const clientId = ctx.clientUser.clientId;
     const rawDb = getRawDb();
     try {
+      console.log(`[EmailSettings] GET for clientId=${clientId}`);
       const [rows] = await rawDb.execute(
         `SELECT enabled, subject, message, pickupInstructions,
           email_provider, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_from,
@@ -16,7 +17,10 @@ export const emailSettingsRouter = createRouter({
         [clientId]
       );
       const result = (rows as any[])[0];
+      console.log(`[EmailSettings] rows count=${(rows as any[]).length}, result=`, result);
       if (result) {
+        // Log each field to diagnose
+        console.log(`[EmailSettings] Fields: enabled=${result.enabled}, subject=${result.subject?.substring(0,20)}, email_provider=${result.email_provider}, smtp_host=${result.smtp_host}, smtp_user=${result.smtp_user?.substring(0,10)}..., sendgrid_key=${result.sendgrid_api_key?.substring(0,10)}...`);
         return {
           enabled: result.enabled ?? true,
           subject: result.subject ?? "",
@@ -34,6 +38,7 @@ export const emailSettingsRouter = createRouter({
           companyWebsite: result.company_website ?? "",
         };
       }
+      console.log("[EmailSettings] No record found, returning defaults");
     } catch (err: any) {
       console.error("[EmailSettings] GET error:", err?.message || String(err));
     }
