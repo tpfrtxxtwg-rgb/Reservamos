@@ -20,6 +20,7 @@ import AdminPricing from '@/components/admin/AdminPricing';
 import AdminOptionalServices from '@/components/admin/AdminOptionalServices';
 import AdminSettings from '@/components/admin/AdminSettings';
 import AdminReports from '@/components/admin/AdminReports';
+import AdminCompanyProfile from '@/components/admin/AdminCompanyProfile';
 
 const statusConfig: Record<string, { label: string; icon: React.ReactNode; bg: string; text: string }> = {
   confirmed: { label: 'common.confirmed', icon: <CheckCircle size={14} weight="fill" />, bg: 'bg-[rgba(45,106,79,0.1)]', text: 'text-[#2D6A4F]' },
@@ -49,6 +50,7 @@ export default function AdminPanel() {
     { icon: <Users size={20} />, label: t('admin.drivers'), id: 'drivers' },
     { icon: <Calendar size={20} />, label: t('admin.calendar'), id: 'calendar' },
     { icon: <ChartBar size={20} />, label: t('admin.reports'), id: 'reports' },
+    { icon: <Buildings size={20} />, label: t('admin.companyProfile') || 'Company Profile', id: 'companyProfile' },
     { icon: <Gear size={20} />, label: t('admin.settings'), id: 'settings' },
   ];
 
@@ -191,6 +193,7 @@ export default function AdminPanel() {
       case 'services': return <AdminServices />;
       case 'pricing': return <AdminPricing />;
       case 'optionalServices': return <AdminOptionalServices clientId={clientId} />;
+      case 'companyProfile': return <AdminCompanyProfile clientId={clientId} />;
       case 'settings': return <AdminSettings clientId={clientId} />;
       case 'reports': return <AdminReports />;
       default: return (
