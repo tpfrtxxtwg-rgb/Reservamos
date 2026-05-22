@@ -7,7 +7,7 @@ export const emailSettingsRouter = createRouter({
     const clientId = ctx.clientUser.clientId;
     const rawDb = getRawDb();
     try {
-      const [rows] = await rawDb.query(
+      const [rows] = await rawDb.execute(
         `SELECT enabled, subject, message, pickupInstructions,
           email_provider, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_from,
           sendgrid_api_key, resend_api_key,
@@ -79,7 +79,7 @@ export const emailSettingsRouter = createRouter({
           : (input.sendgridApiKey || "");
 
         // Check if record exists
-        const [existingRows] = await rawDb.query(
+        const [existingRows] = await rawDb.execute(
           "SELECT id FROM client_email_settings WHERE clientId = ? LIMIT 1",
           [clientId]
         );
@@ -146,7 +146,7 @@ export const emailSettingsRouter = createRouter({
       const clientId = ctx.clientUser.clientId;
       const rawDb = getRawDb();
       try {
-        const [rows] = await rawDb.query(
+        const [rows] = await rawDb.execute(
           `SELECT smtp_host, smtp_user FROM client_email_settings WHERE clientId = ? LIMIT 1`,
           [clientId]
         );

@@ -20,9 +20,9 @@ export default function AdminVehicles({ clientId }: Props) {
   const [editing, setEditing] = useState<number | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [formData, setFormData] = useState({
-    name: '', capacityMin: 1, capacityMax: 6, features: [] as string[], hourlyRate: '', sortOrder: 0,
+    name: '', capacityMin: 1, capacityMax: 6, features: [] as string[], hourlyRate: '', sortOrder: 0, image: '',
   });
-  const [editData, setEditData] = useState({ name: '', capacityMin: 1, capacityMax: 6, features: [] as string[], hourlyRate: '', sortOrder: 0 });
+  const [editData, setEditData] = useState({ name: '', capacityMin: 1, capacityMax: 6, features: [] as string[], hourlyRate: '', sortOrder: 0, image: '' });
 
   const { data: vehicles, isLoading } = trpc.vehicle.listMine.useQuery();
   const createVeh = trpc.vehicle.create.useMutation({
@@ -35,7 +35,7 @@ export default function AdminVehicles({ clientId }: Props) {
     onSuccess: () => utils.vehicle.listMine.invalidate(),
   });
 
-  const resetForm = () => setFormData({ name: '', capacityMin: 1, capacityMax: 6, features: [], hourlyRate: '', sortOrder: 0 });
+  const resetForm = () => setFormData({ name: '', capacityMin: 1, capacityMax: 6, features: [], hourlyRate: '', sortOrder: 0, image: '' });
 
   const toggleFeature = (feat: string, isEdit: boolean) => {
     if (isEdit) {
@@ -102,12 +102,21 @@ export default function AdminVehicles({ clientId }: Props) {
               ))}
             </div>
           </div>
-          <div className="mb-4">
-            <label className="font-body text-[11px] text-warm-gray mb-1 block">Hourly Rate (USD/hr)</label>
-            <input type="text" value={formData.hourlyRate}
-              onChange={e => setFormData(p => ({ ...p, hourlyRate: e.target.value }))}
-              placeholder="e.g. 75.00"
-              className="w-full sm:w-48 h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+            <div>
+              <label className="font-body text-[11px] text-warm-gray mb-1 block">Hourly Rate (USD/hr)</label>
+              <input type="text" value={formData.hourlyRate}
+                onChange={e => setFormData(p => ({ ...p, hourlyRate: e.target.value }))}
+                placeholder="e.g. 75.00"
+                className="w-full h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all" />
+            </div>
+            <div>
+              <label className="font-body text-[11px] text-warm-gray mb-1 block">Image URL</label>
+              <input type="text" value={formData.image}
+                onChange={e => setFormData(p => ({ ...p, image: e.target.value }))}
+                placeholder="https://example.com/vehicle.jpg"
+                className="w-full h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all" />
+            </div>
           </div>
           <div className="flex gap-2">
             <button onClick={() => createVeh.mutate({ ...formData })}
@@ -131,7 +140,7 @@ export default function AdminVehicles({ clientId }: Props) {
               className="bg-white rounded-lg shadow-sm border border-[rgba(138,130,120,0.08)] p-4">
               {editing === v.id ? (
                 <div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
                     <input type="text" value={editData.name}
                       onChange={e => setEditData(p => ({ ...p, name: e.target.value }))}
                       className="h-9 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none" />
@@ -141,9 +150,15 @@ export default function AdminVehicles({ clientId }: Props) {
                     <input type="number" value={editData.capacityMax}
                       onChange={e => setEditData(p => ({ ...p, capacityMax: Number(e.target.value) }))}
                       className="h-9 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none" />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
                     <input type="text" value={editData.hourlyRate}
                       onChange={e => setEditData(p => ({ ...p, hourlyRate: e.target.value }))}
                       placeholder="Hourly $"
+                      className="h-9 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none" />
+                    <input type="text" value={editData.image}
+                      onChange={e => setEditData(p => ({ ...p, image: e.target.value }))}
+                      placeholder="Image URL"
                       className="h-9 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none" />
                   </div>
                   <div className="flex gap-2 flex-wrap mb-3">
@@ -168,9 +183,13 @@ export default function AdminVehicles({ clientId }: Props) {
               ) : (
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-sand flex items-center justify-center text-terracotta">
-                      <Car size={20} />
-                    </div>
+                    {v.image ? (
+                      <img src={v.image} alt={v.name} className="w-14 h-10 rounded-lg object-cover border border-[rgba(138,130,120,0.1)]" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-sand flex items-center justify-center text-terracotta">
+                        <Car size={20} />
+                      </div>
+                    )}
                     <div>
                       <h4 className="font-body text-sm font-semibold text-charcoal">{v.name}</h4>
                       <div className="flex items-center gap-3 mt-1">
@@ -184,7 +203,7 @@ export default function AdminVehicles({ clientId }: Props) {
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <button onClick={() => { setEditing(v.id); setEditData({ name: v.name, capacityMin: v.capacityMin, capacityMax: v.capacityMax, features: v.features || [], hourlyRate: String(v.hourlyRate || ''), sortOrder: v.sortOrder }); }}
+                    <button onClick={() => { setEditing(v.id); setEditData({ name: v.name, capacityMin: v.capacityMin, capacityMax: v.capacityMax, features: v.features || [], hourlyRate: String(v.hourlyRate || ''), sortOrder: v.sortOrder, image: v.image || '' }); }}
                       className="p-2 text-warm-gray hover:text-terracotta hover:bg-sand rounded transition-colors"><Pencil size={16} /></button>
                     <button onClick={() => { if (confirm(t('admin.confirmDelete') || 'Delete?')) deleteVeh.mutate({ id: v.id }); }}
                       className="p-2 text-warm-gray hover:text-[#B23A2F] hover:bg-[rgba(178,58,47,0.1)] rounded transition-colors"><Trash size={16} /></button>
