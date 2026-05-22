@@ -14,10 +14,10 @@ const app = new Hono<{ Bindings: HttpBindings }>();
 app.get("/health", (c) => {
   return c.json({
     status: "ok",
-    version: "v5",
+    version: "v6-reports-20250522",
     lang: "en",
     timestamp: new Date().toISOString(),
-    features: ["5-step-booking", "origin-field", "hotel-autocomplete", "luggage", "optional-services", "deposit-payment", "iva-16"],
+    features: ["5-step-booking", "origin-field", "hotel-autocomplete", "luggage", "optional-services", "deposit-payment", "iva-16", "reports"],
   });
 });
 

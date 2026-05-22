@@ -28,9 +28,11 @@ export function serveStaticFiles(app: App) {
 
   app.use("*", serveStatic({
     root: "./dist/public",
-    // Add cache-busting headers for static assets
+    // Disable caching to ensure fresh deploys are always served
     onFound: (_path, c) => {
-      c.header("Cache-Control", "public, max-age=31536000, immutable");
+      c.header("Cache-Control", "no-cache, no-store, must-revalidate");
+      c.header("Pragma", "no-cache");
+      c.header("Expires", "0");
     },
   }));
 

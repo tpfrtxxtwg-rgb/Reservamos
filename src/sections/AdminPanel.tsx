@@ -196,9 +196,9 @@ export default function AdminPanel() {
       default: return (
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="w-16 h-16 rounded-full bg-sand flex items-center justify-center mx-auto mb-4"><Gear size={24} className="text-warm-gray" /></div>
-            <h3 className="font-display text-lg font-semibold text-charcoal mb-1">Tab: {activeTab}</h3>
-            <p className="font-body text-sm text-warm-gray">In Development</p>
+            <div className="w-16 h-16 rounded-full bg-[rgba(199,94,58,0.15)] flex items-center justify-center mx-auto mb-4"><ChartBar size={24} className="text-terracotta" /></div>
+            <h3 className="font-display text-lg font-semibold text-terracotta mb-1">Tab: {activeTab}</h3>
+            <p className="font-body text-sm text-warm-gray">In Development - v6</p>
           </div>
         </div>
       );
