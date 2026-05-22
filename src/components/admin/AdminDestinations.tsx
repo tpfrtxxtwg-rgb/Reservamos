@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { Plus, Pencil, Trash, X, Check, Buildings, MagnifyingGlass } from '@phosphor-icons/react';
+import { Plus, Pencil, Trash, X, Check, Buildings, MagnifyingGlass, UploadSimple, ListBullets } from '@phosphor-icons/react';
 import { trpc } from '@/providers/trpc';
 
 interface Props {
@@ -18,6 +18,9 @@ export default function AdminDestinations({ clientId }: Props) {
   const [newName, setNewName] = useState('');
   const [newZoneId, setNewZoneId] = useState<number>(0);
   const [search, setSearch] = useState('');
+  const [showBulkImport, setShowBulkImport] = useState(false);
+  const [bulkText, setBulkText] = useState('');
+  const [bulkZoneId, setBulkZoneId] = useState<number>(0);
 
   const { data: zones } = trpc.zone.listMine.useQuery();
   const { data: destinations, isLoading } = trpc.destination.listMine.useQuery();
@@ -29,6 +32,14 @@ export default function AdminDestinations({ clientId }: Props) {
   });
   const deleteDest = trpc.destination.delete.useMutation({
     onSuccess: () => utils.destination.listMine.invalidate(),
+  });
+  const bulkImport = trpc.destination.bulkImport.useMutation({
+    onSuccess: (data) => {
+      utils.destination.listMine.invalidate();
+      setBulkText('');
+      setShowBulkImport(false);
+      alert(t('admin.hotelsImported', { count: data.count }) || `${data.count} hotels imported successfully`);
+    },
   });
 
   const filteredDestinations = destinations?.filter((d: any) => {
@@ -46,10 +57,16 @@ export default function AdminDestinations({ clientId }: Props) {
           <h2 className="font-display text-xl font-semibold text-charcoal">{t('admin.destinations') || 'Hotels & Destinations'}</h2>
           <p className="font-body text-sm text-warm-gray mt-1">{t('admin.destinationsDesc') || 'Manage hotels and destinations within each zone'}</p>
         </div>
-        <button onClick={() => { setShowAdd(true); setNewZoneId(zones?.[0]?.id || 0); }}
-          className="flex items-center gap-2 px-4 py-2.5 bg-terracotta text-white rounded-lg font-body text-sm font-medium hover:bg-terracotta-dark transition-colors self-start">
-          <Plus size={16} /> {t('common.add') || 'Add Hotel'}
-        </button>
+        <div className="flex items-center gap-2 self-start">
+          <button onClick={() => { setShowAdd(true); setNewZoneId(zones?.[0]?.id || 0); setShowBulkImport(false); }}
+            className="flex items-center gap-2 px-4 py-2.5 bg-terracotta text-white rounded-lg font-body text-sm font-medium hover:bg-terracotta-dark transition-colors">
+            <Plus size={16} /> {t('common.add') || 'Add Hotel'}
+          </button>
+          <button onClick={() => { setShowBulkImport(true); setBulkZoneId(zones?.[0]?.id || 0); setShowAdd(false); }}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white text-terracotta border-2 border-terracotta rounded-lg font-body text-sm font-medium hover:bg-[rgba(199,94,58,0.05)] transition-colors">
+            <UploadSimple size={16} /> {t('admin.bulkImport') || 'Bulk Import'}
+          </button>
+        </div>
       </div>
 
       {/* Zone filter + Search */}
@@ -95,6 +112,75 @@ export default function AdminDestinations({ clientId }: Props) {
             </button>
             <button onClick={() => { setShowAdd(false); setNewName(''); }}
               className="p-2 text-warm-gray hover:text-charcoal transition-colors"><X size={18} /></button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Bulk Import Form */}
+      {showBulkImport && (
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-lg shadow-sm border border-[rgba(199,94,58,0.15)] p-5 mb-4">
+          <div className="flex items-center gap-2 mb-4">
+            <ListBullets size={18} className="text-terracotta" />
+            <h3 className="font-body text-sm font-semibold text-charcoal">{t('admin.bulkImportTitle') || 'Import Multiple Hotels'}</h3>
+          </div>
+          <div className="space-y-4">
+            {/* Zone selector */}
+            <div>
+              <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 block">
+                {t('admin.zone') || 'Zone'}
+              </label>
+              <select value={bulkZoneId} onChange={e => setBulkZoneId(Number(e.target.value))}
+                className="w-full sm:w-auto h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none">
+                {zones?.map((z: any) => <option key={z.id} value={z.id}>{z.name}</option>)}
+              </select>
+            </div>
+            {/* Textarea */}
+            <div>
+              <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 block">
+                {t('admin.hotelList') || 'Hotel Names'}
+              </label>
+              <textarea
+                value={bulkText}
+                onChange={e => setBulkText(e.target.value)}
+                placeholder={t('admin.bulkImportPlaceholder') || 'Enter hotel names separated by commas or one per line...\n\nExample:\nHotel Cancun, Hotel Maya, Hotel Riviera\n or:\nHotel Cancun\nHotel Maya\nHotel Riviera'}
+                rows={8}
+                className="w-full bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 py-2.5 font-body text-sm text-charcoal placeholder:text-warm-gray/50 placeholder:font-body placeholder:text-xs focus:border-terracotta outline-none transition-all resize-vertical"
+              />
+              {bulkText.trim() && (
+                <p className="font-body text-xs text-warm-gray mt-1.5">
+                  {t('admin.hotelsDetected', { count: bulkText.split(/[\n,]/).filter((n: string) => n.trim()).length }) || `${bulkText.split(/[\n,]/).filter((n: string) => n.trim()).length} hotels detected`}
+                </p>
+              )}
+            </div>
+            {/* Buttons */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  const names = bulkText
+                    .split(/[\n,]/)
+                    .map((n: string) => n.trim())
+                    .filter((n: string) => n.length > 0);
+                  if (names.length === 0) return;
+                  bulkImport.mutate({ zoneId: bulkZoneId, names });
+                }}
+                disabled={!bulkText.trim() || bulkImport.isPending}
+                className="flex items-center gap-2 px-5 py-2.5 bg-terracotta text-white rounded-md font-body text-sm font-medium disabled:opacity-50 hover:bg-terracotta-dark transition-colors"
+              >
+                {bulkImport.isPending ? (
+                  <span>{t('common.importing') || 'Importing...'}</span>
+                ) : (
+                  <>
+                    <UploadSimple size={16} />
+                    <span>{t('common.import') || 'Import Hotels'}</span>
+                  </>
+                )}
+              </button>
+              <button onClick={() => { setShowBulkImport(false); setBulkText(''); }}
+                className="px-4 py-2.5 border border-[rgba(138,130,120,0.3)] text-warm-gray rounded-md font-body text-sm font-medium hover:bg-[rgba(138,130,120,0.05)] transition-colors">
+                {t('common.cancel') || 'Cancel'}
+              </button>
+            </div>
           </div>
         </motion.div>
       )}
