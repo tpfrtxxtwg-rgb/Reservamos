@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { EnvelopeSimple, Check, FloppyDisk, PaperPlaneRight, Warning } from '@phosphor-icons/react';
+import { EnvelopeSimple, Check, FloppyDisk, Lightning } from '@phosphor-icons/react';
 import { trpc } from '@/providers/trpc';
 
 export default function AdminEmailSettings() {
@@ -12,18 +12,15 @@ export default function AdminEmailSettings() {
   const updateSettings = trpc.emailSettings.update.useMutation({
     onSuccess: () => { utils.emailSettings.get.invalidate(); setSaved(true); setTimeout(() => setSaved(false), 2000); },
   });
+  const testEmail = trpc.emailSettings.test.useMutation();
 
   const [enabled, setEnabled] = useState(true);
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   const [pickupInstructions, setPickupInstructions] = useState('');
-  const [emailProvider, setEmailProvider] = useState<'sendgrid' | 'resend' | 'smtp'>('sendgrid');
+  const [emailProvider, setEmailProvider] = useState<'sendgrid' | 'resend'>('sendgrid');
   const [sendgridApiKey, setSendgridApiKey] = useState('');
   const [resendApiKey, setResendApiKey] = useState('');
-  const [smtpHost, setSmtpHost] = useState('');
-  const [smtpPort, setSmtpPort] = useState('587');
-  const [smtpUser, setSmtpUser] = useState('');
-  const [smtpPass, setSmtpPass] = useState('');
   const [smtpFrom, setSmtpFrom] = useState('');
   const [companyPhone, setCompanyPhone] = useState('');
   const [companyWebsite, setCompanyWebsite] = useState('');
@@ -38,10 +35,6 @@ export default function AdminEmailSettings() {
       setEmailProvider((settings.emailProvider as any) ?? 'sendgrid');
       setSendgridApiKey(settings.sendgridApiKey ?? '');
       setResendApiKey(settings.resendApiKey ?? '');
-      setSmtpHost(settings.smtpHost ?? '');
-      setSmtpPort(String(settings.smtpPort ?? '587'));
-      setSmtpUser(settings.smtpUser ?? '');
-      setSmtpPass(settings.smtpPass ?? '');
       setSmtpFrom(settings.smtpFrom ?? '');
       setCompanyPhone(settings.companyPhone ?? '');
       setCompanyWebsite(settings.companyWebsite ?? '');
@@ -57,10 +50,6 @@ export default function AdminEmailSettings() {
       emailProvider,
       sendgridApiKey: sendgridApiKey || null,
       resendApiKey: resendApiKey || null,
-      smtpHost: smtpHost || null,
-      smtpPort: smtpPort ? parseInt(smtpPort) : null,
-      smtpUser: smtpUser || null,
-      smtpPass: smtpPass || null,
       smtpFrom: smtpFrom || null,
       companyPhone: companyPhone || null,
       companyWebsite: companyWebsite || null,
@@ -79,7 +68,7 @@ export default function AdminEmailSettings() {
     <div className="max-w-2xl">
       <div className="mb-6">
         <h2 className="font-display text-xl font-semibold text-charcoal">{t('admin.emailSettings') || 'Email Settings'}</h2>
-        <p className="font-body text-sm text-warm-gray mt-1">{t('admin.emailSettingsDesc') || 'Configure email notifications sent to customers'}</p>
+        <p className="font-body text-sm text-warm-gray mt-1">{t('admin.emailSettingsDesc') || 'Configure confirmation emails sent to customers'}</p>
       </div>
 
       {/* Enable Toggle */}
@@ -91,7 +80,7 @@ export default function AdminEmailSettings() {
             </div>
             <div>
               <h3 className="font-body text-sm font-semibold text-charcoal">{t('admin.emailNotifications') || 'Email Notifications'}</h3>
-              <p className="font-body text-xs text-warm-gray">{t('admin.emailNotificationsDesc') || 'Send confirmation emails to customers after booking'}</p>
+              <p className="font-body text-xs text-warm-gray">{t('admin.emailNotificationsDesc') || 'Send confirmation emails after booking'}</p>
             </div>
           </div>
           <button
@@ -113,20 +102,27 @@ export default function AdminEmailSettings() {
           {/* Provider Selection */}
           <div className="bg-white rounded-lg shadow-sm border border-[rgba(138,130,120,0.08)] p-6 mb-4">
             <h3 className="font-body text-sm font-semibold text-charcoal mb-4">{t('admin.emailProvider') || 'Email Provider'}</h3>
-            <div className="grid grid-cols-3 gap-3 mb-4">
-              {(['sendgrid', 'resend', 'smtp'] as const).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setEmailProvider(p)}
-                  className={`px-4 py-3 rounded-lg border-2 font-body text-sm font-medium capitalize transition-all ${
-                    emailProvider === p
-                      ? 'border-terracotta bg-[rgba(199,94,58,0.05)] text-terracotta'
-                      : 'border-[rgba(138,130,120,0.15)] text-warm-gray hover:border-[rgba(138,130,120,0.3)]'
-                  }`}
-                >
-                  {p === 'smtp' ? 'SMTP' : p}
-                </button>
-              ))}
+            <div className="grid grid-cols-2 gap-3 mb-5">
+              <button
+                onClick={() => setEmailProvider('sendgrid')}
+                className={`px-4 py-3 rounded-lg border-2 font-body text-sm font-medium transition-all ${
+                  emailProvider === 'sendgrid'
+                    ? 'border-terracotta bg-[rgba(199,94,58,0.05)] text-terracotta'
+                    : 'border-[rgba(138,130,120,0.15)] text-warm-gray hover:border-[rgba(138,130,120,0.3)]'
+                }`}
+              >
+                SendGrid
+              </button>
+              <button
+                onClick={() => setEmailProvider('resend')}
+                className={`px-4 py-3 rounded-lg border-2 font-body text-sm font-medium transition-all ${
+                  emailProvider === 'resend'
+                    ? 'border-terracotta bg-[rgba(199,94,58,0.05)] text-terracotta'
+                    : 'border-[rgba(138,130,120,0.15)] text-warm-gray hover:border-[rgba(138,130,120,0.3)]'
+                }`}
+              >
+                Resend
+              </button>
             </div>
 
             {emailProvider === 'sendgrid' && (
@@ -136,9 +132,12 @@ export default function AdminEmailSettings() {
                   type="password"
                   value={sendgridApiKey}
                   onChange={(e) => setSendgridApiKey(e.target.value)}
-                  placeholder="SG.xxxxxx"
+                  placeholder="SG.xxxxxxxxxx"
                   className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all"
                 />
+                <p className="font-body text-xs text-warm-gray mt-1.5">
+                  <a href="https://app.sendgrid.com/settings/api_keys" target="_blank" rel="noopener noreferrer" className="text-terracotta hover:underline">Get your API key from SendGrid</a>
+                </p>
               </div>
             )}
 
@@ -152,37 +151,23 @@ export default function AdminEmailSettings() {
                   placeholder="re_xxxxxxxx"
                   className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all"
                 />
+                <p className="font-body text-xs text-warm-gray mt-1.5">
+                  <a href="https://resend.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-terracotta hover:underline">Get your API key from Resend</a>
+                </p>
               </div>
             )}
 
-            {emailProvider === 'smtp' && (
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-2 block">SMTP Host</label>
-                    <input type="text" value={smtpHost} onChange={(e) => setSmtpHost(e.target.value)} placeholder="smtp.example.com" className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none" />
-                  </div>
-                  <div>
-                    <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-2 block">Port</label>
-                    <input type="text" value={smtpPort} onChange={(e) => setSmtpPort(e.target.value)} placeholder="587" className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-2 block">Username</label>
-                    <input type="text" value={smtpUser} onChange={(e) => setSmtpUser(e.target.value)} className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none" />
-                  </div>
-                  <div>
-                    <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-2 block">Password</label>
-                    <input type="password" value={smtpPass} onChange={(e) => setSmtpPass(e.target.value)} className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none" />
-                  </div>
-                </div>
-                <div>
-                  <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-2 block">From Email</label>
-                  <input type="email" value={smtpFrom} onChange={(e) => setSmtpFrom(e.target.value)} placeholder="noreply@example.com" className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none" />
-                </div>
-              </div>
-            )}
+            {/* From Email */}
+            <div className="mt-4">
+              <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-2 block">{t('admin.fromEmail') || 'From Email'}</label>
+              <input
+                type="email"
+                value={smtpFrom}
+                onChange={(e) => setSmtpFrom(e.target.value)}
+                placeholder='"Your Company" <noreply@example.com>'
+                className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all"
+              />
+            </div>
           </div>
 
           {/* Email Content */}
@@ -199,7 +184,7 @@ export default function AdminEmailSettings() {
               </div>
               <div>
                 <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-2 block">{t('admin.pickupInstructions') || 'Pickup Instructions'}</label>
-                <textarea value={pickupInstructions} onChange={(e) => setPickupInstructions(e.target.value)} placeholder="Where should the driver meet the passenger?" rows={3} className="w-full bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 py-2 font-body text-sm text-charcoal focus:border-terracotta outline-none resize-vertical" />
+                <textarea value={pickupInstructions} onChange={(e) => setPickupInstructions(e.target.value)} placeholder="Where should the driver meet the passenger?" rows={3} className="w-full bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 py-2 font-body text-sm text-charcoal placeholder:text-warm-gray/50 placeholder:font-body placeholder:text-xs focus:border-terracotta outline-none resize-vertical" />
               </div>
             </div>
           </div>
@@ -225,6 +210,16 @@ export default function AdminEmailSettings() {
               className="flex items-center gap-2 px-6 py-3 bg-terracotta text-white rounded-lg font-body text-sm font-semibold hover:bg-terracotta-dark transition-colors disabled:opacity-50">
               {updateSettings.isPending ? <span>{t('common.saving')}</span> : saved ? <><Check size={16} /> {t('common.saved')}</> : <><FloppyDisk size={16} /> {t('common.saveChanges')}</>}
             </button>
+            <button
+              onClick={() => testEmail.mutate({ to: '' })}
+              disabled={testEmail.isPending}
+              className="flex items-center gap-2 px-4 py-3 border border-[rgba(138,130,120,0.2)] text-warm-gray rounded-lg font-body text-sm font-medium hover:border-terracotta hover:text-terracotta transition-colors disabled:opacity-50"
+            >
+              <Lightning size={16} /> {t('admin.testConnection') || 'Test'}
+            </button>
+            {testEmail.isSuccess && (
+              <span className="font-body text-xs text-[#2D6A4F]">{testEmail.data?.reason}</span>
+            )}
           </div>
         </>
       )}

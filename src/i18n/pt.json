@@ -255,6 +255,8 @@
     "contactInfo": "Informações de Contato nos Emails",
     "companyPhone": "Telefone",
     "companyWebsite": "Site",
+    "fromEmail": "Email de Envio",
+    "testConnection": "Testar Conexão",
     "zones": "Zonas",
     "destinations": "Hotéis",
     "pricing": "Preços",

@@ -258,6 +258,8 @@
     "contactInfo": "Contact Info in Emails",
     "companyPhone": "Phone",
     "companyWebsite": "Website",
+    "fromEmail": "From Email",
+    "testConnection": "Test Connection",
     "zones": "Zones",
     "destinations": "Hotels",
     "pricing": "Pricing",
