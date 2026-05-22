@@ -197,8 +197,8 @@ export default function AdminPanel() {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="w-16 h-16 rounded-full bg-sand flex items-center justify-center mx-auto mb-4"><Gear size={24} className="text-warm-gray" /></div>
-            <h3 className="font-display text-lg font-semibold text-charcoal mb-1">{t('common.development')}</h3>
-            <p className="font-body text-sm text-warm-gray">{t('common.comingSoon')}</p>
+            <h3 className="font-display text-lg font-semibold text-charcoal mb-1">Tab: {activeTab}</h3>
+            <p className="font-body text-sm text-warm-gray">In Development</p>
           </div>
         </div>
       );

@@ -2,15 +2,16 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Force cache invalidation on every build
-ARG CACHE_BUST=20250522-1
-
 # Copy package files
 COPY package.json package-lock.json ./
 RUN npm ci
 
 # Copy source code
 COPY . .
+
+# Force cache invalidation - must change on every deploy
+ARG CACHE_BUST=20250522-2
+RUN echo "Cache bust: ${CACHE_BUST}"
 
 # Build the application
 RUN npm run build
