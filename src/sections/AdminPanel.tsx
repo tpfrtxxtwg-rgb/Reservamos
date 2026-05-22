@@ -7,7 +7,7 @@ import {
   ChartBar, Gear, ArrowLeft, Eye, CheckCircle, XCircle,
   TrendUp, TrendDown, X, MapPin, CreditCard,
   Clock as ClockIcon, MapTrifold, Buildings, Money,
-  ShoppingCart, SignOut, Globe,
+  ShoppingCart, SignOut, Globe, EnvelopeSimple,
 } from '@phosphor-icons/react';
 import { trpc } from '@/providers/trpc';
 import { useClientAuth } from '@/providers/ClientAuthProvider';
@@ -21,6 +21,7 @@ import AdminOptionalServices from '@/components/admin/AdminOptionalServices';
 import AdminSettings from '@/components/admin/AdminSettings';
 import AdminReports from '@/components/admin/AdminReports';
 import AdminCompanyProfile from '@/components/admin/AdminCompanyProfile';
+import AdminEmailSettings from '@/components/admin/AdminEmailSettings';
 
 const statusConfig: Record<string, { label: string; icon: React.ReactNode; bg: string; text: string }> = {
   confirmed: { label: 'common.confirmed', icon: <CheckCircle size={14} weight="fill" />, bg: 'bg-[rgba(45,106,79,0.1)]', text: 'text-[#2D6A4F]' },
@@ -51,6 +52,7 @@ export default function AdminPanel() {
     { icon: <Calendar size={20} />, label: t('admin.calendar'), id: 'calendar' },
     { icon: <ChartBar size={20} />, label: t('admin.reports'), id: 'reports' },
     { icon: <Buildings size={20} />, label: t('admin.companyProfile') || 'Company Profile', id: 'companyProfile' },
+    { icon: <EnvelopeSimple size={20} />, label: t('admin.emailSettings') || 'Email Settings', id: 'emailSettings' },
     { icon: <Gear size={20} />, label: t('admin.settings'), id: 'settings' },
   ];
 
@@ -194,6 +196,7 @@ export default function AdminPanel() {
       case 'pricing': return <AdminPricing />;
       case 'optionalServices': return <AdminOptionalServices clientId={clientId} />;
       case 'companyProfile': return <AdminCompanyProfile clientId={clientId} />;
+      case 'emailSettings': return <AdminEmailSettings />;
       case 'settings': return <AdminSettings clientId={clientId} />;
       case 'reports': return <AdminReports />;
       default: return (
