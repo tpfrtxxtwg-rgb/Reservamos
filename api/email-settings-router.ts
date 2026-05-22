@@ -10,8 +10,7 @@ export const emailSettingsRouter = createRouter({
       console.log(`[EmailSettings] GET for clientId=${clientId}`);
       const [rows] = await rawDb.execute(
         `SELECT enabled, subject, message, pickupInstructions,
-          email_provider, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_from,
-          sendgrid_api_key, resend_api_key,
+          smtp_host, smtp_port, smtp_user, smtp_pass, smtp_from,
           company_phone, company_website
          FROM client_email_settings WHERE clientId = ? LIMIT 1`,
         [clientId]
@@ -19,21 +18,21 @@ export const emailSettingsRouter = createRouter({
       const result = (rows as any[])[0];
       console.log(`[EmailSettings] rows count=${(rows as any[]).length}, result=`, result);
       if (result) {
-        // Log each field to diagnose
-        console.log(`[EmailSettings] Fields: enabled=${result.enabled}, subject=${result.subject?.substring(0,20)}, email_provider=${result.email_provider}, smtp_host=${result.smtp_host}, smtp_user=${result.smtp_user?.substring(0,10)}..., sendgrid_key=${result.sendgrid_api_key?.substring(0,10)}...`);
+        const provider = result.smtp_host === "resend" ? "resend" : "sendgrid";
+        console.log(`[EmailSettings] provider=${provider}, smtp_user=${result.smtp_user?.substring(0,10)}...`);
         return {
           enabled: result.enabled ?? true,
           subject: result.subject ?? "",
           message: result.message ?? "",
           pickupInstructions: result.pickupInstructions ?? "",
-          emailProvider: result.email_provider ?? "sendgrid",
+          emailProvider: provider,
           smtpHost: result.smtp_host ?? "",
           smtpPort: result.smtp_port ?? 587,
           smtpUser: result.smtp_user ?? "",
           smtpPass: result.smtp_pass ?? "",
           smtpFrom: result.smtp_from ?? "",
-          sendgridApiKey: result.sendgrid_api_key ?? "",
-          resendApiKey: result.resend_api_key ?? "",
+          sendgridApiKey: provider === "sendgrid" ? (result.smtp_user ?? "") : "",
+          resendApiKey: provider === "resend" ? (result.smtp_user ?? "") : "",
           companyPhone: result.company_phone ?? "",
           companyWebsite: result.company_website ?? "",
         };
@@ -90,28 +89,26 @@ export const emailSettingsRouter = createRouter({
         );
 
         if ((existingRows as any[]).length === 0) {
-          // INSERT
+          // INSERT - only columns known to exist
           await rawDb.execute(
             `INSERT INTO client_email_settings
-             (clientId, enabled, subject, message, pickupInstructions, email_provider,
-              smtp_host, smtp_user, smtp_from, sendgrid_api_key, resend_api_key,
+             (clientId, enabled, subject, message, pickupInstructions,
+              smtp_host, smtp_port, smtp_user, smtp_pass, smtp_from,
               company_phone, company_website)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [clientId,
              input.enabled ?? true,
              input.subject ?? "Your Reservation Confirmation",
              input.message ?? "Thank you for your reservation.",
              input.pickupInstructions ?? "",
-             input.emailProvider ?? "sendgrid",
-             smtpHost, smtpUser,
+             smtpHost, 587, smtpUser,
+             input.smtpPass ?? "",
              input.smtpFrom ?? "",
-             input.sendgridApiKey ?? "",
-             input.resendApiKey ?? "",
              input.companyPhone ?? "",
              input.companyWebsite ?? ""]
           );
         } else {
-          // UPDATE - build dynamic SET clause
+          // UPDATE - only columns known to exist
           const sets: string[] = [];
           const values: any[] = [];
 
@@ -119,13 +116,10 @@ export const emailSettingsRouter = createRouter({
           if (input.subject !== undefined) { sets.push("subject = ?"); values.push(input.subject); }
           if (input.message !== undefined) { sets.push("message = ?"); values.push(input.message); }
           if (input.pickupInstructions !== undefined) { sets.push("pickupInstructions = ?"); values.push(input.pickupInstructions); }
-          if (input.emailProvider !== undefined) { sets.push("email_provider = ?"); values.push(input.emailProvider); }
           if (input.smtpFrom !== undefined) { sets.push("smtp_from = ?"); values.push(input.smtpFrom); }
           if (input.smtpPass !== undefined) { sets.push("smtp_pass = ?"); values.push(input.smtpPass); }
           if (input.companyPhone !== undefined) { sets.push("company_phone = ?"); values.push(input.companyPhone); }
           if (input.companyWebsite !== undefined) { sets.push("company_website = ?"); values.push(input.companyWebsite); }
-          if (input.sendgridApiKey !== undefined) { sets.push("sendgrid_api_key = ?"); values.push(input.sendgridApiKey); }
-          if (input.resendApiKey !== undefined) { sets.push("resend_api_key = ?"); values.push(input.resendApiKey); }
 
           // Always sync the legacy fields
           sets.push("smtp_host = ?"); values.push(smtpHost);
