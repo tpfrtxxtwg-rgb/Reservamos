@@ -95,32 +95,17 @@
   },
   "pricing": {
     "label": "Preços",
-    "title": "Planos Transparentes",
-    "starter": {
-      "name": "Starter",
-      "price": "$49",
-      "period": "/mês",
-      "description": "Para operadores pequenos",
-      "features": ["1 site", "100 reservas/mês", "Pagamentos básicos", "Suporte por email", "Relatórios básicos"],
-      "cta": "Começar"
-    },
-    "professional": {
-      "name": "Professional",
-      "price": "$149",
-      "period": "/mês",
-      "description": "Para operadores em crescimento",
-      "badge": "Mais Popular",
-      "features": ["5 sites", "Reservas ilimitadas", "Pagamentos avançados (Stripe, PayPal)", "Notificações WhatsApp", "Relatórios avançados", "Suporte prioritário"],
-      "cta": "Começar"
-    },
-    "enterprise": {
-      "name": "Enterprise",
-      "price": "Custom",
-      "period": "",
-      "description": "Para grandes operadores",
-      "features": ["Sites ilimitados", "API completa", "Todos os métodos de pagamento", "White-label disponível", "Suporte dedicado 24/7", "Onboarding personalizado"],
-      "cta": "Contactar Vendas"
-    }
+    "title": "Booking Engine Plan",
+    "subtitle": "Para todos os operadores de transporte privado",
+    "month": "mês",
+    "getStarted": "Começar",
+    "contactSales": "Contactar Vendas",
+    "whatsIncluded": "O que inclui",
+    "feature1": "1 Site",
+    "feature2": "Configurável pelo proprietário",
+    "feature3": "Notificações por email",
+    "feature4": "Relatórios básicos",
+    "feature5": "Pagamentos avançados (PayPal, Stripe)"
   },
   "integration": {
     "title": "Pronto para Integrar?",

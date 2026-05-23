@@ -96,32 +96,17 @@
   },
   "pricing": {
     "label": "Pricing",
-    "title": "Transparent Plans",
-    "starter": {
-      "name": "Starter",
-      "price": "$49",
-      "period": "/month",
-      "description": "For small operators",
-      "features": ["1 website", "100 bookings/month", "Basic payments", "Email support", "Basic reports"],
-      "cta": "Get Started"
-    },
-    "professional": {
-      "name": "Professional",
-      "price": "$149",
-      "period": "/month",
-      "description": "For growing operators",
-      "badge": "Most Popular",
-      "features": ["5 websites", "Unlimited bookings", "Advanced payments (Stripe, PayPal)", "WhatsApp notifications", "Advanced reports", "Priority support"],
-      "cta": "Get Started"
-    },
-    "enterprise": {
-      "name": "Enterprise",
-      "price": "Custom",
-      "period": "",
-      "description": "For large operators",
-      "features": ["Unlimited websites", "Full API", "All payment methods", "White-label available", "Dedicated 24/7 support", "Personalized onboarding"],
-      "cta": "Contact Sales"
-    }
+    "title": "Booking Engine Plan",
+    "subtitle": "For all private transportation operators",
+    "month": "month",
+    "getStarted": "Get Started",
+    "contactSales": "Contact Sales",
+    "whatsIncluded": "What's included",
+    "feature1": "1 Website",
+    "feature2": "Configurable by the owner",
+    "feature3": "Email notifications",
+    "feature4": "Basic reports",
+    "feature5": "Advanced payments (PayPal, Stripe)"
   },
   "integration": {
     "title": "Ready to Integrate?",
