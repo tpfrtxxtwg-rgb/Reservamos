@@ -226,14 +226,18 @@
     },
     "flight": {
       "title": "Flight Information",
+      "flightInfo": "Flight Information",
       "flightNumber": "Flight Number",
       "airline": "Airline",
+      "selectAirline": "Select airline",
       "departureDate": "Departure Date",
       "departureTime": "Departure Time",
       "arrivalDate": "Arrival Date",
       "arrivalTime": "Arrival Time",
       "roundTripDetails": "Round Trip Details",
-      "departureTitle": "Departure Information"
+      "departureTitle": "Departure Information",
+      "hotelPickupTime": "Hotel Pickup Time",
+      "pickupRecommendation": "We recommend scheduling pickup 3 hours before your flight"
     },
     "confirmation": {
       "title": "Booking Confirmed!",

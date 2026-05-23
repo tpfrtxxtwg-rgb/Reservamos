@@ -185,14 +185,18 @@
     },
     "flight": {
       "title": "Informação do Voo",
+      "flightInfo": "Informação do Voo",
       "flightNumber": "Número do Voo",
       "airline": "Companhia Aérea",
+      "selectAirline": "Selecionar companhia aérea",
       "departureDate": "Data de Partida",
       "departureTime": "Hora de Partida",
       "arrivalDate": "Data de Chegada",
       "arrivalTime": "Hora de Chegada",
       "roundTripDetails": "Detalhes da Volta",
-      "departureTitle": "Informações de Partida"
+      "departureTitle": "Informações de Partida",
+      "hotelPickupTime": "Hora de Pickup no Hotel",
+      "pickupRecommendation": "Recomendamos agendar o pickup 3 horas antes do seu voo"
     },
     "step4": {
       "title": "Resumo do Pedido",
