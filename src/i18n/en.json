@@ -232,6 +232,8 @@
       "selectAirline": "Select airline",
       "departureDate": "Departure Date",
       "departureTime": "Departure Time",
+      "departureAirline": "Departure Airline",
+      "departureFlightNumber": "Departure Flight Number",
       "arrivalDate": "Arrival Date",
       "arrivalTime": "Arrival Time",
       "roundTripDetails": "Round Trip Details",

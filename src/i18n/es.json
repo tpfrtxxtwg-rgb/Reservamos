@@ -191,6 +191,8 @@
       "selectAirline": "Seleccionar aerolínea",
       "departureDate": "Fecha de Salida",
       "departureTime": "Hora de Salida",
+      "departureAirline": "Aerolínea de Salida",
+      "departureFlightNumber": "Número de Vuelo de Salida",
       "arrivalDate": "Fecha de Llegada",
       "arrivalTime": "Hora de Llegada",
       "roundTripDetails": "Detalles de Viaje Redondo",

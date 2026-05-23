@@ -191,6 +191,8 @@
       "selectAirline": "Selecionar companhia aérea",
       "departureDate": "Data de Partida",
       "departureTime": "Hora de Partida",
+      "departureAirline": "Companhia Aérea de Partida",
+      "departureFlightNumber": "Número do Voo de Partida",
       "arrivalDate": "Data de Chegada",
       "arrivalTime": "Hora de Chegada",
       "roundTripDetails": "Detalhes da Volta",
