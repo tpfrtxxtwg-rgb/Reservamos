@@ -176,7 +176,10 @@
       "selectDate": "Select date",
       "selectTime": "Select time",
       "airport": "Airport",
-      "hotel": "Hotel / Destination"
+      "hotel": "Hotel / Destination",
+      "arrivalTitle": "Arrival Information",
+      "arrivalSubtitle": "Enter your arrival and destination details",
+      "pickupLocation": "Pickup Location"
     },
     "step3": {
       "title": "Select Your Vehicle",
@@ -229,7 +232,8 @@
       "departureTime": "Departure Time",
       "arrivalDate": "Arrival Date",
       "arrivalTime": "Arrival Time",
-      "roundTripDetails": "Round Trip Details"
+      "roundTripDetails": "Round Trip Details",
+      "departureTitle": "Departure Information"
     },
     "confirmation": {
       "title": "Booking Confirmed!",

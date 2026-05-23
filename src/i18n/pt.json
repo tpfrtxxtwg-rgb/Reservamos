@@ -173,7 +173,10 @@
       "selectDate": "Selecionar data",
       "selectTime": "Selecionar horário",
       "airport": "Aeroporto",
-      "hotel": "Hotel / Destino"
+      "hotel": "Hotel / Destino",
+      "arrivalTitle": "Informações de Chegada",
+      "arrivalSubtitle": "Insira os dados da sua chegada e destino",
+      "pickupLocation": "Local de Retirada"
     },
     "step3": {
       "title": "Selecione Seu Veículo",
@@ -188,7 +191,8 @@
       "departureTime": "Hora de Partida",
       "arrivalDate": "Data de Chegada",
       "arrivalTime": "Hora de Chegada",
-      "roundTripDetails": "Detalhes da Volta"
+      "roundTripDetails": "Detalhes da Volta",
+      "departureTitle": "Informações de Partida"
     },
     "step4": {
       "title": "Resumo do Pedido",
