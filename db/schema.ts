@@ -261,6 +261,33 @@ export const clientEmailSettings = mysqlTable("client_email_settings", {
 export type ClientEmailSetting = typeof clientEmailSettings.$inferSelect;
 export type InsertClientEmailSetting = typeof clientEmailSettings.$inferInsert;
 
+// ─── Client Payment Settings (Stripe, PayPal, Test Mode) ──────────
+export const clientPaymentSettings = mysqlTable("client_payment_settings", {
+  id: serial("id").primaryKey(),
+  clientId: bigint("clientId", { mode: "number", unsigned: true }).notNull().references(() => clients.id),
+  // Test mode toggle
+  testMode: boolean("test_mode").default(true).notNull(),
+  // Stripe configuration
+  stripeEnabled: boolean("stripe_enabled").default(false).notNull(),
+  stripeSecretKey: varchar("stripe_secret_key", { length: 255 }),
+  stripePublishableKey: varchar("stripe_publishable_key", { length: 255 }),
+  stripeWebhookSecret: varchar("stripe_webhook_secret", { length: 255 }),
+  // PayPal configuration
+  paypalEnabled: boolean("paypal_enabled").default(false).notNull(),
+  paypalClientId: varchar("paypal_client_id", { length: 255 }),
+  paypalClientSecret: varchar("paypal_client_secret", { length: 255 }),
+  paypalWebhookId: varchar("paypal_webhook_id", { length: 255 }),
+  // Which payment methods are available to customers
+  acceptedMethods: mysqlEnum("accepted_methods", ["card", "paypal", "cash", "card_paypal", "all"]).default("cash").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
+}, (table) => ({
+  clientIdx: index("payment_settings_client_idx").on(table.clientId),
+}));
+
+export type ClientPaymentSetting = typeof clientPaymentSettings.$inferSelect;
+export type InsertClientPaymentSetting = typeof clientPaymentSettings.$inferInsert;
+
 // ─── Bookings (Reservations) ───────────────────────────────────
 export const bookings = mysqlTable("bookings", {
   id: serial("id").primaryKey(),

@@ -22,6 +22,7 @@ import AdminSettings from '@/components/admin/AdminSettings';
 import AdminReports from '@/components/admin/AdminReports';
 import AdminCompanyProfile from '@/components/admin/AdminCompanyProfile';
 import AdminEmailSettings from '@/components/admin/AdminEmailSettings';
+import AdminPaymentSettings from '@/components/admin/AdminPaymentSettings';
 
 const statusConfig: Record<string, { label: string; icon: React.ReactNode; bg: string; text: string }> = {
   confirmed: { label: 'common.confirmed', icon: <CheckCircle size={14} weight="fill" />, bg: 'bg-[rgba(45,106,79,0.1)]', text: 'text-[#2D6A4F]' },
@@ -53,6 +54,7 @@ export default function AdminPanel() {
     { icon: <ChartBar size={20} />, label: t('admin.reports'), id: 'reports' },
     { icon: <Buildings size={20} />, label: t('admin.companyProfile') || 'Company Profile', id: 'companyProfile' },
     { icon: <EnvelopeSimple size={20} />, label: t('admin.emailSettings') || 'Email Settings', id: 'emailSettings' },
+    { icon: <CreditCard size={20} />, label: t('admin.paymentSettings') || 'Payments', id: 'paymentSettings' },
     { icon: <Gear size={20} />, label: t('admin.settings'), id: 'settings' },
   ];
 
@@ -197,6 +199,7 @@ export default function AdminPanel() {
       case 'optionalServices': return <AdminOptionalServices clientId={clientId} />;
       case 'companyProfile': return <AdminCompanyProfile clientId={clientId} />;
       case 'emailSettings': return <AdminEmailSettings />;
+      case 'paymentSettings': return <AdminPaymentSettings />;
       case 'settings': return <AdminSettings clientId={clientId} />;
       case 'reports': return <AdminReports />;
       default: return (

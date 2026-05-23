@@ -15,6 +15,7 @@ import { serviceTourRouter } from "./service-tour-router";
 import { reportsRouter } from "./reports-router";
 import { companyProfileRouter } from "./company-profile-router";
 import { emailSettingsRouter } from "./email-settings-router";
+import { paymentSettingsRouter } from "./payment-settings-router";
 
 import { createRouter, publicQuery } from "./middleware";
 
@@ -37,6 +38,7 @@ export const appRouter = createRouter({
   reports: reportsRouter,
   companyProfile: companyProfileRouter,
   emailSettings: emailSettingsRouter,
+  paymentSettings: paymentSettingsRouter,
 });
 
 export type AppRouter = typeof appRouter;
