@@ -11,6 +11,7 @@ import {
 } from '@phosphor-icons/react';
 import { trpc } from '@/providers/trpc.tsx';
 import type { BookingData } from '@/types';
+import PayPalButton from '@/components/PayPalButton';
 
 interface BookingWidgetProps {
   apiKey?: string;
@@ -83,6 +84,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
   const [destSearch, setDestSearch] = useState('');
   const [showDestSearch, setShowDestSearch] = useState(false);
   const [bookingError, setBookingError] = useState('');
+  const [paypalOrderId, setPaypalOrderId] = useState('');
 
   // Query client config from apiKey
   const { data: clientConfig } = trpc.widget.config.useQuery(
@@ -956,10 +958,58 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                     <p className="font-body text-xs text-[#B23A2F] text-center">{bookingError}</p>
                   </div>
                 )}
-                <button onClick={handleNext} disabled={!canProceed() || createBooking.isPending}
-                  className={`w-full h-[52px] rounded-lg font-body font-semibold text-base transition-all ${canProceed() && !bookingError ? 'bg-terracotta text-white shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5' : 'bg-terracotta/50 text-white/70 cursor-not-allowed'}`}>
-                  {createBooking.isPending ? t('widget.step4.processing') : `${t('widget.step5.payNow') || 'Pay'} $${amountToPayNow.toFixed(2)} USD`}
-                </button>
+
+                {/* PayPal Button */}
+                {booking.paymentMethod === 'paypal' ? (
+                  <PayPalButton
+                    apiKey={apiKey}
+                    amount={amountToPayNow.toFixed(2)}
+                    description={`${selectedService?.name} — ${selectedDestination?.name}`}
+                    onApproved={(orderId) => {
+                      setPaypalOrderId(orderId);
+                      setBookingError('');
+                      // Create booking after PayPal payment is approved
+                      if (clientConfig?.id && selectedDestination && selectedVehicle && apiKey) {
+                        createBooking.mutate({
+                          apiKey,
+                          serviceId: Number(booking.serviceId),
+                          destinationId: Number(booking.destinationId),
+                          tripType: booking.tripType || 'one_way',
+                          origin: booking.origin || (isAirportService ? 'Cancun International Airport (CUN)' : ''),
+                          destination: selectedDestination.name,
+                          date: booking.date,
+                          time: booking.time,
+                          passengers: booking.passengers,
+                          vehicleId: Number(booking.vehicleId),
+                          passengerName: booking.passengerName,
+                          passengerLastName: booking.passengerLastName,
+                          passengerEmail: booking.passengerEmail,
+                          passengerPhone: booking.passengerPhone || undefined,
+                          passengerNotes: booking.passengerNotes || undefined,
+                          selectedOptionalServices: booking.selectedOptionalServices.length > 0 ? booking.selectedOptionalServices : undefined,
+                          luggage: booking.luggage,
+                          flightNumber: booking.flightNumber || undefined,
+                          airline: booking.airline || undefined,
+                          departureDate: booking.departureDate || undefined,
+                          departureTime: booking.departureTime || undefined,
+                          departureAirline: booking.departureAirline || undefined,
+                          departureFlightNumber: booking.departureFlightNumber || undefined,
+                          hotelPickupTime: booking.hotelPickupTime || undefined,
+                          paymentMethod: booking.paymentMethod,
+                          paymentOption: booking.paymentOption,
+                        });
+                      }
+                    }}
+                    onError={(error) => {
+                      setBookingError(error);
+                    }}
+                  />
+                ) : (
+                  <button onClick={handleNext} disabled={!canProceed() || createBooking.isPending}
+                    className={`w-full h-[52px] rounded-lg font-body font-semibold text-base transition-all ${canProceed() && !bookingError ? 'bg-terracotta text-white shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5' : 'bg-terracotta/50 text-white/70 cursor-not-allowed'}`}>
+                    {createBooking.isPending ? t('widget.step4.processing') : `${t('widget.step5.payNow') || 'Pay'} $${amountToPayNow.toFixed(2)} USD`}
+                  </button>
+                )}
               </div>
             )}
           </motion.div>
