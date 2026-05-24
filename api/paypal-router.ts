@@ -12,6 +12,19 @@ async function getPaypalAccessToken(clientId: string, clientSecret: string, isSa
     ? "https://api-m.sandbox.paypal.com"
     : "https://api-m.paypal.com";
 
+  // Log truncated credentials for debugging (first 8 chars + last 4)
+  const cIdPreview = clientId.length > 12 ? `${clientId.slice(0, 8)}...${clientId.slice(-4)}` : `${clientId.slice(0, 4)}***`;
+  const cSecPreview = clientSecret.length > 12 ? `${clientSecret.slice(0, 8)}...${clientSecret.slice(-4)}` : `${clientSecret.slice(0, 4)}***`;
+  console.log(`[PayPal] getAccessToken: clientId=${cIdPreview}, secret=${cSecPreview}, sandbox=${isSandbox}`);
+
+  // Validate credentials are not empty
+  if (!clientId || clientId.trim() === '') {
+    throw new Error("PayPal Client ID is empty");
+  }
+  if (!clientSecret || clientSecret.trim() === '') {
+    throw new Error("PayPal Client Secret is empty");
+  }
+
   const response = await fetch(`${baseUrl}/v1/oauth2/token`, {
     method: "POST",
     headers: {
@@ -23,6 +36,7 @@ async function getPaypalAccessToken(clientId: string, clientSecret: string, isSa
 
   if (!response.ok) {
     const err = await response.text();
+    console.error(`[PayPal] auth failed: ${err}`);
     throw new Error(`PayPal auth failed: ${err}`);
   }
 
@@ -89,11 +103,13 @@ export const paypalRouter = createRouter({
         [client.id]
       );
       const settings = (settingsRows as any[])[0];
+      console.log(`[PayPal] createOrder: clientId=${client.id}, has_client_id=${!!settings?.paypal_client_id}, has_secret=${!!settings?.paypal_client_secret}`);
       if (!settings?.paypal_client_id || !settings?.paypal_client_secret) {
         throw new Error("PayPal not configured");
       }
 
       const isSandbox = settings.test_mode ?? true;
+      console.log(`[PayPal] createOrder: testMode=${isSandbox}`);
       const accessToken = await getPaypalAccessToken(
         settings.paypal_client_id,
         settings.paypal_client_secret,
