@@ -16,12 +16,14 @@ export const paymentSettingsRouter = createRouter({
       );
       const result = (rows as any[])[0];
       if (result) {
+        // MySQL BOOLEAN returns 0/1 numbers, convert to true boolean
+        const toBool = (v: any) => v === 1 || v === true || v === "1";
         return {
-          testMode: result.test_mode ?? true,
-          stripeEnabled: result.stripe_enabled ?? false,
+          testMode: toBool(result.test_mode),
+          stripeEnabled: toBool(result.stripe_enabled),
           stripeSecretKey: result.stripe_secret_key ?? "",
           stripePublishableKey: result.stripe_publishable_key ?? "",
-          paypalEnabled: result.paypal_enabled ?? false,
+          paypalEnabled: toBool(result.paypal_enabled),
           paypalClientId: result.paypal_client_id ?? "",
           paypalClientSecret: result.paypal_client_secret ?? "",
           acceptedMethods: result.accepted_methods ?? "cash",
@@ -45,11 +47,11 @@ export const paymentSettingsRouter = createRouter({
   update: clientAuthedQuery
     .input(
       z.object({
-        testMode: z.boolean().optional(),
-        stripeEnabled: z.boolean().optional(),
+        testMode: z.union([z.boolean(), z.number()]).optional().transform(v => v === 1 || v === true || v === "1"),
+        stripeEnabled: z.union([z.boolean(), z.number()]).optional().transform(v => v === 1 || v === true || v === "1"),
         stripeSecretKey: z.string().max(255).nullable().optional(),
         stripePublishableKey: z.string().max(255).nullable().optional(),
-        paypalEnabled: z.boolean().optional(),
+        paypalEnabled: z.union([z.boolean(), z.number()]).optional().transform(v => v === 1 || v === true || v === "1"),
         paypalClientId: z.string().max(255).nullable().optional(),
         paypalClientSecret: z.string().max(255).nullable().optional(),
         acceptedMethods: z.enum(["card", "paypal", "cash", "card_paypal", "all"]).optional(),

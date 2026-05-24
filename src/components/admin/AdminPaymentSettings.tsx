@@ -26,13 +26,16 @@ export default function AdminPaymentSettings() {
   const [acceptedMethods, setAcceptedMethods] = useState('cash');
   const [saved, setSaved] = useState(false);
 
+  // Normalize MySQL 0/1 to boolean
+  const toBool = (v: any) => v === 1 || v === true || v === "1";
+
   useEffect(() => {
     if (settings) {
-      setTestMode(settings.testMode ?? true);
-      setStripeEnabled(settings.stripeEnabled ?? false);
+      setTestMode(toBool(settings.testMode));
+      setStripeEnabled(toBool(settings.stripeEnabled));
       setStripeSecretKey(settings.stripeSecretKey ?? '');
       setStripePublishableKey(settings.stripePublishableKey ?? '');
-      setPaypalEnabled(settings.paypalEnabled ?? false);
+      setPaypalEnabled(toBool(settings.paypalEnabled));
       setPaypalClientId(settings.paypalClientId ?? '');
       setPaypalClientSecret(settings.paypalClientSecret ?? '');
       setAcceptedMethods(settings.acceptedMethods ?? 'cash');
