@@ -9,8 +9,10 @@ export default function AdminPaymentSettings() {
   const utils = trpc.useUtils();
 
   const { data: settings, isLoading } = trpc.paymentSettings.get.useQuery();
+  const [saveError, setSaveError] = useState('');
   const updateSettings = trpc.paymentSettings.update.useMutation({
-    onSuccess: () => { utils.paymentSettings.get.invalidate(); setSaved(true); setTimeout(() => setSaved(false), 2000); },
+    onSuccess: () => { utils.paymentSettings.get.invalidate(); setSaved(true); setSaveError(''); setTimeout(() => setSaved(false), 2000); },
+    onError: (err) => { setSaveError(err.message || 'Failed to save'); },
   });
   const testPayment = trpc.paymentSettings.testPayment.useMutation();
 
@@ -241,6 +243,13 @@ export default function AdminPaymentSettings() {
           </div>
         )}
       </div>
+
+      {/* Save Error */}
+      {saveError && (
+        <div className="mb-4 p-3 bg-[rgba(178,58,47,0.08)] border border-[rgba(178,58,47,0.2)] rounded-lg">
+          <p className="font-body text-xs text-[#B23A2F]">{saveError}</p>
+        </div>
+      )}
 
       {/* Save */}
       <div className="flex items-center gap-3">

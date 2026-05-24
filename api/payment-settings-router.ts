@@ -66,6 +66,7 @@ export const paymentSettingsRouter = createRouter({
         );
 
         if ((existingRows as any[]).length === 0) {
+          console.log("[PaymentSettings] INSERT new record clientId=", clientId);
           await rawDb.execute(
             `INSERT INTO client_payment_settings
              (clientId, test_mode, stripe_enabled, stripe_secret_key, stripe_publishable_key,
@@ -81,7 +82,9 @@ export const paymentSettingsRouter = createRouter({
              input.paypalClientSecret ?? "",
              input.acceptedMethods ?? "cash"]
           );
+          console.log("[PaymentSettings] INSERT success clientId=", clientId);
         } else {
+          console.log("[PaymentSettings] UPDATE existing record clientId=", clientId, "sets=", sets.length);
           const sets: string[] = [];
           const values: any[] = [];
 
@@ -105,8 +108,19 @@ export const paymentSettingsRouter = createRouter({
 
         return { success: true };
       } catch (err: any) {
-        console.error("[PaymentSettings] UPDATE error:", err?.message || String(err));
-        throw new Error("Failed to save payment settings: " + (err?.message || String(err)));
+        const errMsg = err?.message || String(err);
+        console.error("[PaymentSettings] UPDATE error:", errMsg);
+        // Check if column doesn't exist
+        if (errMsg.includes("Unknown column") || errMsg.includes("doesn't have a column") || errMsg.includes("field list")) {
+          console.error("[PaymentSettings] Column missing error - table may need migration");
+        }
+        console.error("[PaymentSettings] Input was:", JSON.stringify({
+          paypalEnabled: input.paypalEnabled,
+          paypalClientId: input.paypalClientId ? 'SET' : 'NOT_SET',
+          paypalClientSecret: input.paypalClientSecret ? 'SET' : 'NOT_SET',
+          testMode: input.testMode,
+        }));
+        throw new Error("Failed to save: " + errMsg);
       }
     }),
 
