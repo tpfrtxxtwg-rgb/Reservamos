@@ -86,9 +86,9 @@ export const paymentSettingsRouter = createRouter({
           );
           console.log("[PaymentSettings] INSERT success clientId=", clientId);
         } else {
-          console.log("[PaymentSettings] UPDATE existing record clientId=", clientId, "sets=", sets.length);
           const sets: string[] = [];
           const values: any[] = [];
+          console.log("[PaymentSettings] UPDATE existing record clientId=", clientId);
 
           if (input.testMode !== undefined) { sets.push("test_mode = ?"); values.push(input.testMode); }
           if (input.stripeEnabled !== undefined) { sets.push("stripe_enabled = ?"); values.push(input.stripeEnabled); }
