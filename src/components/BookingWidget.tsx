@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
@@ -73,6 +73,23 @@ const airlines = [
 
 const timeSlots = ['05:00 AM','05:30 AM','06:00 AM','06:30 AM','07:00 AM','07:30 AM','08:00 AM','08:30 AM','09:00 AM','09:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM','12:00 PM','12:30 PM','01:00 PM','01:30 PM','02:00 PM','02:30 PM','03:00 PM','03:30 PM','04:00 PM','04:30 PM','05:00 PM','05:30 PM','06:00 PM','06:30 PM','07:00 PM','07:30 PM','08:00 PM','08:30 PM','09:00 PM','09:30 PM','10:00 PM'];
 
+/** Darken a hex color by a percentage (0-100) */
+function darkenColor(hex: string, percent: number): string {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+  const r = Math.max(0, Math.floor(rgb.r * (1 - percent / 100)));
+  const g = Math.max(0, Math.floor(rgb.g * (1 - percent / 100)));
+  const b = Math.max(0, Math.floor(rgb.b * (1 - percent / 100)));
+  return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
+}
+
+function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) }
+    : null;
+}
+
 export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: BookingWidgetProps) {
   const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(1);
@@ -94,6 +111,19 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
 
   const effectiveClientId = clientConfig?.id || 0;
   const isReady = effectiveClientId > 0;
+
+  // Apply client primary color to CSS variables
+  useEffect(() => {
+    if (!clientConfig?.primaryColor) return;
+    const root = document.documentElement;
+    root.style.setProperty("--terracotta", clientConfig.primaryColor);
+    const darker = darkenColor(clientConfig.primaryColor, 20);
+    root.style.setProperty("--terracotta-dark", darker);
+    const rgb = hexToRgb(clientConfig.primaryColor);
+    if (rgb) {
+      root.style.setProperty("--terracotta-rgb", `${rgb.r}, ${rgb.g}, ${rgb.b}`);
+    }
+  }, [clientConfig?.primaryColor]);
 
   const { data: servicesList, isLoading: servicesLoading } = trpc.widget.listServices.useQuery(
     { clientId: effectiveClientId },
