@@ -18,6 +18,7 @@ import { emailSettingsRouter } from "./email-settings-router";
 import { paymentSettingsRouter } from "./payment-settings-router";
 import { paypalRouter } from "./paypal-router";
 import { couponRouter } from "./coupon-router";
+import { stripeSubscriptionRouter } from "./stripe-subscription-router";
 
 import { createRouter, publicQuery } from "./middleware";
 
@@ -43,6 +44,7 @@ export const appRouter = createRouter({
   paymentSettings: paymentSettingsRouter,
   paypal: paypalRouter,
   coupon: couponRouter,
+  stripeSubscription: stripeSubscriptionRouter,
 });
 
 export type AppRouter = typeof appRouter;

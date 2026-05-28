@@ -8,4 +8,7 @@ export const env = {
   kimiAuthUrl: process.env.KIMI_AUTH_URL || "https://auth.kimi.com",
   kimiOpenUrl: process.env.KIMI_OPEN_URL || "https://open.kimi.com",
   ownerUnionId: process.env.OWNER_UNION_ID ?? "",
+  // Owner Stripe account for subscription payments
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY || "",
+  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || "",
 };
