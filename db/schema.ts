@@ -288,6 +288,74 @@ export const clientPaymentSettings = mysqlTable("client_payment_settings", {
 export type ClientPaymentSetting = typeof clientPaymentSettings.$inferSelect;
 export type InsertClientPaymentSetting = typeof clientPaymentSettings.$inferInsert;
 
+// ─── Coupons (Discount codes for annual subscriptions) ──────────
+export const coupons = mysqlTable("coupons", {
+  id: serial("id").primaryKey(),
+  code: varchar("code", { length: 50 }).notNull().unique(),
+  discountPercent: int("discount_percent", { unsigned: true }).notNull(), // 10 = 10% off
+  maxUses: int("max_uses", { unsigned: true }).default(1).notNull(),
+  usesCount: int("uses_count", { unsigned: true }).default(0).notNull(),
+  active: boolean("active").default(true).notNull(),
+  description: varchar("description", { length: 255 }),
+  validUntil: timestamp("valid_until"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  codeIdx: index("coupons_code_idx").on(table.code),
+}));
+
+export type Coupon = typeof coupons.$inferSelect;
+export type InsertCoupon = typeof coupons.$inferInsert;
+
+// ─── Client Subscriptions (Annual plan with trial) ──────────
+export const clientSubscriptions = mysqlTable("client_subscriptions", {
+  id: serial("id").primaryKey(),
+  clientId: bigint("clientId", { mode: "number", unsigned: true }).notNull().references(() => clients.id).unique(),
+  // Trial period
+  trialStart: timestamp("trial_start"),
+  trialEnd: timestamp("trial_end"),
+  // Annual plan period
+  planStart: timestamp("plan_start"),
+  planEnd: timestamp("plan_end"),
+  // Status
+  status: mysqlEnum("status", ["trial", "active", "expired", "cancelled"]).default("trial").notNull(),
+  // Plan details
+  annualPrice: decimal("annual_price", { precision: 10, scale: 2 }).notNull().default("600.00"),
+  couponCode: varchar("coupon_code", { length: 50 }),
+  discountApplied: int("discount_applied", { unsigned: true }).default(0),
+  finalAmount: decimal("final_amount", { precision: 10, scale: 2 }),
+  // Stripe
+  stripeCustomerId: varchar("stripe_customer_id", { length: 255 }),
+  stripeSubscriptionId: varchar("stripe_subscription_id", { length: 255 }),
+  stripePaymentMethodId: varchar("stripe_payment_method_id", { length: 255 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
+}, (table) => ({
+  clientIdx: index("subscriptions_client_idx").on(table.clientId),
+}));
+
+export type ClientSubscription = typeof clientSubscriptions.$inferSelect;
+export type InsertClientSubscription = typeof clientSubscriptions.$inferInsert;
+
+// ─── Subscription Payments (Payment history) ──────────
+export const subscriptionPayments = mysqlTable("subscription_payments", {
+  id: serial("id").primaryKey(),
+  clientId: bigint("clientId", { mode: "number", unsigned: true }).notNull().references(() => clients.id),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).default("USD").notNull(),
+  status: mysqlEnum("status", ["pending", "succeeded", "failed", "refunded"]).default("pending").notNull(),
+  description: varchar("description", { length: 255 }),
+  // Stripe
+  stripePaymentIntentId: varchar("stripe_payment_intent_id", { length: 255 }),
+  stripeInvoiceId: varchar("stripe_invoice_id", { length: 255 }),
+  paidAt: timestamp("paid_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  clientIdx: index("sub_payments_client_idx").on(table.clientId),
+}));
+
+export type SubscriptionPayment = typeof subscriptionPayments.$inferSelect;
+export type InsertSubscriptionPayment = typeof subscriptionPayments.$inferInsert;
+
 // ─── Bookings (Reservations) ───────────────────────────────────
 export const bookings = mysqlTable("bookings", {
   id: serial("id").primaryKey(),

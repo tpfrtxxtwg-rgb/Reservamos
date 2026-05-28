@@ -17,6 +17,7 @@ import { companyProfileRouter } from "./company-profile-router";
 import { emailSettingsRouter } from "./email-settings-router";
 import { paymentSettingsRouter } from "./payment-settings-router";
 import { paypalRouter } from "./paypal-router";
+import { couponRouter } from "./coupon-router";
 
 import { createRouter, publicQuery } from "./middleware";
 
@@ -41,6 +42,7 @@ export const appRouter = createRouter({
   emailSettings: emailSettingsRouter,
   paymentSettings: paymentSettingsRouter,
   paypal: paypalRouter,
+  coupon: couponRouter,
 });
 
 export type AppRouter = typeof appRouter;

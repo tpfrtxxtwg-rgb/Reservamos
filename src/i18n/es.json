@@ -332,7 +332,17 @@
     "stripePublishableKey": "Publishable Key",
     "stripeSecretKey": "Secret Key",
     "paypalClientId": "Client ID",
-    "paypalClientSecret": "Client Secret"
+    "paypalClientSecret": "Client Secret",
+    "coupons": "Cupones",
+    "couponsDesc": "Administra códigos de descuento para suscripciones anuales",
+    "newCoupon": "Nuevo Cupón",
+    "couponCode": "Código",
+    "discountPercent": "% Descuento",
+    "maxUses": "Usos Máximos",
+    "couponCreated": "Cupón creado exitosamente",
+    "noCoupons": "Aún no hay cupones. Crea tu primer código de descuento.",
+    "couponPreview": "Vista previa",
+    "couponDescPlaceholder": "ej. Promoción de lanzamiento 2025"
   },
   "lang": {
     "en": "English",
