@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
-  Buildings, CalendarCheck, CalendarX, Timer,
-  ToggleLeft, ToggleRight, Search,
+  Buildings, Timer,
+  MagnifyingGlass, CreditCard,
+  Tag, CheckCircle, XCircle, Clock,
+  ShieldWarning,
 } from '@phosphor-icons/react';
 import { trpc } from '@/providers/trpc';
 
@@ -71,7 +73,7 @@ export default function AdminCompanies() {
 
       {/* Search */}
       <div className="relative mb-4">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
+        <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
         <input
           type="text"
           value={search}
