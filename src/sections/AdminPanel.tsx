@@ -24,6 +24,7 @@ import AdminCompanyProfile from '@/components/admin/AdminCompanyProfile';
 import AdminEmailSettings from '@/components/admin/AdminEmailSettings';
 import AdminPaymentSettings from '@/components/admin/AdminPaymentSettings';
 import AdminCoupons from '@/components/admin/AdminCoupons';
+import AdminCompanies from '@/components/admin/AdminCompanies';
 
 const statusConfig: Record<string, { label: string; icon: React.ReactNode; bg: string; text: string }> = {
   confirmed: { label: 'common.confirmed', icon: <CheckCircle size={14} weight="fill" />, bg: 'bg-[rgba(45,106,79,0.1)]', text: 'text-[#2D6A4F]' },
