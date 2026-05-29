@@ -13,6 +13,7 @@ interface ClientAuthContextType {
   user: ClientUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  isSuperAdmin: boolean;
   logout: () => void;
   refetch: () => void;
 }
@@ -22,6 +23,7 @@ const ClientAuthContext = createContext<ClientAuthContextType>({
   isLoading: true,
   isAuthenticated: false,
   logout: () => {},
+  isSuperAdmin: false,
   refetch: () => {},
 });
 
@@ -61,6 +63,7 @@ export function ClientAuthProvider({ children }: { children: ReactNode }) {
         isLoading,
         isAuthenticated: !!user,
         logout,
+        isSuperAdmin: user?.role === "super_admin",
         refetch,
       }}
     >

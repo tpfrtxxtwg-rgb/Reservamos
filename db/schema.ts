@@ -64,7 +64,7 @@ export const clientUsers = mysqlTable("client_users", {
   email: varchar("email", { length: 320 }).notNull().unique(),
   passwordHash: varchar("password_hash", { length: 255 }).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
-  role: mysqlEnum("role", ["owner", "admin", "operator"]).default("owner").notNull(),
+  role: mysqlEnum("role", ["owner", "admin", "operator", "super_admin"]).default("owner").notNull(),
   active: boolean("active").default(true).notNull(),
   lastSignInAt: timestamp("last_sign_in_at").defaultNow().notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

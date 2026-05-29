@@ -34,7 +34,7 @@ const statusConfig: Record<string, { label: string; icon: React.ReactNode; bg: s
 export default function AdminPanel() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { user, logout } = useClientAuth();
+  const { user, logout, isSuperAdmin } = useClientAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedReservation, setSelectedReservation] = useState<Booking | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -53,6 +53,7 @@ export default function AdminPanel() {
     { icon: <Users size={20} />, label: t('admin.drivers'), id: 'drivers' },
     { icon: <Calendar size={20} />, label: t('admin.calendar'), id: 'calendar' },
     { icon: <ChartBar size={20} />, label: t('admin.reports'), id: 'reports' },
+    ...(isSuperAdmin ? [{ icon: <Buildings size={20} />, label: t('admin.companies') || 'Companies', id: 'companies' }] : []),
     { icon: <Buildings size={20} />, label: t('admin.companyProfile') || 'Company Profile', id: 'companyProfile' },
     { icon: <EnvelopeSimple size={20} />, label: t('admin.emailSettings') || 'Email Settings', id: 'emailSettings' },
     { icon: <CreditCard size={20} />, label: t('admin.paymentSettings') || 'Payments', id: 'paymentSettings' },
@@ -205,6 +206,7 @@ export default function AdminPanel() {
       case 'coupons': return <AdminCoupons />;
       case 'settings': return <AdminSettings clientId={clientId} />;
       case 'reports': return <AdminReports />;
+      case 'companies': return <AdminCompanies />;
       default: return (
         <div className="flex items-center justify-center h-64">
           <div className="text-center">

@@ -54,3 +54,4 @@ const requireClientAuth = t.middleware(async (opts) => {
 export const authedQuery = t.procedure.use(requireAuth);
 export const adminQuery = authedQuery.use(requireRole("admin"));
 export const clientAuthedQuery = t.procedure.use(requireClientAuth);
+export const superAdminQuery = clientAuthedQuery.use(requireRole("super_admin"));
