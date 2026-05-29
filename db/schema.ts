@@ -20,7 +20,7 @@ export const users = mysqlTable("users", {
   name: varchar("name", { length: 255 }),
   email: varchar("email", { length: 320 }),
   avatar: text("avatar"),
-  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  role: mysqlEnum("role", ["owner", "admin", "operator", "super_admin"]).default("owner").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => new Date()),
   lastSignInAt: timestamp("lastSignInAt").defaultNow().notNull(),
@@ -64,7 +64,7 @@ export const clientUsers = mysqlTable("client_users", {
   email: varchar("email", { length: 320 }).notNull().unique(),
   passwordHash: varchar("password_hash", { length: 255 }).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
-  role: mysqlEnum("role", ["owner", "admin", "operator"]).default("owner").notNull(),
+  role: mysqlEnum("role", ["owner", "admin", "operator", "super_admin"]).default("owner").notNull(),
   active: boolean("active").default(true).notNull(),
   lastSignInAt: timestamp("last_sign_in_at").defaultNow().notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -238,12 +238,17 @@ export const clientEmailSettings = mysqlTable("client_email_settings", {
   subject: varchar("subject", { length: 255 }).default("Your Reservation Confirmation").notNull(),
   message: text("message").default("Thank you for your reservation. We look forward to serving you.").notNull(),
   pickupInstructions: text("pickupInstructions").default("").notNull(),
+  // Email provider selection
+  emailProvider: mysqlEnum("email_provider", ["smtp", "sendgrid", "resend"]).default("smtp").notNull(),
   // SMTP configuration
   smtpHost: varchar("smtp_host", { length: 255 }),
   smtpPort: int("smtp_port").default(587),
   smtpUser: varchar("smtp_user", { length: 255 }),
   smtpPass: varchar("smtp_pass", { length: 255 }),
   smtpFrom: varchar("smtp_from", { length: 320 }),
+  // API keys for HTTP-based providers (SendGrid, Resend)
+  sendgridApiKey: varchar("sendgrid_api_key", { length: 255 }),
+  resendApiKey: varchar("resend_api_key", { length: 255 }),
   // Company contact info for the PDF/email
   companyPhone: varchar("company_phone", { length: 50 }),
   companyWebsite: varchar("company_website", { length: 255 }),
@@ -255,6 +260,101 @@ export const clientEmailSettings = mysqlTable("client_email_settings", {
 
 export type ClientEmailSetting = typeof clientEmailSettings.$inferSelect;
 export type InsertClientEmailSetting = typeof clientEmailSettings.$inferInsert;
+
+// ─── Client Payment Settings (Stripe, PayPal, Test Mode) ──────────
+export const clientPaymentSettings = mysqlTable("client_payment_settings", {
+  id: serial("id").primaryKey(),
+  clientId: bigint("clientId", { mode: "number", unsigned: true }).notNull().references(() => clients.id),
+  // Test mode toggle
+  testMode: boolean("test_mode").default(true).notNull(),
+  // Stripe configuration
+  stripeEnabled: boolean("stripe_enabled").default(false).notNull(),
+  stripeSecretKey: varchar("stripe_secret_key", { length: 255 }),
+  stripePublishableKey: varchar("stripe_publishable_key", { length: 255 }),
+  stripeWebhookSecret: varchar("stripe_webhook_secret", { length: 255 }),
+  // PayPal configuration
+  paypalEnabled: boolean("paypal_enabled").default(false).notNull(),
+  paypalClientId: varchar("paypal_client_id", { length: 255 }),
+  paypalClientSecret: varchar("paypal_client_secret", { length: 255 }),
+  paypalWebhookId: varchar("paypal_webhook_id", { length: 255 }),
+  // Which payment methods are available to customers
+  acceptedMethods: mysqlEnum("accepted_methods", ["card", "paypal", "cash", "card_paypal", "all"]).default("cash").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
+}, (table) => ({
+  clientIdx: index("payment_settings_client_idx").on(table.clientId),
+}));
+
+export type ClientPaymentSetting = typeof clientPaymentSettings.$inferSelect;
+export type InsertClientPaymentSetting = typeof clientPaymentSettings.$inferInsert;
+
+// ─── Coupons (Discount codes for annual subscriptions) ──────────
+export const coupons = mysqlTable("coupons", {
+  id: serial("id").primaryKey(),
+  code: varchar("code", { length: 50 }).notNull().unique(),
+  discountPercent: int("discount_percent", { unsigned: true }).notNull(), // 10 = 10% off
+  maxUses: int("max_uses", { unsigned: true }).default(1).notNull(),
+  usesCount: int("uses_count", { unsigned: true }).default(0).notNull(),
+  active: boolean("active").default(true).notNull(),
+  description: varchar("description", { length: 255 }),
+  validUntil: timestamp("valid_until"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  codeIdx: index("coupons_code_idx").on(table.code),
+}));
+
+export type Coupon = typeof coupons.$inferSelect;
+export type InsertCoupon = typeof coupons.$inferInsert;
+
+// ─── Client Subscriptions (Annual plan with trial) ──────────
+export const clientSubscriptions = mysqlTable("client_subscriptions", {
+  id: serial("id").primaryKey(),
+  clientId: bigint("clientId", { mode: "number", unsigned: true }).notNull().references(() => clients.id).unique(),
+  // Trial period
+  trialStart: timestamp("trial_start"),
+  trialEnd: timestamp("trial_end"),
+  // Annual plan period
+  planStart: timestamp("plan_start"),
+  planEnd: timestamp("plan_end"),
+  // Status
+  status: mysqlEnum("status", ["trial", "active", "expired", "cancelled"]).default("trial").notNull(),
+  // Plan details
+  annualPrice: decimal("annual_price", { precision: 10, scale: 2 }).notNull().default("600.00"),
+  couponCode: varchar("coupon_code", { length: 50 }),
+  discountApplied: int("discount_applied", { unsigned: true }).default(0),
+  finalAmount: decimal("final_amount", { precision: 10, scale: 2 }),
+  // Stripe
+  stripeCustomerId: varchar("stripe_customer_id", { length: 255 }),
+  stripeSubscriptionId: varchar("stripe_subscription_id", { length: 255 }),
+  stripePaymentMethodId: varchar("stripe_payment_method_id", { length: 255 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
+}, (table) => ({
+  clientIdx: index("subscriptions_client_idx").on(table.clientId),
+}));
+
+export type ClientSubscription = typeof clientSubscriptions.$inferSelect;
+export type InsertClientSubscription = typeof clientSubscriptions.$inferInsert;
+
+// ─── Subscription Payments (Payment history) ──────────
+export const subscriptionPayments = mysqlTable("subscription_payments", {
+  id: serial("id").primaryKey(),
+  clientId: bigint("clientId", { mode: "number", unsigned: true }).notNull().references(() => clients.id),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).default("USD").notNull(),
+  status: mysqlEnum("status", ["pending", "succeeded", "failed", "refunded"]).default("pending").notNull(),
+  description: varchar("description", { length: 255 }),
+  // Stripe
+  stripePaymentIntentId: varchar("stripe_payment_intent_id", { length: 255 }),
+  stripeInvoiceId: varchar("stripe_invoice_id", { length: 255 }),
+  paidAt: timestamp("paid_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  clientIdx: index("sub_payments_client_idx").on(table.clientId),
+}));
+
+export type SubscriptionPayment = typeof subscriptionPayments.$inferSelect;
+export type InsertSubscriptionPayment = typeof subscriptionPayments.$inferInsert;
 
 // ─── Bookings (Reservations) ───────────────────────────────────
 export const bookings = mysqlTable("bookings", {
@@ -285,6 +385,9 @@ export const bookings = mysqlTable("bookings", {
   airline: varchar("airline", { length: 100 }),
   departureDate: varchar("departureDate", { length: 10 }),
   departureTime: varchar("departureTime", { length: 10 }),
+  departureAirline: varchar("departureAirline", { length: 100 }),
+  departureFlightNumber: varchar("departureFlightNumber", { length: 50 }),
+  hotelPickupTime: varchar("hotelPickupTime", { length: 10 }),
   paymentMethod: mysqlEnum("paymentMethod", ["card", "paypal", "cash"]).default("card").notNull(),
   status: mysqlEnum("status", ["confirmed", "pending", "cancelled"]).default("pending").notNull(),
   // Payment tracking
