@@ -66,4 +66,64 @@ function requireClientRole(role: string) {
     return next({ ctx: { ...ctx, clientUser: ctx.clientUser } });
   });
 }
+function requireClientRole(role: string) {
+  return t.middleware(async (opts) => {
+    const { ctx, next } = opts;
+    if (!ctx.clientUser || ctx.clientUser.role !== role) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Insufficient role. Super admin required.",
+      });
+    }
+    return next({ ctx: { ...ctx, clientUser: ctx.clientUser } });
+  });
+}
+function requireClientRole(role: string) {
+  return t.middleware(async (opts) => {
+    const { ctx, next } = opts;
+    if (!ctx.clientUser || ctx.clientUser.role !== role) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Insufficient role. Super admin required.",
+      });
+    }
+    return next({ ctx: { ...ctx, clientUser: ctx.clientUser } });
+  });
+}
+function requireClientRole(role: string) {
+  return t.middleware(async (opts) => {
+    const { ctx, next } = opts;
+    if (!ctx.clientUser || ctx.clientUser.role !== role) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Insufficient role. Super admin required.",
+      });
+    }
+    return next({ ctx: { ...ctx, clientUser: ctx.clientUser } });
+  });
+}
+function requireClientRole(role: string) {
+  return t.middleware(async (opts) => {
+    const { ctx, next } = opts;
+    if (!ctx.clientUser || ctx.clientUser.role !== role) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Insufficient role. Super admin required.",
+      });
+    }
+    return next({ ctx: { ...ctx, clientUser: ctx.clientUser } });
+  });
+}
+function requireClientRole(role: string) {
+  return t.middleware(async (opts) => {
+    const { ctx, next } = opts;
+    if (!ctx.clientUser || ctx.clientUser.role !== role) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Insufficient role. Super admin required.",
+      });
+    }
+    return next({ ctx: { ...ctx, clientUser: ctx.clientUser } });
+  });
+}
 export const superAdminQuery = clientAuthedQuery.use(requireClientRole("super_admin"));
