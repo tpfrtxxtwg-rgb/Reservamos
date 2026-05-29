@@ -95,9 +95,9 @@ export default function AdminCompanies() {
           {t('admin.companiesPlaceholder') || 'This section will display all registered companies with their trial status, plan dates, and subscription details once companies begin registering through the Stripe checkout flow.'}
         </p>
         <div className="mt-4 flex items-center justify-center gap-4 text-xs text-warm-gray">
-          <span className="flex items-center gap-1"><Timer size={14} /> {t('admin.trialPeriod') || '7-day trial'}</span>
-          <span className="flex items-center gap-1"><CalendarCheck size={14} /> {t('admin.annualPlan') || 'Annual plan'}</span>
-          <span className="flex items-center gap-1"><CalendarX size={14} /> {t('admin.autoRenewal') || 'Auto-renewal'}</span>
+          <span className="flex items-center gap-1"><CheckCircle size={14} /> {t('admin.trialPeriod') || '7-day trial'}</span>
+          <span className="flex items-center gap-1"><Timer size={14} /> {t('admin.annualPlan') || 'Annual plan'}</span>
+          <span className="flex items-center gap-1"><XCircle size={14} /> {t('admin.autoRenewal') || 'Auto-renewal'}</span>
         </div>
       </div>
     </div>
