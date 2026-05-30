@@ -8,15 +8,15 @@ export const companiesRouter = createRouter({
     try {
       const [rows] = await rawDb.execute(
         `SELECT 
-          c.id, c.name, c.email, c.apiKey, c.status as clientStatus,
-          c.primaryColor, c.createdAt as registeredAt,
-          cs.trialStart, cs.trialEnd, cs.planStart, cs.planEnd,
-          cs.status as subscriptionStatus,
-          cs.annualPrice, cs.couponCode, cs.discountApplied, cs.finalAmount,
-          cs.stripeCustomerId, cs.stripeSubscriptionId
-         FROM clients c
-         LEFT JOIN client_subscriptions cs ON cs.clientId = c.id
-         ORDER BY c.createdAt DESC`
+  c.id, c.name, c.email, c.apiKey, c.status as clientStatus,
+  c.primaryColor, c.createdAt as registeredAt,
+  cs.trial_start, cs.trial_end, cs.plan_start, cs.plan_end,
+  cs.status as subscriptionStatus,
+  cs.annual_price, cs.coupon_code, cs.discount_applied, cs.final_amount,
+  cs.stripe_customer_id, cs.stripe_subscription_id
+ FROM clients c
+ LEFT JOIN client_subscriptions cs ON cs.clientId = c.id
+ ORDER BY c.createdAt DESC`
       );
       return (rows as any[]).map((row: any) => {
         const trialEnd = row.trialEnd ? new Date(row.trialEnd) : null;
@@ -28,13 +28,26 @@ export const companiesRouter = createRouter({
           ? Math.max(0, Math.ceil((planEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
           : 0;
         return {
-          id: row.id, name: row.name, email: row.email,
-          trialDaysLeft, planDaysLeft,
-          subscriptionStatus: row.subscriptionStatus || 'none',
-          annualPrice: row.annualPrice, couponCode: row.couponCode,
-          discountApplied: row.discountApplied, finalAmount: row.finalAmount,
-          stripeCustomerId: row.stripeCustomerId,
-        };
+  id: row.id,
+  name: row.name,
+  email: row.email,
+  apiKey: row.apiKey,
+  clientStatus: row.clientStatus,
+  primaryColor: row.primaryColor,
+  registeredAt: row.registeredAt,
+  trialStart: row.trial_start,
+  trialEnd: row.trial_end,
+  trialDaysLeft,
+  planStart: row.plan_start,
+  planEnd: row.plan_end,
+  planDaysLeft,
+  subscriptionStatus: row.subscriptionStatus || 'none',
+  annualPrice: row.annual_price,
+  couponCode: row.coupon_code,
+  discountApplied: row.discount_applied,
+  finalAmount: row.final_amount,
+  stripeCustomerId: row.stripe_customer_id,
+};
       });
     } catch (err: any) {
       console.error("[Companies] list error:", err?.message);
