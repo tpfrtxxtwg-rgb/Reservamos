@@ -169,7 +169,7 @@ export default function AdminCompanies() {
             <h3 className="font-body text-sm font-semibold text-charcoal">{t('admin.paymentHistory') || 'Payment History'}</h3>
             <button onClick={() => setSelectedCompany(null)} className="text-warm-gray hover:text-charcoal"><XCircle size={18} /></button>
           </div>
-          {!payments || payments.length === 0 ? (p className="font-body text-sm text-warm-gray">{t('admin.noPayments') || 'No payments recorded.'.}</p>) : (
+          {!payments || payments.length === 0 ? (<p className="font-body text-sm text-warm-gray">{t('admin.noPayments') || 'No payments recorded.'.}</p>) : (
             <div className="space-y-2">
               {payments.map((p: any) => (
                 <div key={p.id} className="flex items-center justify-between p-3 bg-[#FAFAF8] rounded-lg">
