@@ -1,5 +1,6 @@
 import { z } from "zod";
 import Stripe from "stripe";
+import bcrypt from "bcryptjs";
 import { createRouter, publicQuery } from "./middleware";
 import { getRawDb } from "./queries/connection";
 
@@ -19,10 +20,7 @@ function getWebhookSecret(): string {
 export const stripeSubscriptionRouter = createRouter({
   checkConfig: publicQuery.query(() => {
     const pk = process.env.VITE_STRIPE_PUBLISHABLE_KEY || process.env.STRIPE_PUBLISHABLE_KEY || "";
-    return {
-      configured: !!process.env.STRIPE_SECRET_KEY,
-      publishableKey: pk,
-    };
+    return { configured: !!process.env.STRIPE_SECRET_KEY, publishableKey: pk };
   }),
 
   createSetupIntent: publicQuery
@@ -31,9 +29,7 @@ export const stripeSubscriptionRouter = createRouter({
       const s = getStripe();
       const customer = await s.customers.create({ email: input.email, name: input.name });
       const setupIntent = await s.setupIntents.create({
-        customer: customer.id,
-        usage: "off_session",
-        payment_method_types: ["card"],
+        customer: customer.id, usage: "off_session", payment_method_types: ["card"],
       });
       return { customerId: customer.id, clientSecret: setupIntent.client_secret };
     }),
@@ -62,9 +58,7 @@ export const stripeSubscriptionRouter = createRouter({
           const isActive = coupon.active === 1 || coupon.active === true;
           const notExpired = !coupon.validUntil || new Date(coupon.validUntil) > new Date();
           const hasUses = coupon.usesCount < coupon.maxUses;
-          if (isActive && notExpired && hasUses) {
-            discountPercent = coupon.discountPercent;
-          }
+          if (isActive && notExpired && hasUses) discountPercent = coupon.discountPercent;
         }
       }
 
@@ -84,49 +78,43 @@ export const stripeSubscriptionRouter = createRouter({
       });
 
       const price = await s.prices.create({
-        product: product.id,
-        unit_amount: finalAmountCents,
-        currency: "usd",
-        recurring: { interval: "year" },
+        product: product.id, unit_amount: finalAmountCents, currency: "usd", recurring: { interval: "year" },
       });
 
       const subscription = await s.subscriptions.create({
-        customer: input.customerId,
-        items: [{ price: price.id }],
-        trial_end: trialEnd,
+        customer: input.customerId, items: [{ price: price.id }], trial_end: trialEnd,
         payment_settings: { save_default_payment_method: "on_subscription" },
-        metadata: {
-          companyName: input.companyName,
-          couponCode: input.couponCode || "",
-          discountPercent: String(discountPercent),
-        },
+        metadata: { companyName: input.companyName, couponCode: input.couponCode || "", discountPercent: String(discountPercent) },
       });
 
       const apiKey = `rv_${Buffer.from(Math.random().toString()).toString("base64").slice(0, 20).replace(/[^a-zA-Z0-9]/g, "")}_${Date.now().toString(36)}`;
+      const passwordHash = await bcrypt.hash(input.companyPassword, 12);
 
       const [insertResult] = await rawDb.execute(
-        `INSERT INTO clients (name, email, password, apiKey, status, primaryColor, currency, timezone)
-         VALUES (?, ?, ?, ?, 'active', '#C75E3A', 'USD', 'America/Cancun')`,
-        [input.companyName, input.companyEmail, input.companyPassword, apiKey]
+        `INSERT INTO clients (name, email, apiKey, status, primaryColor, currency, timezone)
+         VALUES (?, ?, ?, 'active', '#C75E3A', 'USD', 'America/Cancun')`,
+        [input.companyName, input.companyEmail, apiKey]
       );
       const clientId = Number((insertResult as any).insertId);
+
+      await rawDb.execute(
+        `INSERT INTO client_users (client_id, email, password_hash, name, role, active, created_at, updated_at)
+         VALUES (?, ?, ?, ?, 'owner', true, NOW(), NOW())`,
+        [clientId, input.companyEmail, passwordHash, input.companyName]
+      );
 
       const trialStart = new Date();
       const trialEndDate = new Date(trialStart.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
 
       await rawDb.execute(
-        `INSERT INTO client_subscriptions
-         (clientId, trialStart, trialEnd, status, annualPrice, couponCode, discountApplied, finalAmount,
-          stripeCustomerId, stripeSubscriptionId, stripePaymentMethodId)
+        `INSERT INTO client_subscriptions (clientId, trialStart, trialEnd, status, annualPrice, couponCode, discountApplied, finalAmount, stripeCustomerId, stripeSubscriptionId, stripePaymentMethodId)
          VALUES (?, ?, ?, 'trial', 600.00, ?, ?, ?, ?, ?, ?)`,
         [
           clientId, trialStart, trialEndDate,
           input.couponCode?.toUpperCase() || null,
           discountPercent,
           (finalAmountCents / 100).toFixed(2),
-          input.customerId,
-          subscription.id,
-          input.paymentMethodId,
+          input.customerId, subscription.id, input.paymentMethodId,
         ]
       );
 
@@ -135,8 +123,7 @@ export const stripeSubscriptionRouter = createRouter({
       }
 
       return {
-        clientId,
-        apiKey,
+        clientId, apiKey,
         trialEnd: trialEndDate.toISOString(),
         subscriptionId: subscription.id,
         discountApplied: discountPercent,
@@ -149,10 +136,8 @@ export const stripeSubscriptionRouter = createRouter({
     .query(async ({ input }) => {
       const rawDb = getRawDb();
       const [rows] = await rawDb.execute(
-        `SELECT status, trialStart, trialEnd, planStart, planEnd,
-          annualPrice, couponCode, discountApplied, finalAmount
-         FROM client_subscriptions WHERE clientId = ? LIMIT 1`,
-        [input.clientId]
+        `SELECT status, trialStart, trialEnd, planStart, planEnd, annualPrice, couponCode, discountApplied, finalAmount
+         FROM client_subscriptions WHERE clientId = ? LIMIT 1`, [input.clientId]
       );
       const sub = (rows as any[])[0];
       if (!sub) return { status: "none", trialDaysLeft: 0 };

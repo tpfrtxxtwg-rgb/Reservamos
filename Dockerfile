@@ -10,7 +10,7 @@ RUN npm install
 COPY . .
 
 # Force cache invalidation - must change on every deploy
-ARG CACHE_BUST=20250530-14
+ARG CACHE_BUST=20250530-15
 RUN echo "Cache bust: ${CACHE_BUST}"
 
 # Build the application
