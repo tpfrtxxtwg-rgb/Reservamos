@@ -113,7 +113,7 @@ export const stripeSubscriptionRouter = createRouter({
       const trialEndDate = new Date(trialStart.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
 
       await rawDb.execute(
-        `INSERT INTO client_subscriptions (clientId, trialStart, trialEnd, status, annualPrice, couponCode, discountApplied, finalAmount, stripeCustomerId, stripe_subscription_id, stripePaymentMethodId)
+        `INSERT INTO client_subscriptions (client_id, trial_start, trial_end, status, annual_price, coupon_code, discount_applied, final_amount, stripe_customer_id, stripe_subscription_id, stripe_payment_method_id)
          VALUES (?, ?, ?, 'trial', 600.00, ?, ?, ?, ?, ?, ?)`,
         [
           clientId, trialStart, trialEndDate,
