@@ -107,7 +107,7 @@ export const stripeSubscriptionRouter = createRouter({
       const trialEndDate = new Date(trialStart.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
 
       await rawDb.execute(
-        `INSERT INTO client_subscriptions (clientId, trialStart, trialEnd, status, annualPrice, couponCode, discountApplied, finalAmount, stripeCustomerId, stripeSubscriptionId, stripePaymentMethodId)
+        `INSERT INTO client_subscriptions (clientId, trialStart, trialEnd, status, annualPrice, couponCode, discountApplied, finalAmount, stripeCustomerId, stripe_subscription_id, stripePaymentMethodId)
          VALUES (?, ?, ?, 'trial', 600.00, ?, ?, ?, ?, ?, ?)`,
         [
           clientId, trialStart, trialEndDate,
@@ -136,14 +136,14 @@ export const stripeSubscriptionRouter = createRouter({
     .query(async ({ input }) => {
       const rawDb = getRawDb();
       const [rows] = await rawDb.execute(
-        `SELECT status, trialStart, trialEnd, planStart, planEnd, annualPrice, couponCode, discountApplied, finalAmount
+        `SELECT status, trial_start, trial_end, plan_start, plan_end, annualPrice, couponCode, discountApplied, finalAmount
          FROM client_subscriptions WHERE clientId = ? LIMIT 1`, [input.clientId]
       );
       const sub = (rows as any[])[0];
       if (!sub) return { status: "none", trialDaysLeft: 0 };
-      const trialEnd = sub.trialEnd ? new Date(sub.trialEnd) : null;
+      const trialEnd = sub.trial_end ? new Date(sub.trialEnd) : null;
       const trialDaysLeft = trialEnd ? Math.max(0, Math.ceil((trialEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 0;
-      return { status: sub.status, trialDaysLeft, trialEnd: sub.trialEnd, planEnd: sub.planEnd };
+      return { status: sub.status, trialDaysLeft, trialEnd: sub.trial_end, planEnd: sub.plan_end };
     }),
 
   webhook: publicQuery
@@ -164,7 +164,7 @@ export const stripeSubscriptionRouter = createRouter({
           const invoice = event.data.object as Stripe.Invoice;
           const subId = invoice.subscription as string;
           await rawDb.execute(
-            "UPDATE client_subscriptions SET status='active', planStart=NOW(), planEnd=DATE_ADD(NOW(), INTERVAL 1 YEAR) WHERE stripeSubscriptionId=?",
+            "UPDATE client_subscriptions SET status='active', plan_start=NOW(), plan_end=DATE_ADD(NOW(), INTERVAL 1 YEAR) WHERE stripe_subscription_id=?",
             [subId]
           );
           break;
@@ -172,12 +172,12 @@ export const stripeSubscriptionRouter = createRouter({
         case "invoice.payment_failed": {
           const invoice = event.data.object as Stripe.Invoice;
           const subId = invoice.subscription as string;
-          await rawDb.execute("UPDATE client_subscriptions SET status='expired' WHERE stripeSubscriptionId=?", [subId]);
+          await rawDb.execute("UPDATE client_subscriptions SET status='expired' WHERE stripe_subscription_id=?", [subId]);
           break;
         }
         case "customer.subscription.deleted": {
           const subscription = event.data.object as Stripe.Subscription;
-          await rawDb.execute("UPDATE client_subscriptions SET status='cancelled' WHERE stripeSubscriptionId=?", [subscription.id]);
+          await rawDb.execute("UPDATE client_subscriptions SET status='cancelled' WHERE stripe_subscription_id=?", [subscription.id]);
           break;
         }
       }
