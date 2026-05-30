@@ -174,7 +174,7 @@ export default function AdminCompanies() {
               {payments.map((p: any) => (
                 <div key={p.id} className="flex items-center justify-between p-3 bg-[#FAFAF8] rounded-lg">
                   <div><p className="font-body text-sm text-charcoal">{p.description || 'Annual plan payment'}</p><p className="font-body text-[11px] text-warm-gray">{p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</p></div>
-                  <div className="text-right"><p className="font-body text-sm font-semibold text-charcoal">${p.amount}</p><span className={`inline-block px-2 py-0.5 rounded-full font-body text-[10px] font-medium ${p.status === 'succeeded' ? 'bg-[rgba(45,106,79,0.1)] text-[#2D6A4F]' : p.status === 'failed' ? 'bg-[rgba(178,58,47,0.1)] text-[B23A2F]' : 'bg-[rgba(199,94,58,0.1)] text-terracotta'}`>}{p.status}</span></div>
+                  <div className="text-right"><p className="font-body text-sm font-semibold text-charcoal">${p.amount}</p><span className={`inline-block px-2 py-0.5 rounded-full font-body text-[10px] font-medium ${p.status === 'succeeded' ? 'bg-[rgba(45,106,79,0.1)] text-[#2D6A4F]' : p.status === 'failed' ? 'bg-[rgba(178,58,47,0.1)] text-[#B23A2F]' : 'bg-[rgba(199,94,58,0.1)] text-terracotta'}`>}{p.status}</span></div>
                 </div>
               ))}
             </div>
