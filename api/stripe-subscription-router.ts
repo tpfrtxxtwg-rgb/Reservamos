@@ -78,22 +78,28 @@ export const stripeSubscriptionRouter = createRouter({
 
       const trialEnd = Math.floor(Date.now() / 1000) + TRIAL_DAYS * 24 * 60 * 60;
 
+      const product = await s.products.create({
+        name: "ReserVamos Annual Plan",
+        description: `${TRIAL_DAYS}-day trial, then $${(finalAmountCents / 100).toFixed(2)}/year`,
+      });
+
+      const price = await s.prices.create({
+        product: product.id,
+        unit_amount: finalAmountCents,
+        currency: "usd",
+        recurring: { interval: "year" },
+      });
+
       const subscription = await s.subscriptions.create({
         customer: input.customerId,
-        items: [{
-          price_data: {
-            currency: "usd",
-            unit_amount: finalAmountCents,
-            recurring: { interval: "year" },
-            product_data: {
-              name: "ReserVamos Annual Plan",
-              description: `${TRIAL_DAYS}-day trial, then $${(finalAmountCents / 100).toFixed(2)}/year`,
-            },
-          },
-        }],
+        items: [{ price: price.id }],
         trial_end: trialEnd,
         payment_settings: { save_default_payment_method: "on_subscription" },
-        metadata: { companyName: input.companyName, couponCode: input.couponCode || "", discountPercent: String(discountPercent) },
+        metadata: {
+          companyName: input.companyName,
+          couponCode: input.couponCode || "",
+          discountPercent: String(discountPercent),
+        },
       });
 
       const apiKey = `rv_${Buffer.from(Math.random().toString()).toString("base64").slice(0, 20).replace(/[^a-zA-Z0-9]/g, "")}_${Date.now().toString(36)}`;
