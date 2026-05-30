@@ -91,8 +91,8 @@ export const stripeSubscriptionRouter = createRouter({
       const passwordHash = await bcrypt.hash(input.companyPassword, 12);
 
       const [insertResult] = await rawDb.execute(
-        `INSERT INTO clients (name, email, apiKey, status, primaryColor, currency, timezone)
-         VALUES (?, ?, ?, 'active', '#C75E3A', 'USD', 'America/Cancun')`,
+        `INSERT INTO clients (name, email, apiKey, status, primaryColor)
+         VALUES (?, ?, ?, 'active', '#C75E3A')`,
         [input.companyName, input.companyEmail, apiKey]
       );
       const clientId = Number((insertResult as any).insertId);
