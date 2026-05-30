@@ -40,64 +40,119 @@ export const stripeSubscriptionRouter = createRouter({
 
   createSubscription: publicQuery
     .input(z.object({
-      email: z.string().email(),
-      name: z.string().min(1),
-      password: z.string().min(6),
+      customerId: z.string().min(1),
+      paymentMethodId: z.string().min(1),
       companyName: z.string().min(1),
+      companyEmail: z.string().email(),
+      companyPassword: z.string().min(6),
       couponCode: z.string().optional(),
-      stripeCustomerId: z.string().min(1),
-      stripePaymentMethodId: z.string().min(1),
     }))
     .mutation(async ({ input }) => {
       const s = getStripe();
       const rawDb = getRawDb();
 
       let discountPercent = 0;
-      let couponCode = null;
       if (input.couponCode) {
-        const [rows] = await rawDb.execute(
-          "SELECT discount_percent, max_uses, uses_count, active FROM coupons WHERE code = ? LIMIT 1",
+        const [couponRows] = await rawDb.execute(
+          "SELECT discount_percent as discountPercent, max_uses as maxUses, uses_count as usesCount, active, valid_until as validUntil FROM coupons WHERE code = ? LIMIT 1",
           [input.couponCode.toUpperCase()]
         );
-        const coupon = (rows as any[])[0];
-        if (coupon && coupon.active && coupon.uses_count < coupon.max_uses) {
-          discountPercent = coupon.discount_percent;
-          couponCode = input.couponCode.toUpperCase();
+        const coupon = (couponRows as any[])[0];
+        if (coupon) {
+          const isActive = coupon.active === 1 || coupon.active === true;
+          const notExpired = !coupon.validUntil || new Date(coupon.validUntil) > new Date();
+          const hasUses = coupon.usesCount < coupon.maxUses;
+          if (isActive && notExpired && hasUses) {
+            discountPercent = coupon.discountPercent;
+          }
         }
       }
 
-      const finalAmountCents = Math.round(ANNUAL_PRICE_CENTS * (1 - discountPercent / 100));
+      const discountMultiplier = 1 - discountPercent / 100;
+      const finalAmountCents = Math.round(ANNUAL_PRICE_CENTS * discountMultiplier);
 
-      const trialEnd = Math.floor(Date.now() / 1000) + TRIAL_DAYS * 86400;
-
-      const subscription = await s.subscriptions.create({
-        customer: input.stripeCustomerId,
-        items: [{ price_data: { currency: "usd", unit_amount: finalAmountCents, recurring: { interval: "year" }, product_data: { name: "ReserVamos Annual Plan" } } }],
-        trial_end: trialEnd,
-        default_payment_method: input.stripePaymentMethodId,
-        payment_settings: { save_default_payment_method: "on_subscription" },
+      await s.paymentMethods.attach(input.paymentMethodId, { customer: input.customerId });
+      await s.customers.update(input.customerId, {
+        invoice_settings: { default_payment_method: input.paymentMethodId },
       });
 
-      const clientResult = await rawDb.execute(
-        "INSERT INTO clients (name, email, password_hash, status, apiKey, primaryColor, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())",
-        [input.companyName, input.email, input.password, "active", require("crypto").randomUUID(), "#C75E3A"]
+      const trialEnd = Math.floor(Date.now() / 1000) + TRIAL_DAYS * 24 * 60 * 60;
+
+      const subscription = await s.subscriptions.create({
+        customer: input.customerId,
+        items: [{
+          price_data: {
+            currency: "usd",
+            unit_amount: finalAmountCents,
+            recurring: { interval: "year" },
+            product_data: {
+              name: "ReserVamos Annual Plan",
+              description: `${TRIAL_DAYS}-day trial, then $${(finalAmountCents / 100).toFixed(2)}/year`,
+            },
+          },
+        }],
+        trial_end: trialEnd,
+        payment_settings: { save_default_payment_method: "on_subscription" },
+        metadata: { companyName: input.companyName, couponCode: input.couponCode || "", discountPercent: String(discountPercent) },
+      });
+
+      const apiKey = `rv_${Buffer.from(Math.random().toString()).toString("base64").slice(0, 20).replace(/[^a-zA-Z0-9]/g, "")}_${Date.now().toString(36)}`;
+
+      const [insertResult] = await rawDb.execute(
+        `INSERT INTO clients (name, email, password, apiKey, status, primaryColor, currency, timezone)
+         VALUES (?, ?, ?, ?, 'active', '#C75E3A', 'USD', 'America/Cancun')`,
+        [input.companyName, input.companyEmail, input.companyPassword, apiKey]
       );
-      const clientId = Number((clientResult as any).insertId);
+      const clientId = Number((insertResult as any).insertId);
+
+      const trialStart = new Date();
+      const trialEndDate = new Date(trialStart.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
 
       await rawDb.execute(
-        `INSERT INTO client_subscriptions (clientId, trialStart, trialEnd, planStart, planEnd, status, annual_price, couponCode, discountApplied, finalAmount, stripeCustomerId, stripeSubscriptionId, stripePaymentMethodId) VALUES (?, NOW(), DATE_ADD(NOW(), INTERVAL ? DAY), NULL, NULL, "trial", ?, ?, ?, ?, ?, ?, ?)`,
-        [clientId, TRIAL_DAYS, ANNUAL_PRICE_CENTS / 100, couponCode, discountPercent, finalAmountCents / 100, input.stripeCustomerId, subscription.id, input.stripePaymentMethodId]
+        `INSERT INTO client_subscriptions
+         (clientId, trialStart, trialEnd, status, annualPrice, couponCode, discountApplied, finalAmount,
+          stripeCustomerId, stripeSubscriptionId, stripePaymentMethodId)
+         VALUES (?, ?, ?, 'trial', 600.00, ?, ?, ?, ?, ?, ?)`,
+        [
+          clientId, trialStart, trialEndDate,
+          input.couponCode?.toUpperCase() || null,
+          discountPercent,
+          (finalAmountCents / 100).toFixed(2),
+          input.customerId,
+          subscription.id,
+          input.paymentMethodId,
+        ]
       );
 
-      if (couponCode) {
-        await rawDb.execute("UPDATE coupons SET uses_count = uses_count + 1 WHERE code = ?", [couponCode]);
+      if (input.couponCode && discountPercent > 0) {
+        await rawDb.execute("UPDATE coupons SET uses_count = uses_count + 1 WHERE code = ?", [input.couponCode.toUpperCase()]);
       }
 
       return {
         clientId,
-        trialEnd: new Date(Date.now() + TRIAL_DAYS * 86400000).toISOString(),
-        apiKey: "rk_" + require("crypto").randomBytes(16).toString("hex"),
+        apiKey,
+        trialEnd: trialEndDate.toISOString(),
+        subscriptionId: subscription.id,
+        discountApplied: discountPercent,
+        finalAmount: finalAmountCents / 100,
       };
+    }),
+
+  getStatus: publicQuery
+    .input(z.object({ clientId: z.number().int().positive() }))
+    .query(async ({ input }) => {
+      const rawDb = getRawDb();
+      const [rows] = await rawDb.execute(
+        `SELECT status, trialStart, trialEnd, planStart, planEnd,
+          annualPrice, couponCode, discountApplied, finalAmount
+         FROM client_subscriptions WHERE clientId = ? LIMIT 1`,
+        [input.clientId]
+      );
+      const sub = (rows as any[])[0];
+      if (!sub) return { status: "none", trialDaysLeft: 0 };
+      const trialEnd = sub.trialEnd ? new Date(sub.trialEnd) : null;
+      const trialDaysLeft = trialEnd ? Math.max(0, Math.ceil((trialEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 0;
+      return { status: sub.status, trialDaysLeft, trialEnd: sub.trialEnd, planEnd: sub.planEnd };
     }),
 
   webhook: publicQuery
@@ -106,24 +161,35 @@ export const stripeSubscriptionRouter = createRouter({
       const secret = getWebhookSecret();
       if (!secret) throw new Error("Webhook secret not configured");
       const s = getStripe();
-      let event;
+      let event: Stripe.Event;
       try {
         event = s.webhooks.constructEvent(input.payload, input.signature, secret);
       } catch (err: any) {
-        throw new Error(`Webhook signature verification failed: ${err.message}`);
+        throw new Error(`Webhook verification failed: ${err.message}`);
       }
       const rawDb = getRawDb();
       switch (event.type) {
-        case "invoice.payment_succeeded":
-          await rawDb.execute("UPDATE client_subscriptions SET status='active', planStart=NOW(), planEnd=DATE_ADD(NOW(), INTERVAL 1 YEAR) WHERE stripeSubscriptionId=?", [event.data.object.subscription]);
+        case "invoice.payment_succeeded": {
+          const invoice = event.data.object as Stripe.Invoice;
+          const subId = invoice.subscription as string;
+          await rawDb.execute(
+            "UPDATE client_subscriptions SET status='active', planStart=NOW(), planEnd=DATE_ADD(NOW(), INTERVAL 1 YEAR) WHERE stripeSubscriptionId=?",
+            [subId]
+          );
           break;
-        case "invoice.payment_failed":
-          await rawDb.execute("UPDATE client_subscriptions SET status='expired' WHERE stripeSubscriptionId=?", [event.data.object.subscription]);
+        }
+        case "invoice.payment_failed": {
+          const invoice = event.data.object as Stripe.Invoice;
+          const subId = invoice.subscription as string;
+          await rawDb.execute("UPDATE client_subscriptions SET status='expired' WHERE stripeSubscriptionId=?", [subId]);
           break;
-        case "customer.subscription.deleted":
-          await rawDb.execute("UPDATE client_subscriptions SET status='cancelled' WHERE stripeSubscriptionId=?", [event.data.object.id]);
+        }
+        case "customer.subscription.deleted": {
+          const subscription = event.data.object as Stripe.Subscription;
+          await rawDb.execute("UPDATE client_subscriptions SET status='cancelled' WHERE stripeSubscriptionId=?", [subscription.id]);
           break;
+        }
       }
-      return { received: true };
+      return { received: true, type: event.type };
     }),
 });
