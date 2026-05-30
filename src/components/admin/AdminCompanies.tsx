@@ -152,7 +152,7 @@ export default function AdminCompanies() {
                       </td>
                       <td className="px-4 py-3">{c.trialEnd ? (<div><p className="font-body text-sm text-charcoal">{c.trialDaysLeft > 0 ? `${c.trialDaysLeft} days left` : 'Ended'}</p><p className="font-body text-[11px] text-warm-gray">{new Date(c.trialEnd).toLocaleDateString()}</p></div>) : (<span className="font-body text-sm text-warm-gray">—</span>)}</td>
                       <td className="px-4 py-3">{c.planEnd ? (<div><p className="font-body text-sm text-charcoal">{c.planDaysLeft > 0 ? `${c.planDaysLeft} days left` : 'Ended'}</p><p className="font-body text-[11px] text-warm-gray">{new Date(c.planEnd).toLocaleDateString()}</p></div>) : (<span className="font-body text-sm text-warm-gray">—</span>)}</td>
-                      <td className="px-4 py-3"><div><p className="font-body text-sm font-semibold text-charcoal">${c.finalAmount || c.annualPrice || '600.00'}</p>{c.couponCode &&(<p className="font-body text-[11px] text-[#2D6A4F] flex items-center gap-1"><Tag size={10} /> {c.couponCode} ({c.discountApplied%})</p>)}</div></td>
+                      <td className="px-4 py-3"><div><p className="font-body text-sm font-semibold text-charcoal">${c.finalAmount || c.annualPrice || '600.00'}</p>{c.couponCode &&(<p className="font-body text-[11px] text-[#2D6A4F] flex items-center gap-1"><Tag size={10} /> {c.couponCode} ({c.discountApplied}%)</p>)}</div></td>
                       <td className="px-4 py-3 text-right"><button onClick={() => setSelectedCompany(selectedCompany === c.id ? null : c.id)} className="text-warm-gray hover:text-terracotta transition-colors p-1" title="View payments"><CreditCard size={16} /></button></td>
                     </tr>
                   );
