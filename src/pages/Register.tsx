@@ -1,18 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Check, ArrowLeft, ArrowRight, ShieldCheck, Calendar, Tag, CreditCard, Sparkle } from '@phosphor-icons/react';
 import { trpc } from '@/providers/trpc';
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe, Stripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
 const ANNUAL_PRICE = 600;
 const TRIAL_DAYS = 7;
-
-// Stripe public key for owner's account (this should be from env/config)
-// For now using a placeholder - user needs to set STRIPE_PUBLISHABLE_KEY
-const STRIPE_PK = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '';
-const stripePromise = STRIPE_PK ? loadStripe(STRIPE_PK) : null;
 
 interface RegisterForm {
   companyName: string;
@@ -252,7 +247,26 @@ export default function Register() {
     );
   }
 
-  if (!stripePromise) {
+  const stripeConfig = trpc.stripeSubscription.checkConfig.useQuery();
+  const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
+
+  useEffect(() => {
+    if (stripeConfig.data?.publishableKey) {
+      setStripePromise(loadStripe(stripeConfig.data.publishableKey));
+    }
+  }, [stripeConfig.data?.publishableKey]);
+
+  if (stripeConfig.isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center p-6">
+        <div className="max-w-md text-center">
+          <p className="font-body text-warm-gray">{t('common.loading') || 'Loading'}...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!stripeConfig.data?.configured || !stripePromise) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center p-6">
         <div className="max-w-md text-center">
