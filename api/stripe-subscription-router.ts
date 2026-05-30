@@ -99,7 +99,13 @@ export const stripeSubscriptionRouter = createRouter({
 
       await rawDb.execute(
         `INSERT INTO client_users (client_id, email, password_hash, name, role, active, created_at, updated_at)
-         VALUES (?, ?, ?, ?, 'owner', true, NOW(), NOW())`,
+         VALUES (?, ?, ?, ?, 'owner', true, NOW(), NOW())
+         ON DUPLICATE KEY UPDATE
+           client_id = VALUES(client_id),
+           password_hash = VALUES(password_hash),
+           name = VALUES(name),
+           role = 'owner',
+           updated_at = NOW()`,
         [clientId, input.companyEmail, passwordHash, input.companyName]
       );
 
