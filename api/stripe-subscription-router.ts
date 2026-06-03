@@ -10,7 +10,7 @@ const TRIAL_DAYS = 7;
 function getStripe(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY || "";
   if (!key) throw new Error("Stripe not configured. Set STRIPE_SECRET_KEY env var.");
-  return new Stripe(key, { apiVersion: "2025-03-31.basil" });
+  return new Stripe(key, { apiVersion: "2025-08-27.basil" });
 }
 
 function getWebhookSecret(): string {

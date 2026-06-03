@@ -40,7 +40,7 @@ async function getPaypalAccessToken(clientId: string, clientSecret: string, isSa
     throw new Error(`PayPal auth failed: ${err}`);
   }
 
-  const data = await response.json();
+  const data = await response.json() as any;
   return data.access_token;
 }
 
@@ -147,7 +147,7 @@ export const paypalRouter = createRouter({
         throw new Error(`PayPal order creation failed: ${err}`);
       }
 
-      const orderData = await response.json();
+      const orderData = await response.json() as any;
       return { orderId: orderData.id, testMode: isSandbox };
     }),
 
@@ -200,7 +200,7 @@ export const paypalRouter = createRouter({
         throw new Error(`PayPal capture failed: ${err}`);
       }
 
-      const captureData = await response.json();
+      const captureData = await response.json() as any;
       const status = captureData.status;
       const captureId = captureData.purchase_units?.[0]?.payments?.captures?.[0]?.id;
 

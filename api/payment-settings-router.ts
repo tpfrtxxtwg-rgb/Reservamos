@@ -47,11 +47,11 @@ export const paymentSettingsRouter = createRouter({
   update: clientAuthedQuery
     .input(
       z.object({
-        testMode: z.union([z.boolean(), z.number()]).optional().transform(v => v === 1 || v === true || v === "1"),
-        stripeEnabled: z.union([z.boolean(), z.number()]).optional().transform(v => v === 1 || v === true || v === "1"),
+        testMode: z.union([z.boolean(), z.number()]).optional().transform(v => v === 1 || v === true),
+        stripeEnabled: z.union([z.boolean(), z.number()]).optional().transform(v => v === 1 || v === true),
         stripeSecretKey: z.string().max(255).nullable().optional(),
         stripePublishableKey: z.string().max(255).nullable().optional(),
-        paypalEnabled: z.union([z.boolean(), z.number()]).optional().transform(v => v === 1 || v === true || v === "1"),
+        paypalEnabled: z.union([z.boolean(), z.number()]).optional().transform(v => v === 1 || v === true),
         paypalClientId: z.string().max(255).nullable().optional(),
         paypalClientSecret: z.string().max(255).nullable().optional(),
         acceptedMethods: z.enum(["card", "paypal", "cash", "card_paypal", "all"]).optional(),
