@@ -1,35 +1,4 @@
 import { z } from "zod";
-<<<<<<< HEAD
-import { eq } from "drizzle-orm";
-import { createRouter, clientAuthedQuery } from "./middleware";
-import { getDb } from "./queries/connection";
-import { clientEmailSettings } from "@db/schema";
-
-export const emailSettingsRouter = createRouter({
-  get: clientAuthedQuery.query(async ({ ctx }) => {
-    const db = getDb();
-    const clientId = ctx.clientUser.clientId;
-    const settings = await db.query.clientEmailSettings.findFirst({
-      where: eq(clientEmailSettings.clientId, clientId),
-    });
-    if (!settings) {
-      // Return default settings without inserting
-      return {
-        enabled: true,
-        subject: "Your Reservation Confirmation",
-        message: "Thank you for your reservation. We look forward to serving you.",
-        pickupInstructions: "",
-        smtpHost: "",
-        smtpPort: 587,
-        smtpUser: "",
-        smtpPass: "",
-        smtpFrom: "",
-        companyPhone: "",
-        companyWebsite: "",
-      };
-    }
-    return settings;
-=======
 import { createRouter, clientAuthedQuery } from "./middleware";
 import { getRawDb } from "./queries/connection";
 
@@ -83,7 +52,6 @@ export const emailSettingsRouter = createRouter({
       sendgridApiKey: "", resendApiKey: "",
       companyPhone: "", companyWebsite: "",
     };
->>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
   }),
 
   update: clientAuthedQuery
@@ -93,41 +61,6 @@ export const emailSettingsRouter = createRouter({
         subject: z.string().max(255).optional(),
         message: z.string().optional(),
         pickupInstructions: z.string().optional(),
-<<<<<<< HEAD
-        smtpHost: z.string().max(255).optional().nullable(),
-        smtpPort: z.number().min(1).max(65535).optional().nullable(),
-        smtpUser: z.string().max(255).optional().nullable(),
-        smtpPass: z.string().max(255).optional().nullable(),
-        smtpFrom: z.string().email().max(320).optional().nullable(),
-        companyPhone: z.string().max(50).optional().nullable(),
-        companyWebsite: z.string().max(255).optional().nullable(),
-      })
-    )
-    .mutation(async ({ input, ctx }) => {
-      const db = getDb();
-      const clientId = ctx.clientUser.clientId;
-
-      const existing = await db.query.clientEmailSettings.findFirst({
-        where: eq(clientEmailSettings.clientId, clientId),
-      });
-
-      if (existing) {
-        await db
-          .update(clientEmailSettings)
-          .set(input)
-          .where(eq(clientEmailSettings.clientId, clientId));
-        return db.query.clientEmailSettings.findFirst({
-          where: eq(clientEmailSettings.clientId, clientId),
-        });
-      } else {
-        const [{ id }] = await db
-          .insert(clientEmailSettings)
-          .values({ ...input, clientId })
-          .$returningId();
-        return db.query.clientEmailSettings.findFirst({
-          where: eq(clientEmailSettings.id, id),
-        });
-=======
         emailProvider: z.enum(["sendgrid", "resend"]).optional(),
         sendgridApiKey: z.string().max(255).nullable().optional(),
         resendApiKey: z.string().max(255).nullable().optional(),
@@ -224,7 +157,6 @@ export const emailSettingsRouter = createRouter({
         return { sent: true, reason: `Connected to ${provider}` };
       } catch (err: any) {
         return { sent: false, reason: "Error: " + (err?.message || String(err)) };
->>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
       }
     }),
 });

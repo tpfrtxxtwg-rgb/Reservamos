@@ -20,14 +20,10 @@ function getWebhookSecret(): string {
 export const stripeSubscriptionRouter = createRouter({
   checkConfig: publicQuery.query(() => {
     const pk = process.env.VITE_STRIPE_PUBLISHABLE_KEY || process.env.STRIPE_PUBLISHABLE_KEY || "";
-<<<<<<< HEAD
     return {
       configured: !!process.env.STRIPE_SECRET_KEY,
       publishableKey: pk,
     };
-=======
-    return { configured: !!process.env.STRIPE_SECRET_KEY, publishableKey: pk };
->>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
   }),
 
   createSetupIntent: publicQuery
@@ -36,13 +32,9 @@ export const stripeSubscriptionRouter = createRouter({
       const s = getStripe();
       const customer = await s.customers.create({ email: input.email, name: input.name });
       const setupIntent = await s.setupIntents.create({
-<<<<<<< HEAD
         customer: customer.id,
         usage: "off_session",
         payment_method_types: ["card"],
-=======
-        customer: customer.id, usage: "off_session", payment_method_types: ["card"],
->>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
       });
       return { customerId: customer.id, clientSecret: setupIntent.client_secret };
     }),
@@ -91,7 +83,6 @@ export const stripeSubscriptionRouter = createRouter({
       });
 
       const price = await s.prices.create({
-<<<<<<< HEAD
         product: product.id,
         unit_amount: finalAmountCents,
         currency: "usd",
@@ -102,13 +93,6 @@ export const stripeSubscriptionRouter = createRouter({
         customer: input.customerId,
         items: [{ price: price.id }],
         trial_end: trialEnd,
-=======
-        product: product.id, unit_amount: finalAmountCents, currency: "usd", recurring: { interval: "year" },
-      });
-
-      const subscription = await s.subscriptions.create({
-        customer: input.customerId, items: [{ price: price.id }], trial_end: trialEnd,
->>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
         payment_settings: { save_default_payment_method: "on_subscription" },
         metadata: { companyName: input.companyName, couponCode: input.couponCode || "", discountPercent: String(discountPercent) },
       });
@@ -139,13 +123,9 @@ export const stripeSubscriptionRouter = createRouter({
       const trialEndDate = new Date(trialStart.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
 
       await rawDb.execute(
-<<<<<<< HEAD
         `INSERT INTO client_subscriptions
          (client_id, trial_start, trial_end, status, annual_price, coupon_code, discount_applied, final_amount,
           stripe_customer_id, stripe_subscription_id, stripe_payment_method_id)
-=======
-        `INSERT INTO client_subscriptions (clientId, trial_start, trial_end, status, annual_price, coupon_code, discount_applied, final_amount, stripe_customer_id, stripe_subscription_id, stripe_payment_method_id)
->>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
          VALUES (?, ?, ?, 'trial', 600.00, ?, ?, ?, ?, ?, ?)`,
         [
           clientId, trialStart, trialEndDate,
@@ -174,7 +154,6 @@ export const stripeSubscriptionRouter = createRouter({
     .query(async ({ input }) => {
       const rawDb = getRawDb();
       const [rows] = await rawDb.execute(
-<<<<<<< HEAD
         `SELECT status, trial_start, trial_end, plan_start, plan_end,
           annual_price, coupon_code, discount_applied, final_amount
          FROM client_subscriptions WHERE client_id = ? LIMIT 1`, [input.clientId]
@@ -182,14 +161,6 @@ export const stripeSubscriptionRouter = createRouter({
       const sub = (rows as any[])[0];
       if (!sub) return { status: "none", trialDaysLeft: 0 };
       const trialEnd = sub.trial_end ? new Date(sub.trial_end) : null;
-=======
-        `SELECT status, trial_start, trial_end, plan_start, plan_end, annualPrice, couponCode, discountApplied, finalAmount
-         FROM client_subscriptions WHERE clientId = ? LIMIT 1`, [input.clientId]
-      );
-      const sub = (rows as any[])[0];
-      if (!sub) return { status: "none", trialDaysLeft: 0 };
-      const trialEnd = sub.trial_end ? new Date(sub.trialEnd) : null;
->>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
       const trialDaysLeft = trialEnd ? Math.max(0, Math.ceil((trialEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 0;
       return { status: sub.status, trialDaysLeft, trialEnd: sub.trial_end, planEnd: sub.plan_end };
     }),
@@ -231,8 +202,4 @@ export const stripeSubscriptionRouter = createRouter({
       }
       return { received: true, type: event.type };
     }),
-<<<<<<< HEAD
 });
-=======
-});
->>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305

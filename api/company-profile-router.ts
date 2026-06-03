@@ -1,14 +1,7 @@
 import { z } from "zod";
-<<<<<<< HEAD
 import bcrypt from "bcryptjs";
 import { createRouter, clientAuthedQuery } from "./middleware";
 import { getRawDb } from "./queries/connection";
-=======
-import { eq } from "drizzle-orm";
-import { createRouter, clientAuthedQuery } from "./middleware";
-import { getDb, getRawDb } from "./queries/connection";
-import { clients } from "@db/schema";
->>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
 
 export const companyProfileRouter = createRouter({
   get: clientAuthedQuery.query(async ({ ctx }) => {
@@ -48,10 +41,7 @@ export const companyProfileRouter = createRouter({
         console.log("[CompanyProfile] UPDATE clientId:", clientId);
         const rawDb = getRawDb();
 
-<<<<<<< HEAD
-=======
         // Build SET clause dynamically - only update fields that exist in TiDB
->>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
         const sets: string[] = [];
         const values: any[] = [];
 
@@ -80,7 +70,6 @@ export const companyProfileRouter = createRouter({
         throw err;
       }
     }),
-<<<<<<< HEAD
 
   updateLoginEmail: clientAuthedQuery
     .input(
@@ -94,6 +83,7 @@ export const companyProfileRouter = createRouter({
         const userId = ctx.clientUser.id;
         const rawDb = getRawDb();
 
+        // 1. Fetch current user with password hash
         const [userRows] = await rawDb.query(
           "SELECT id, email, password_hash as passwordHash, role FROM client_users WHERE id = ? LIMIT 1",
           [userId]
@@ -101,13 +91,16 @@ export const companyProfileRouter = createRouter({
         const user = (userRows as any[])[0];
         if (!user) throw new Error("User not found");
 
+        // Protect super_admin
         if (user.role === "super_admin") {
           throw new Error("Cannot change super admin email through this endpoint");
         }
 
+        // 2. Verify current password
         const valid = await bcrypt.compare(input.currentPassword, user.passwordHash);
         if (!valid) throw new Error("Current password is incorrect");
 
+        // 3. Check if new email is already taken by another user
         const [existingRows] = await rawDb.query(
           "SELECT id FROM client_users WHERE email = ? AND id != ? LIMIT 1",
           [input.newEmail.toLowerCase(), userId]
@@ -116,11 +109,13 @@ export const companyProfileRouter = createRouter({
           throw new Error("This email is already in use by another account");
         }
 
+        // 4. Update email in client_users
         await rawDb.query(
           "UPDATE client_users SET email = ?, updated_at = NOW() WHERE id = ?",
           [input.newEmail.toLowerCase(), userId]
         );
 
+        // 5. Also update email in clients table (company contact email)
         await rawDb.query(
           "UPDATE clients SET email = ? WHERE id = ?",
           [input.newEmail.toLowerCase(), ctx.clientUser.clientId]
@@ -146,6 +141,7 @@ export const companyProfileRouter = createRouter({
         const userId = ctx.clientUser.id;
         const rawDb = getRawDb();
 
+        // 1. Fetch current user with password hash
         const [userRows] = await rawDb.query(
           "SELECT id, password_hash as passwordHash, role FROM client_users WHERE id = ? LIMIT 1",
           [userId]
@@ -153,11 +149,14 @@ export const companyProfileRouter = createRouter({
         const user = (userRows as any[])[0];
         if (!user) throw new Error("User not found");
 
+        // 2. Verify current password
         const valid = await bcrypt.compare(input.currentPassword, user.passwordHash);
         if (!valid) throw new Error("Current password is incorrect");
 
+        // 3. Hash new password
         const newPasswordHash = await bcrypt.hash(input.newPassword, 12);
 
+        // 4. Update password
         await rawDb.query(
           "UPDATE client_users SET password_hash = ?, updated_at = NOW() WHERE id = ?",
           [newPasswordHash, userId]
@@ -171,6 +170,3 @@ export const companyProfileRouter = createRouter({
       }
     }),
 });
-=======
-});
->>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305

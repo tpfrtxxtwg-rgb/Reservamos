@@ -1,18 +1,6 @@
 import { z } from "zod";
 import { eq, and } from "drizzle-orm";
 import { createRouter, publicQuery } from "./middleware";
-<<<<<<< HEAD
-import { getDb } from "./queries/connection";
-import { bookings, clientEmailSettings, optionalServices } from "@db/schema";
-import type { Booking } from "@db/schema";
-
-// Helper to build HTML email (works without any external dependencies)
-function buildHtmlEmail(
-  booking: Booking & { vehicleName?: string; destinationName?: string; optionalServicesList?: string[]; clientName?: string; clientEmail?: string },
-  emailSettings: { subject?: string; message?: string; pickupInstructions?: string | null; companyPhone?: string | null; companyWebsite?: string | null },
-  companyName: string
-): string {
-=======
 import { getDb, getRawDb } from "./queries/connection";
 import { bookings, clientEmailSettings, optionalServices } from "@db/schema";
 import type { Booking } from "@db/schema";
@@ -61,7 +49,6 @@ function buildHtmlEmail(
   companyName: string
 ): string {
   const tz = emailSettings.timezone || "America/Los_Angeles";
->>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
   const isRoundTrip = booking.tripType === "round_trip";
   const pickupTime = booking.departureTime
     ? (() => {
@@ -84,25 +71,6 @@ function buildHtmlEmail(
 
   const roundTripHtml = isRoundTrip
     ? `<div style="margin-bottom:24px;">
-<<<<<<< HEAD
-        <div style="background:#F5EFE6;padding:10px 12px;font-size:12px;font-weight:bold;color:#3D3833;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;border-radius:6px;">RETURN TRIP DETAILS</div>
-        <div style="display:flex;flex-wrap:wrap;">
-          <div style="flex:1;min-width:200px;padding-right:12px;">
-            <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Return Date</div>
-            <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.departureDate || "N/A"}</div>
-            <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Pickup Location</div>
-            <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.origin || "N/A"}</div>
-          </div>
-          <div style="flex:1;min-width:200px;">
-            <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Flight Number</div>
-            <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.flightNumber || "N/A"}</div>
-            <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Airline</div>
-            <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.airline || "N/A"}</div>
-            ${booking.departureTime ? `<div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Flight Time</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.departureTime}</div>` : ""}
-            ${pickupTime ? `<div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Suggested Pickup Time</div><div style="font-size:13px;color:#2D6A4F;font-weight:700;">${pickupTime} (3 hours before flight)</div>` : ""}
-          </div>
-        </div>
-=======
         <div style="background:#F5EFE6;padding:10px 12px;font-size:12px;font-weight:bold;color:#3D3833;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;border-radius:6px;">DEPARTURE INFORMATION</div>
         <div style="display:flex;flex-wrap:wrap;">
           <div style="flex:1;min-width:200px;padding-right:12px;">
@@ -123,7 +91,6 @@ function buildHtmlEmail(
           </div>
         </div>
         <div style="margin-top:8px;font-size:11px;color:#8A8278;font-style:italic;">* Se recomienda agendar la reserva 3 horas antes de su vuelo</div>
->>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
       </div>`
     : "";
 
@@ -167,8 +134,6 @@ function buildHtmlEmail(
     ${emailSettings.message ? `<div style="margin-bottom:20px;font-size:13px;color:#3D3833;line-height:1.5;">${emailSettings.message.replace(/\n/g, "<br/>")}</div>` : ""}
 
     <div style="margin-bottom:24px;">
-<<<<<<< HEAD
-=======
       <div style="background:#F5EFE6;padding:10px 12px;font-size:12px;font-weight:bold;color:#3D3833;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;border-radius:6px;">Reservation Information</div>
       <div style="display:flex;flex-wrap:wrap;">
         <div style="flex:1;min-width:200px;padding-right:12px;">
@@ -183,7 +148,6 @@ function buildHtmlEmail(
     </div>
 
     <div style="margin-bottom:24px;">
->>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
       <div style="background:#F5EFE6;padding:10px 12px;font-size:12px;font-weight:bold;color:#3D3833;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;border-radius:6px;">Passenger Information</div>
       <div style="display:flex;flex-wrap:wrap;">
         <div style="flex:1;min-width:200px;padding-right:12px;">
@@ -191,27 +155,10 @@ function buildHtmlEmail(
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.passengerName} ${booking.passengerLastName}</div>
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Email</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.passengerEmail}</div>
-<<<<<<< HEAD
-        </div>
-        <div style="flex:1;min-width:200px;">
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Phone</div>
-          <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.passengerPhone || "N/A"}</div>
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Reservation Code</div>
-          <div style="font-size:13px;color:#C75E3A;font-weight:700;">${booking.code}</div>
-        </div>
-      </div>
-    </div>
-
-    <div style="margin-bottom:24px;">
-      <div style="background:#F5EFE6;padding:10px 12px;font-size:12px;font-weight:bold;color:#3D3833;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;border-radius:6px;">Service Details</div>
-      <div style="display:flex;flex-wrap:wrap;">
-        <div style="flex:1;min-width:200px;padding-right:12px;">
-=======
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Phone</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.passengerPhone || "N/A"}</div>
         </div>
         <div style="flex:1;min-width:200px;">
->>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Service Type</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;"><span style="display:inline-block;background:#C75E3A;color:#FFF;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:bold;">${isRoundTrip ? "Round Trip" : "One Way"}</span></div>
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Vehicle</div>
@@ -219,15 +166,6 @@ function buildHtmlEmail(
           <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Passengers</div>
           <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.passengers}</div>
         </div>
-<<<<<<< HEAD
-        <div style="flex:1;min-width:200px;">
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Destination</div>
-          <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.destinationName || booking.destination}</div>
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Arrival Date</div>
-          <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.date} at ${booking.time}</div>
-          <div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Origin</div>
-          <div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.origin}</div>
-=======
       </div>
     </div>
 
@@ -245,7 +183,6 @@ function buildHtmlEmail(
         <div style="flex:1;min-width:200px;">
           ${booking.flightNumber ? `<div style="font-size:11px;color:#8A8278;margin-bottom:2px;">Flight Number</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.flightNumber}</div>` : ""}
           ${booking.airline ? `<div style="font-size:11px;color:#8A8278;margin-bottom:2px;margin-top:8px;">Airline</div><div style="font-size:13px;color:#3D3833;font-weight:600;">${booking.airline}</div>` : ""}
->>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
         </div>
       </div>
     </div>
@@ -287,20 +224,6 @@ function buildHtmlEmail(
 // Build simple text fallback
 function buildTextEmail(
   booking: Booking & { vehicleName?: string; destinationName?: string; optionalServicesList?: string[] },
-<<<<<<< HEAD
-  emailSettings: { pickupInstructions?: string | null },
-  companyName: string
-): string {
-  const isRoundTrip = booking.tripType === "round_trip";
-  let text = `RESERVATION CONFIRMED - ${booking.code}\n\n`;
-  text += `Company: ${companyName}\n`;
-  text += `Passenger: ${booking.passengerName} ${booking.passengerLastName}\n`;
-  text += `Email: ${booking.passengerEmail}\n`;
-  text += `Phone: ${booking.passengerPhone || "N/A"}\n\n`;
-  text += `Service: ${isRoundTrip ? "Round Trip" : "One Way"}\n`;
-  text += `Destination: ${booking.destinationName || booking.destination}\n`;
-  text += `Date: ${booking.date} at ${booking.time}\n`;
-=======
   emailSettings: { pickupInstructions?: string | null; timezone?: string },
   companyName: string
 ): string {
@@ -326,7 +249,6 @@ function buildTextEmail(
   if (booking.airline) {
     text += `Airline: ${booking.airline}\n`;
   }
->>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
   text += `Vehicle: ${booking.vehicleName || "N/A"}\n`;
   text += `Passengers: ${booking.passengers}\n`;
   text += `Total: $${booking.total}\n\n`;
@@ -334,10 +256,6 @@ function buildTextEmail(
     text += `Additional Services: ${booking.optionalServicesList.join(", ")}\n\n`;
   }
   if (isRoundTrip) {
-<<<<<<< HEAD
-    text += `Return Date: ${booking.departureDate || "N/A"}\n`;
-    text += `Flight: ${booking.flightNumber || "N/A"} (${booking.airline || "N/A"})\n\n`;
-=======
     text += `DEPARTURE INFORMATION\n`;
     text += `----------------------\n`;
     text += `Pickup Location (Hotel): ${booking.destinationName || booking.destination}\n`;
@@ -348,7 +266,6 @@ function buildTextEmail(
     text += `Flight Number: ${booking.departureFlightNumber || "N/A"}\n`;
     text += `Hotel Pickup Time: ${booking.hotelPickupTime || (booking.departureTime ? calculatePickupTime(booking.departureTime) : "N/A")}\n`;
     text += `* Se recomienda agendar la reserva 3 horas antes de su vuelo\n\n`;
->>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
   }
   if (emailSettings.pickupInstructions) {
     text += `Pickup Instructions:\n${emailSettings.pickupInstructions}\n\n`;
@@ -356,10 +273,6 @@ function buildTextEmail(
   return text;
 }
 
-<<<<<<< HEAD
-// Main email sending function (exported for use by widget-router)
-export async function sendBookingConfirmationEmail(bookingId: number) {
-=======
 // Calculate hotel pickup time (3 hours before flight)
 function calculatePickupTime(departureTime: string): string {
   const [h, m] = departureTime.split(":");
@@ -586,7 +499,6 @@ function buildAdminTextEmail(
 // Main email sending function (exported for use by widget-router)
 export async function sendBookingConfirmationEmail(bookingId: number) {
   console.log(`[Email] Starting sendBookingConfirmationEmail for bookingId=${bookingId}`);
->>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
   try {
     const db = getDb();
 
@@ -599,19 +511,6 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
         destination: true,
       },
     });
-<<<<<<< HEAD
-    if (!booking) return { sent: false, reason: "Booking not found" };
-
-    // Fetch client email settings
-    const emailSettings = await db.query.clientEmailSettings.findFirst({
-      where: eq(clientEmailSettings.clientId, booking.clientId),
-    });
-    if (!emailSettings || !emailSettings.enabled) {
-      return { sent: false, reason: "Email notifications disabled" };
-    }
-    if (!emailSettings.smtpHost || !emailSettings.smtpUser || !emailSettings.smtpPass) {
-      return { sent: false, reason: "SMTP not configured" };
-=======
     if (!booking) {
       console.log("[Email] Booking not found:", bookingId);
       return { sent: false, reason: "Booking not found" };
@@ -642,7 +541,6 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
     if (!smtpUser) {
       console.log("[Email] API key not configured for provider:", provider);
       return { sent: false, reason: `${provider} API key not configured` };
->>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
     }
 
     // Build optional services list
@@ -663,56 +561,6 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
       vehicleName: booking.vehicle?.name,
       destinationName: booking.destination?.name,
       optionalServicesList,
-<<<<<<< HEAD
-    };
-
-    const companyName = booking.client?.name || "ReserVamos";
-    const htmlContent = buildHtmlEmail(enrichedBooking, emailSettings, companyName);
-    const textContent = buildTextEmail(enrichedBooking, emailSettings, companyName);
-
-    // Try to send via nodemailer (if available)
-    let nodemailer: any;
-    try {
-      nodemailer = await import("nodemailer").then((m) => m.default || m);
-    } catch {
-      console.warn("[Email] nodemailer not available, email not sent");
-      return { sent: false, reason: "nodemailer not installed" };
-    }
-
-    const transporter = nodemailer.createTransport({
-      host: emailSettings.smtpHost,
-      port: emailSettings.smtpPort || 587,
-      secure: (emailSettings.smtpPort || 587) === 465,
-      auth: {
-        user: emailSettings.smtpUser,
-        pass: emailSettings.smtpPass,
-      },
-    });
-
-    const subject = emailSettings.subject || "Your Reservation Confirmation";
-
-    // Send to passenger
-    await transporter.sendMail({
-      from: emailSettings.smtpFrom || `"${companyName}" <noreply@reservamos.app>`,
-      to: booking.passengerEmail,
-      subject: `${subject} - #${booking.code}`,
-      text: textContent,
-      html: htmlContent,
-    });
-
-    // Send notification to admin
-    await transporter.sendMail({
-      from: emailSettings.smtpFrom || `"${companyName}" <noreply@reservamos.app>`,
-      to: booking.client?.email,
-      subject: `New Reservation - #${booking.code}`,
-      text: `A new reservation has been received.\n\nCode: ${booking.code}\nPassenger: ${booking.passengerName} ${booking.passengerLastName}\nService: ${booking.tripType === "round_trip" ? "Round Trip" : "One Way"}\nDate: ${booking.date} at ${booking.time}\nTotal: $${booking.total}`,
-      html: `<p>A new reservation has been received.</p><p><strong>Code:</strong> ${booking.code}</p><p><strong>Passenger:</strong> ${booking.passengerName} ${booking.passengerLastName}</p><p><strong>Service:</strong> ${booking.tripType === "round_trip" ? "Round Trip" : "One Way"}</p><p><strong>Date:</strong> ${booking.date} at ${booking.time}</p><p><strong>Total:</strong> $${booking.total}</p>`,
-    });
-
-    return { sent: true, bookingCode: booking.code };
-  } catch (error: any) {
-    console.error("[Email] Failed to send confirmation:", error.message);
-=======
       createdAt: booking.createdAt,
     };
 
@@ -771,13 +619,10 @@ export async function sendBookingConfirmationEmail(bookingId: number) {
     });
   } catch (error: any) {
     console.error("[Email] CRITICAL ERROR:", error.message, error.stack);
->>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
     return { sent: false, reason: error.message };
   }
 }
 
-<<<<<<< HEAD
-=======
 // ─── Send via SendGrid API ──────────────────────────────────────
 async function sendViaSendGrid(params: {
   apiKey?: string | null;
@@ -892,7 +737,6 @@ async function sendViaResend(params: {
   }
 }
 
->>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
 // tRPC Router (manual trigger if needed)
 export const emailRouter = createRouter({
   sendBookingConfirmation: publicQuery
