@@ -10,11 +10,11 @@ RUN npm install
 COPY . .
 
 # Force cache invalidation - must change on every deploy
-ARG CACHE_BUST=20250603-02
+ARG CACHE_BUST=20250603-03
 RUN echo "Cache bust: ${CACHE_BUST}"
 
 # Build the application with production mode
-RUN NODE_ENV=production npx vite build --mode production 2>&1 && esbuild api/boot.ts --platform=node --bundle --format=esm --outdir=dist --banner:js="import { createRequire } from 'module';const require = createRequire(import.meta.url);" 2>&1
+RUN NODE_ENV=production npx vite build --mode production 2>&1 && npx esbuild api/boot.ts --platform=node --bundle --format=esm --outdir=dist --banner:js="import { createRequire } from 'module';const require = createRequire(import.meta.url);" 2>&1
 
 # Production stage
 FROM node:20-alpine
