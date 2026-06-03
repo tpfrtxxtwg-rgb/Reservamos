@@ -7,7 +7,7 @@ import path from "path";
 type App = Hono<{ Bindings: HttpBindings }>;
 
 export function serveStaticFiles(app: App) {
-  const distPath = path.resolve(import.meta.dirname, "../dist/public");
+  const distPath = path.resolve(process.cwd(), "dist/public");
 
   // Log for debugging what files are available
   console.log("[serveStatic] distPath:", distPath);
@@ -20,15 +20,12 @@ export function serveStaticFiles(app: App) {
       const assets = fs.readdirSync(assetsPath);
       console.log("[serveStatic] assets:", assets.slice(0, 10));
     }
-    // Check if index.html contains new content
     const idx = fs.readFileSync(path.join(distPath, "index.html"), "utf-8");
-    console.log("[serveStatic] index.html lang=", idx.includes('lang="en"') ? 'en' : idx.includes('lang="es"') ? 'es' : 'unknown');
-    console.log("[serveStatic] has step5?", idx.includes("step5") || idx.includes("payDeposit"));
+    console.log("[serveStatic] index.html loaded, size:", idx.length);
   }
 
   app.use("*", serveStatic({
     root: "./dist/public",
-    // Disable caching to ensure fresh deploys are always served
     onFound: (_path, c) => {
       c.header("Cache-Control", "no-cache, no-store, must-revalidate");
       c.header("Pragma", "no-cache");
@@ -43,7 +40,6 @@ export function serveStaticFiles(app: App) {
     }
     const indexPath = path.resolve(distPath, "index.html");
     const content = fs.readFileSync(indexPath, "utf-8");
-    // Prevent browser caching of index.html
     c.header("Cache-Control", "no-cache, no-store, must-revalidate");
     c.header("Pragma", "no-cache");
     c.header("Expires", "0");
