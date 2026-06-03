@@ -81,6 +81,10 @@ export default function AdminCoupons() {
         </motion.div>
       )}
 
+<<<<<<< HEAD
+=======
+      {/* Add Coupon Form */}
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
       {showAdd && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-lg shadow-sm border border-[rgba(199,94,58,0.15)] p-5 mb-6">
@@ -155,6 +159,10 @@ export default function AdminCoupons() {
             />
           </div>
 
+<<<<<<< HEAD
+=======
+          {/* Preview */}
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
           {code && discountPercent && (
             <div className="bg-[rgba(199,94,58,0.06)] border border-[rgba(199,94,58,0.15)] rounded-lg p-3 mb-4">
               <p className="font-body text-xs text-warm-gray">
@@ -193,6 +201,10 @@ export default function AdminCoupons() {
         </motion.div>
       )}
 
+<<<<<<< HEAD
+=======
+      {/* Coupons Table */}
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
       {!couponsList || couponsList.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm border border-[rgba(138,130,120,0.08)] p-10 text-center">
           <div className="w-14 h-14 rounded-full bg-[rgba(199,94,58,0.08)] flex items-center justify-center mx-auto mb-3">
@@ -265,4 +277,8 @@ export default function AdminCoupons() {
       )}
     </div>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305

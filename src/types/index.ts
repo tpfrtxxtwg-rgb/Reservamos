@@ -29,6 +29,19 @@ export interface BookingData {
   passengerEmail: string;
   passengerPhone: string;
   passengerNotes: string;
+<<<<<<< HEAD
+=======
+  selectedOptionalServices: number[];
+  luggage: 'standard' | 'oversized' | 'extra';
+  paymentOption: 'full' | 'deposit';
+  flightNumber: string;
+  airline: string;
+  departureDate: string;
+  departureTime: string;
+  departureAirline: string;
+  departureFlightNumber: string;
+  hotelPickupTime: string;
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
   paymentMethod: 'card' | 'paypal' | 'cash';
 }
 

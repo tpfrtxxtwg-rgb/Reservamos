@@ -4,7 +4,10 @@ import { trpc } from '@/providers/trpc.tsx';
 import {
   Buildings, Globe, Phone, EnvelopeSimple,
   Image, Check, ArrowCounterClockwise,
+<<<<<<< HEAD
   Lock, UserCircle, Warning,
+=======
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
 } from '@phosphor-icons/react';
 
 interface AdminCompanyProfileProps {
@@ -25,6 +28,7 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
     },
   });
 
+<<<<<<< HEAD
   const updateLoginEmail = trpc.companyProfile.updateLoginEmail.useMutation({
     onSuccess: () => {
       setAccountSuccess(t('admin.emailUpdated') || 'Login email updated successfully');
@@ -55,6 +59,8 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
     },
   });
 
+=======
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [website, setWebsite] = useState('');
@@ -63,6 +69,7 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
   const [logoUrl, setLogoUrl] = useState('');
   const [saved, setSaved] = useState(false);
 
+<<<<<<< HEAD
   // Account Security state
   const [showAccountSection, setShowAccountSection] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
@@ -74,6 +81,8 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
   const [accountSuccess, setAccountSuccess] = useState('');
   const [activeTab, setActiveTab] = useState<'email' | 'password'>('email');
 
+=======
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
   // Sync form fields with server data whenever profile changes
   useEffect(() => {
     if (profile) {
@@ -83,6 +92,7 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
       setPhone(profile.phone ?? '');
       setDescription(profile.description ?? '');
       setLogoUrl(profile.logoUrl ?? '');
+<<<<<<< HEAD
       setLoginEmail(profile.email ?? '');
     }
   }, [profile]);
@@ -90,6 +100,11 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
   // Fetch current auth user to display login email
   const { data: authUser } = trpc.clientAuth.me.useQuery();
 
+=======
+    }
+  }, [profile]);
+
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
   const handleSave = () => {
     updateProfile.mutate({
       name,
@@ -101,6 +116,7 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
     });
   };
 
+<<<<<<< HEAD
   const handleUpdateLoginEmail = () => {
     setAccountError('');
     setAccountSuccess('');
@@ -139,6 +155,8 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
     });
   };
 
+=======
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
   if (isLoading) {
     return (
       <div className="max-w-2xl flex items-center justify-center py-20">
@@ -297,6 +315,7 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
           </div>
         </div>
       </div>
+<<<<<<< HEAD
 
       {/* Account Security Section */}
       <div className="mt-6 bg-white rounded-xl shadow-sm border border-[rgba(138,130,120,0.08)] overflow-hidden">
@@ -492,3 +511,8 @@ export default function AdminCompanyProfile({ clientId }: AdminCompanyProfilePro
     </div>
   );
 }
+=======
+    </div>
+  );
+}
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305

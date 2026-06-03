@@ -47,4 +47,8 @@ CREATE TABLE IF NOT EXISTS subscription_payments (
   paid_at TIMESTAMP NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
   INDEX sub_payments_client_idx (clientId)
+<<<<<<< HEAD
 );
+=======
+);
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305

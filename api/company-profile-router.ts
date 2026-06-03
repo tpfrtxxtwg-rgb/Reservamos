@@ -1,7 +1,14 @@
 import { z } from "zod";
+<<<<<<< HEAD
 import bcrypt from "bcryptjs";
 import { createRouter, clientAuthedQuery } from "./middleware";
 import { getRawDb } from "./queries/connection";
+=======
+import { eq } from "drizzle-orm";
+import { createRouter, clientAuthedQuery } from "./middleware";
+import { getDb, getRawDb } from "./queries/connection";
+import { clients } from "@db/schema";
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
 
 export const companyProfileRouter = createRouter({
   get: clientAuthedQuery.query(async ({ ctx }) => {
@@ -41,6 +48,10 @@ export const companyProfileRouter = createRouter({
         console.log("[CompanyProfile] UPDATE clientId:", clientId);
         const rawDb = getRawDb();
 
+<<<<<<< HEAD
+=======
+        // Build SET clause dynamically - only update fields that exist in TiDB
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
         const sets: string[] = [];
         const values: any[] = [];
 
@@ -69,6 +80,7 @@ export const companyProfileRouter = createRouter({
         throw err;
       }
     }),
+<<<<<<< HEAD
 
   updateLoginEmail: clientAuthedQuery
     .input(
@@ -159,3 +171,6 @@ export const companyProfileRouter = createRouter({
       }
     }),
 });
+=======
+});
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305

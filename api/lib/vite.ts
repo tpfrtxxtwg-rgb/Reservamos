@@ -1,0 +1,52 @@
+import type { Hono } from "hono";
+import type { HttpBindings } from "@hono/node-server";
+import { serveStatic } from "@hono/node-server/serve-static";
+import fs from "fs";
+import path from "path";
+
+type App = Hono<{ Bindings: HttpBindings }>;
+
+export function serveStaticFiles(app: App) {
+  const distPath = path.resolve(import.meta.dirname, "../dist/public");
+
+  // Log for debugging what files are available
+  console.log("[serveStatic] distPath:", distPath);
+  console.log("[serveStatic] exists:", fs.existsSync(distPath));
+  if (fs.existsSync(distPath)) {
+    const files = fs.readdirSync(distPath);
+    console.log("[serveStatic] files in dist/public:", files);
+    const assetsPath = path.join(distPath, "assets");
+    if (fs.existsSync(assetsPath)) {
+      const assets = fs.readdirSync(assetsPath);
+      console.log("[serveStatic] assets:", assets.slice(0, 10));
+    }
+    // Check if index.html contains new content
+    const idx = fs.readFileSync(path.join(distPath, "index.html"), "utf-8");
+    console.log("[serveStatic] index.html lang=", idx.includes('lang="en"') ? 'en' : idx.includes('lang="es"') ? 'es' : 'unknown');
+    console.log("[serveStatic] has step5?", idx.includes("step5") || idx.includes("payDeposit"));
+  }
+
+  app.use("*", serveStatic({
+    root: "./dist/public",
+    // Disable caching to ensure fresh deploys are always served
+    onFound: (_path, c) => {
+      c.header("Cache-Control", "no-cache, no-store, must-revalidate");
+      c.header("Pragma", "no-cache");
+      c.header("Expires", "0");
+    },
+  }));
+
+  app.notFound((c) => {
+    const accept = c.req.header("accept") ?? "";
+    if (!accept.includes("text/html")) {
+      return c.json({ error: "Not Found" }, 404);
+    }
+    const indexPath = path.resolve(distPath, "index.html");
+    const content = fs.readFileSync(indexPath, "utf-8");
+    // Prevent browser caching of index.html
+    c.header("Cache-Control", "no-cache, no-store, must-revalidate");
+    c.header("Pragma", "no-cache");
+    c.header("Expires", "0");
+    return c.html(content);
+  });
+}

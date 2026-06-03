@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -23,13 +24,38 @@ const statusConfig: Record<string, { label: string; color: string; bg: string; i
   expired: { label: 'Expired', color: '#B23A2F', bg: 'rgba(178,58,47,0.08)', icon: XCircle },
   cancelled: { label: 'Cancelled', color: '#8A8278', bg: 'rgba(138,130,120,0.08)', icon: XCircle },
   none: { label: 'No Plan', color: '#8A8278', bg: 'rgba(138,130,120,0.08)', icon: Clock },
+=======
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
+import {
+  Buildings, Timer, MagnifyingGlass, CreditCard,
+  Tag, CheckCircle, XCircle, Clock, ShieldWarning,
+} from "@phosphor-icons/react";
+import { trpc } from "@/providers/trpc";
+import { useClientAuth } from "@/providers/ClientAuthProvider";
+
+type StatusFilter = "all" | "trial" | "active" | "expired" | "cancelled" | "none";
+
+const statusConfig: Record<string, { label: string; color: string; bg: string; icon: any }> = {
+  trial:   { label: "Trial",     color: "#C75E3A", bg: "rgba(199,94,58,0.08)",  icon: Timer },
+  active:  { label: "Active",    color: "#2D6A4F", bg: "rgba(45,106,79,0.08)",   icon: CheckCircle },
+  expired: { label: "Expired",   color: "#B23A2F", bg: "rgba(178,58,47,0.08)",   icon: XCircle },
+  cancelled:{label: "Cancelled", color: "#8A8278", bg: "rgba(138,130,120,0.08)", icon: XCircle },
+  none:    { label: "No Plan",   color: "#8A8278", bg: "rgba(138,130,120,0.08)", icon: Clock },
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
 };
 
 export default function AdminCompanies() {
   const { t } = useTranslation();
   const { isSuperAdmin } = useClientAuth();
+<<<<<<< HEAD
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [search, setSearch] = useState('');
+=======
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [search, setSearch] = useState("");
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
   const [selectedCompany, setSelectedCompany] = useState<number | null>(null);
 
   const { data: companies, isLoading } = trpc.companies.list.useQuery();
@@ -43,7 +69,11 @@ export default function AdminCompanies() {
   });
 
   const filtered = (companies || []).filter((c: any) => {
+<<<<<<< HEAD
     if (statusFilter !== 'all' && c.subscriptionStatus !== statusFilter) return false;
+=======
+    if (statusFilter !== "all" && c.subscriptionStatus !== statusFilter) return false;
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
     if (search) {
       const q = search.toLowerCase();
       return c.name?.toLowerCase().includes(q) || c.email?.toLowerCase().includes(q);
@@ -52,10 +82,17 @@ export default function AdminCompanies() {
   });
 
   const stats = {
+<<<<<<< HEAD
     trial: (companies || []).filter((c: any) => c.subscriptionStatus === 'trial').length,
     active: (companies || []).filter((c: any) => c.subscriptionStatus === 'active').length,
     expired: (companies || []).filter((c: any) => c.subscriptionStatus === 'expired').length,
     cancelled: (companies || []).filter((c: any) => c.subscriptionStatus === 'cancelled').length,
+=======
+    trial:     (companies || []).filter((c: any) => c.subscriptionStatus === "trial").length,
+    active:    (companies || []).filter((c: any) => c.subscriptionStatus === "active").length,
+    expired:   (companies || []).filter((c: any) => c.subscriptionStatus === "expired").length,
+    cancelled: (companies || []).filter((c: any) => c.subscriptionStatus === "cancelled").length,
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
   };
 
   if (!isSuperAdmin) {
@@ -75,7 +112,11 @@ export default function AdminCompanies() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
+<<<<<<< HEAD
         <span className="font-body text-warm-gray">{t('common.loading')}...</span>
+=======
+        <span className="font-body text-warm-gray">{t("common.loading")}...</span>
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
       </div>
     );
   }
@@ -83,20 +124,35 @@ export default function AdminCompanies() {
   return (
     <div>
       <div className="mb-6">
+<<<<<<< HEAD
         <h2 className="font-display text-xl font-semibold text-charcoal">{t('admin.companies') || 'Registered Companies'}</h2>
         <p className="font-body text-sm text-warm-gray mt-1">{t('admin.companiesDesc') || 'Manage companies and their subscription status'}</p>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         {(['trial', 'active', 'expired', 'cancelled'] as const).map((status) => {
+=======
+        <h2 className="font-display text-xl font-semibold text-charcoal">{t("admin.companies") || "Registered Companies"}</h2>
+        <p className="font-body text-sm text-warm-gray mt-1">{t("admin.companiesDesc") || "Manage companies and their subscription status"}</p>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        {(["trial", "active", "expired", "cancelled"] as const).map((status) => {
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
           const cfg = statusConfig[status];
           const Icon = cfg.icon;
           return (
             <button
               key={status}
+<<<<<<< HEAD
               onClick={() => setStatusFilter(statusFilter === status ? 'all' : status)}
               className={`rounded-lg p-4 text-left transition-all ${statusFilter === status ? 'ring-2 ring-offset-1' : ''}`}
               style={{ backgroundColor: cfg.bg, ['--tw-ring-color' as any]: cfg.color }}
+=======
+              onClick={() => setStatusFilter(statusFilter === status ? "all" : status)}
+              className={`rounded-lg p-4 text-left transition-all ${statusFilter === status ? "ring-2 ring-offset-1" : ""}`}
+              style={{ backgroundColor: cfg.bg, ["--tw-ring-color" as any]: cfg.color }}
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
             >
               <div className="flex items-center gap-2 mb-2">
                 <Icon size={16} style={{ color: cfg.color }} />
@@ -113,8 +169,13 @@ export default function AdminCompanies() {
         <input
           type="text"
           value={search}
+<<<<<<< HEAD
           onChange={e => setSearch(e.target.value)}
           placeholder={t('admin.searchCompanies') || 'Search companies...'}
+=======
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={t("admin.searchCompanies") || "Search companies..."}
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
           className="w-full h-10 bg-white border border-[rgba(138,130,120,0.15)] rounded-lg pl-9 pr-3 font-body text-sm text-charcoal focus:border-terracotta outline-none"
         />
       </div>
@@ -126,8 +187,13 @@ export default function AdminCompanies() {
           </div>
           <p className="font-body text-sm text-warm-gray">
             {companies?.length === 0
+<<<<<<< HEAD
               ? (t('admin.noCompanies') || 'No companies registered yet.')
               : (t('admin.noCompaniesFilter') || 'No companies match your filter.')}
+=======
+              ? t("admin.noCompanies") || "No companies registered yet."
+              : t("admin.noCompaniesFilter") || "No companies match your filter."}
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
           </p>
         </div>
       ) : (
@@ -136,12 +202,21 @@ export default function AdminCompanies() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-[rgba(138,130,120,0.1)]">
+<<<<<<< HEAD
                   <th className="text-left px-4 py-3 font-body text-[11px] font-semibold text-warm-gray uppercase tracking-wide">{t('admin.company') || 'Company'}</th>
                   <th className="text-left px-4 py-3 font-body text-[11px] font-semibold text-warm-gray uppercase tracking-wide">{t('admin.status') || 'Status'}</th>
                   <th className="text-left px-4 py-3 font-body text-[11px] font-semibold text-warm-gray uppercase tracking-wide">{t('admin.trial') || 'Trial'}</th>
                   <th className="text-left px-4 py-3 font-body text-[11px] font-semibold text-warm-gray uppercase tracking-wide">{t('admin.plan') || 'Plan'}</th>
                   <th className="text-left px-4 py-3 font-body text-[11px] font-semibold text-warm-gray uppercase tracking-wide">{t('admin.amount') || 'Amount'}</th>
                   <th className="text-right px-4 py-3 font-body text-[11px] font-semibold text-warm-gray uppercase tracking-wide">{t('admin.actions') || 'Actions'}</th>
+=======
+                  <th className="text-left px-4 py-3 font-body text-[11px] font-semibold text-warm-gray uppercase tracking-wide">{t("admin.company") || "Company"}</th>
+                  <th className="text-left px-4 py-3 font-body text-[11px] font-semibold text-warm-gray uppercase tracking-wide">{t("admin.status") || "Status"}</th>
+                  <th className="text-left px-4 py-3 font-body text-[11px] font-semibold text-warm-gray uppercase tracking-wide">{t("admin.trial") || "Trial"}</th>
+                  <th className="text-left px-4 py-3 font-body text-[11px] font-semibold text-warm-gray uppercase tracking-wide">{t("admin.plan") || "Plan"}</th>
+                  <th className="text-left px-4 py-3 font-body text-[11px] font-semibold text-warm-gray uppercase tracking-wide">{t("admin.amount") || "Amount"}</th>
+                  <th className="text-right px-4 py-3 font-body text-[11px] font-semibold text-warm-gray uppercase tracking-wide">{t("admin.actions") || "Actions"}</th>
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
                 </tr>
               </thead>
               <tbody>
@@ -152,7 +227,11 @@ export default function AdminCompanies() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-body text-xs font-bold"
+<<<<<<< HEAD
                             style={{ backgroundColor: c.primaryColor || '#C75E3A' }}>
+=======
+                            style={{ backgroundColor: c.primaryColor || "#C75E3A" }}>
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
                             {c.name?.charAt(0).toUpperCase()}
                           </div>
                           <div>
@@ -171,29 +250,51 @@ export default function AdminCompanies() {
                         {c.trialEnd ? (
                           <div>
                             <p className="font-body text-sm text-charcoal">
+<<<<<<< HEAD
                               {c.trialDaysLeft > 0 ? `${c.trialDaysLeft} days left` : 'Ended'}
+=======
+                              {c.trialDaysLeft > 0 ? `${c.trialDaysLeft} days left` : "Ended"}
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
                             </p>
                             <p className="font-body text-[11px] text-warm-gray">
                               {new Date(c.trialEnd).toLocaleDateString()}
                             </p>
                           </div>
+<<<<<<< HEAD
                         ) : (<span className="font-body text-sm text-warm-gray">—</span>)}
+=======
+                        ) : <span className="font-body text-sm text-warm-gray">&mdash;</span>}
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
                       </td>
                       <td className="px-4 py-3">
                         {c.planEnd ? (
                           <div>
                             <p className="font-body text-sm text-charcoal">
+<<<<<<< HEAD
                               {c.planDaysLeft > 0 ? `${c.planDaysLeft} days left` : 'Ended'}
+=======
+                              {c.planDaysLeft > 0 ? `${c.planDaysLeft} days left` : "Ended"}
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
                             </p>
                             <p className="font-body text-[11px] text-warm-gray">
                               {new Date(c.planEnd).toLocaleDateString()}
                             </p>
                           </div>
+<<<<<<< HEAD
                         ) : (<span className="font-body text-sm text-warm-gray">—</span>)}
                       </td>
                       <td className="px-4 py-3">
                         <div>
                           <p className="font-body text-sm font-semibold text-charcoal">${c.finalAmount || c.annualPrice || '600.00'}</p>
+=======
+                        ) : <span className="font-body text-sm text-warm-gray">&mdash;</span>}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div>
+                          <p className="font-body text-sm font-semibold text-charcoal">
+                            ${c.finalAmount || c.annualPrice || "600.00"}
+                          </p>
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
                           {c.couponCode && (
                             <p className="font-body text-[11px] text-[#2D6A4F] flex items-center gap-1">
                               <Tag size={10} /> {c.couponCode} ({c.discountApplied}%)
@@ -205,8 +306,12 @@ export default function AdminCompanies() {
                         <button
                           onClick={() => setSelectedCompany(selectedCompany === c.id ? null : c.id)}
                           className="text-warm-gray hover:text-terracotta transition-colors p-1"
+<<<<<<< HEAD
                           title="View payments"
                         >
+=======
+                          title="View payments">
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
                           <CreditCard size={16} />
                         </button>
                       </td>
@@ -223,29 +328,53 @@ export default function AdminCompanies() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
           className="mt-6 bg-white rounded-lg shadow-sm border border-[rgba(138,130,120,0.08)] p-5">
           <div className="flex items-center justify-between mb-4">
+<<<<<<< HEAD
             <h3 className="font-body text-sm font-semibold text-charcoal">{t('admin.paymentHistory') || 'Payment History'}</h3>
+=======
+            <h3 className="font-body text-sm font-semibold text-charcoal">
+              {t("admin.paymentHistory") || "Payment History"}
+            </h3>
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
             <button onClick={() => setSelectedCompany(null)} className="text-warm-gray hover:text-charcoal">
               <XCircle size={18} />
             </button>
           </div>
           {!payments || payments.length === 0 ? (
+<<<<<<< HEAD
             <p className="font-body text-sm text-warm-gray">{t('admin.noPayments') || 'No payments recorded.'}</p>
+=======
+            <p className="font-body text-sm text-warm-gray">
+              {t("admin.noPayments") || "No payments recorded."}
+            </p>
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
           ) : (
             <div className="space-y-2">
               {payments.map((p: any) => (
                 <div key={p.id} className="flex items-center justify-between p-3 bg-[#FAFAF8] rounded-lg">
                   <div>
+<<<<<<< HEAD
                     <p className="font-body text-sm text-charcoal">{p.description || 'Annual plan payment'}</p>
                     <p className="font-body text-[11px] text-warm-gray">
                       {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}
+=======
+                    <p className="font-body text-sm text-charcoal">{p.description || "Annual plan payment"}</p>
+                    <p className="font-body text-[11px] text-warm-gray">
+                      {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ""}
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="font-body text-sm font-semibold text-charcoal">${p.amount}</p>
                     <span className={`inline-block px-2 py-0.5 rounded-full font-body text-[10px] font-medium ${
+<<<<<<< HEAD
                       p.status === 'succeeded' ? 'bg-[rgba(45,106,79,0.1)] text-[#2D6A4F]' :
                       p.status === 'failed' ? 'bg-[rgba(178,58,47,0.1)] text-[#B23A2F]' :
                       'bg-[rgba(199,94,58,0.1)] text-terracotta'
+=======
+                      p.status === "succeeded" ? "bg-[rgba(45,106,79,0.1)] text-[#2D6A4F]" :
+                      p.status === "failed" ? "bg-[rgba(178,58,47,0.1)] text-[#B23A2F]" :
+                      "bg-[rgba(199,94,58,0.1)] text-terracotta"
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
                     }`}>
                       {p.status}
                     </span>
@@ -258,4 +387,8 @@ export default function AdminCompanies() {
       )}
     </div>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305

@@ -160,6 +160,9 @@ export const widgetRouter = createRouter({
       airline: z.string().max(100).optional(),
       departureDate: z.string().max(10).optional(),
       departureTime: z.string().max(10).optional(),
+      departureAirline: z.string().max(100).optional(),
+      departureFlightNumber: z.string().max(50).optional(),
+      hotelPickupTime: z.string().max(10).optional(),
       paymentMethod: z.enum(["card", "paypal", "cash"]).default("card"),
       paymentOption: z.enum(["full", "deposit"]).default("full"),
     }))
@@ -251,6 +254,9 @@ export const widgetRouter = createRouter({
         airline: input.airline || null,
         departureDate: input.departureDate || null,
         departureTime: input.departureTime || null,
+        departureAirline: input.departureAirline || null,
+        departureFlightNumber: input.departureFlightNumber || null,
+        hotelPickupTime: input.hotelPickupTime || null,
         paymentMethod: input.paymentMethod,
         status: "confirmed",
         paymentStatus,
@@ -265,7 +271,14 @@ export const widgetRouter = createRouter({
 
       // Send confirmation email asynchronously (don't block the response)
       if (createdBooking) {
+<<<<<<< HEAD
         sendBookingConfirmationEmail(createdBooking.id).catch((err: any) => {
+=======
+        console.log(`[Widget] Triggering confirmation email for booking #${createdBooking.id}`);
+        sendBookingConfirmationEmail(createdBooking.id).then((result) => {
+          console.log(`[Widget] Email result:`, JSON.stringify(result));
+        }).catch((err: any) => {
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
           console.error("[Widget] Failed to send confirmation email:", err?.message || err);
         });
       }

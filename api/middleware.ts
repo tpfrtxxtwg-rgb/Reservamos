@@ -54,4 +54,20 @@ const requireClientAuth = t.middleware(async (opts) => {
 export const authedQuery = t.procedure.use(requireAuth);
 export const adminQuery = authedQuery.use(requireRole("admin"));
 export const clientAuthedQuery = t.procedure.use(requireClientAuth);
+<<<<<<< HEAD
 export const superAdminQuery = clientAuthedQuery.use(requireRole("super_admin"));
+=======
+function requireClientRole(role: string) {
+  return t.middleware(async (opts) => {
+    const { ctx, next } = opts;
+    if (!ctx.clientUser || ctx.clientUser.role !== role) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Insufficient role. Super admin required.",
+      });
+    }
+    return next({ ctx: { ...ctx, clientUser: ctx.clientUser } });
+  });
+}
+export const superAdminQuery = clientAuthedQuery.use(requireClientRole("super_admin"));
+>>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
