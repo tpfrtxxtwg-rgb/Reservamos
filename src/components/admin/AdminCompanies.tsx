@@ -2,9 +2,14 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
-  Buildings, Timer,
-  Search, CreditCard,
-  Tag, CheckCircle, XCircle, Clock,
+  Buildings,
+  Timer,
+  MagnifyingGlass,
+  CreditCard,
+  Tag,
+  CheckCircle,
+  XCircle,
+  Clock,
   ShieldWarning,
 } from '@phosphor-icons/react';
 import { trpc } from '@/providers/trpc';
@@ -19,6 +24,7 @@ const statusConfig: Record<string, { label: string; color: string; bg: string; i
   cancelled: { label: 'Cancelled', color: '#8A8278', bg: 'rgba(138,130,120,0.08)', icon: XCircle },
   none: { label: 'No Plan', color: '#8A8278', bg: 'rgba(138,130,120,0.08)', icon: Clock },
 };
+
 export default function AdminCompanies() {
   const { t } = useTranslation();
   const { isSuperAdmin } = useClientAuth();
@@ -31,10 +37,10 @@ export default function AdminCompanies() {
     { clientId: selectedCompany! },
     { enabled: !!selectedCompany }
   );
+  const utils = trpc.useUtils();
   const toggleStatus = trpc.companies.toggleStatus.useMutation({
     onSuccess: () => utils.companies.list.invalidate(),
   });
-  const utils = trpc.useUtils();
 
   const filtered = (companies || []).filter((c: any) => {
     if (statusFilter !== 'all' && c.subscriptionStatus !== statusFilter) return false;
@@ -59,8 +65,8 @@ export default function AdminCompanies() {
           <div className="w-16 h-16 rounded-full bg-[rgba(178,58,47,0.1)] flex items-center justify-center mx-auto mb-4">
             <ShieldWarning size={28} className="text-[#B23A2F]" />
           </div>
-          <h3 className="font-display text-lg font-semibold text-charcoal mb-1">{t('admin.accessDenied') || 'Access Denied'}</h3>
-          <p className="font-body text-sm text-warm-gray">{t('admin.superAdminOnly') || 'This section is only available for system administrators.'}</p>
+          <h3 className="font-display text-lg font-semibold text-charcoal mb-1">Access Denied</h3>
+          <p className="font-body text-sm text-warm-gray">This section is only available for system administrators.</p>
         </div>
       </div>
     );
@@ -73,6 +79,7 @@ export default function AdminCompanies() {
       </div>
     );
   }
+
   return (
     <div>
       <div className="mb-6">
@@ -102,7 +109,7 @@ export default function AdminCompanies() {
       </div>
 
       <div className="relative mb-4">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
+        <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
         <input
           type="text"
           value={search}
@@ -111,6 +118,7 @@ export default function AdminCompanies() {
           className="w-full h-10 bg-white border border-[rgba(138,130,120,0.15)] rounded-lg pl-9 pr-3 font-body text-sm text-charcoal focus:border-terracotta outline-none"
         />
       </div>
+
       {!filtered || filtered.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm border border-[rgba(138,130,120,0.08)] p-10 text-center">
           <div className="w-14 h-14 rounded-full bg-[rgba(199,94,58,0.08)] flex items-center justify-center mx-auto mb-3">
@@ -169,9 +177,7 @@ export default function AdminCompanies() {
                               {new Date(c.trialEnd).toLocaleDateString()}
                             </p>
                           </div>
-                        ) : (
-                          <span className="font-body text-sm text-warm-gray">—</span>
-                        )}
+                        ) : (<span className="font-body text-sm text-warm-gray">—</span>)}
                       </td>
                       <td className="px-4 py-3">
                         {c.planEnd ? (
@@ -183,15 +189,11 @@ export default function AdminCompanies() {
                               {new Date(c.planEnd).toLocaleDateString()}
                             </p>
                           </div>
-                        ) : (
-                          <span className="font-body text-sm text-warm-gray">—</span>
-                        )}
+                        ) : (<span className="font-body text-sm text-warm-gray">—</span>)}
                       </td>
                       <td className="px-4 py-3">
                         <div>
-                          <p className="font-body text-sm font-semibold text-charcoal">
-                            ${c.finalAmount || c.annualPrice || '600.00'}
-                          </p>
+                          <p className="font-body text-sm font-semibold text-charcoal">${c.finalAmount || c.annualPrice || '600.00'}</p>
                           {c.couponCode && (
                             <p className="font-body text-[11px] text-[#2D6A4F] flex items-center gap-1">
                               <Tag size={10} /> {c.couponCode} ({c.discountApplied}%)
@@ -216,13 +218,12 @@ export default function AdminCompanies() {
           </div>
         </div>
       )}
+
       {selectedCompany && payments && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
           className="mt-6 bg-white rounded-lg shadow-sm border border-[rgba(138,130,120,0.08)] p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-body text-sm font-semibold text-charcoal">
-              {t('admin.paymentHistory') || 'Payment History'}
-            </h3>
+            <h3 className="font-body text-sm font-semibold text-charcoal">{t('admin.paymentHistory') || 'Payment History'}</h3>
             <button onClick={() => setSelectedCompany(null)} className="text-warm-gray hover:text-charcoal">
               <XCircle size={18} />
             </button>

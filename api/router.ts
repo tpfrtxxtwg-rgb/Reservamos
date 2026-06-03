@@ -15,6 +15,9 @@ import { serviceTourRouter } from "./service-tour-router";
 import { emailSettingsRouter } from "./email-settings-router";
 import { emailRouter } from "./email-router";
 import { createRouter, publicQuery } from "./middleware";
+import { couponRouter } from "./coupon-router";
+import { stripeSubscriptionRouter } from "./stripe-subscription-router";
+import { companiesRouter } from "./companies-router";
 
 export const appRouter = createRouter({
   ping: publicQuery.query(() => ({ ok: true, ts: Date.now() })),
