@@ -2,23 +2,27 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json package-lock.json ./
-RUN npm install
+# Copy only package.json (no lock file to avoid stale cache)
+COPY package.json ./
+
+# Cache bust MUST be before npm install to invalidate Docker layer cache
+ARG CACHE_BUST=20250603-06
+RUN echo "Cache bust: ${CACHE_BUST}" && npm install --no-package-lock
 
 # Copy source code
 COPY . .
 
-# Force cache invalidation - must change on every deploy
-ARG CACHE_BUST=20250603-05
-RUN echo "Cache bust: ${CACHE_BUST}"
-
 # Build the application with production mode
 RUN NODE_ENV=production npx vite build --mode production 2>&1 && npx esbuild api/boot.ts --platform=node --bundle --format=esm --outdir=dist --banner:js="import { createRequire } from 'module';const require = createRequire(import.meta.url);" 2>&1
+
 # Production stage
 FROM node:20-alpine
 
 WORKDIR /app
+
+# Cache bust for stage-1 too
+ARG CACHE_BUST=20250603-06
+RUN echo "Cache bust stage-1: ${CACHE_BUST}"
 
 # Copy built assets and dependencies
 COPY --from=builder /app/dist ./dist
