@@ -1,33 +1,43 @@
-FROM node:22-slim AS builder
-
-RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /build-reservamos
-
-ARG RAILWAY_GIT_COMMIT_SHA
-ARG RAILWAY_GIT_BRANCH=main
-
-RUN git clone --depth 1 --branch ${RAILWAY_GIT_BRANCH} https://github.com/tpfrtxxtwg-rgb/Reservamos.git . && \
-    echo "Cloned commit: ${RAILWAY_GIT_COMMIT_SHA:-unknown}"
-
-RUN npm install && npm rebuild esbuild
-RUN npx vite build
-
-# Compile backend TypeScript to JavaScript
-RUN npx tsc --project tsconfig.build.json
-
-FROM node:22-slim
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy compiled backend + frontend + node_modules
-COPY --from=builder /build-reservamos/dist ./dist
-COPY --from=builder /build-reservamos/node_modules ./node_modules
-COPY --from=builder /build-reservamos/package.json ./package.json
+# Copy package files
+COPY package.json package-lock.json ./
+RUN npm install
 
+# Copy source code
+COPY . .
+
+# Force cache invalidation - must change on every deploy
+ARG CACHE_BUST=20250603-01
+RUN echo "Cache bust: ${CACHE_BUST}"
+
+# Build the application
+RUN npm run build
+
+# Production stage
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy built assets and dependencies
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/api ./api
+COPY --from=builder /app/db ./db
+COPY --from=builder /app/contracts ./contracts
+COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
+COPY --from=builder /app/tsconfig.server.json ./tsconfig.server.json
+
+# Create expected directory structure for Railway
+RUN mkdir -p dist/server/api && cp dist/boot.js dist/server/api/boot.js 2>/dev/null || true
+
+# Environment setup
 ENV NODE_ENV=production
 ENV PORT=3000
 
 EXPOSE 3000
 
-CMD ["node", "dist/server/api/boot.js"]
+CMD ["node", "dist/boot.js"]
