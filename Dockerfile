@@ -1,4 +1,4 @@
-FROM node:20-alpine AS builder
+FROM node:22-slim AS builder
 
 WORKDIR /app
 
@@ -22,7 +22,7 @@ RUN NODE_ENV=production npx vite build --mode production 2>&1 && \
     --banner:js="import { createRequire } from 'module';const require = createRequire(import.meta.url);" 2>&1
 
 # Production stage
-FROM node:20-alpine
+FROM node:22-slim
 
 WORKDIR /app
 
