@@ -180,7 +180,7 @@ export const stripeSubscriptionRouter = createRouter({
       const rawDb = getRawDb();
       switch (event.type) {
         case "invoice.payment_succeeded": {
-          const invoice = event.data.object as Stripe.Invoice;
+          const invoice = event.data.object as any;
           const subId = invoice.subscription as string;
           await rawDb.execute(
             "UPDATE client_subscriptions SET status='active', plan_start=NOW(), plan_end=DATE_ADD(NOW(), INTERVAL 1 YEAR) WHERE stripe_subscription_id=?",
@@ -189,7 +189,7 @@ export const stripeSubscriptionRouter = createRouter({
           break;
         }
         case "invoice.payment_failed": {
-          const invoice = event.data.object as Stripe.Invoice;
+          const invoice = event.data.object as any;
           const subId = invoice.subscription as string;
           await rawDb.execute("UPDATE client_subscriptions SET status='expired' WHERE stripe_subscription_id=?", [subId]);
           break;
