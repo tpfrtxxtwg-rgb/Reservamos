@@ -2,30 +2,37 @@ FROM node:22-slim AS builder
 
 WORKDIR /app
 
-# Aggressive cache invalidation - MUST change timestamp for every deploy
-RUN echo "deploy-2025-06-04-14-45-00" > /tmp/cache-bust
+# CHANGE THIS TIMESTAMP FOR EVERY DEPLOY to invalidate cache
+RUN echo "deploy-2025-06-04-15-00-00" > /tmp/cache-bust
 
 COPY package.json ./
-RUN npm install 2>&1 | tail -5 && \
-    echo "=== VERSIONS ===" && \
-    node -e "console.log('tRPC:', require('@trpc/react-query/package.json').version)" && \
-    node -e "console.log('RQ:', require('@tanstack/react-query/package.json').version)" && \
-    echo "================"
+RUN npm install 2>&1 | tail -5
 
 COPY . .
 
-# Force clean build - no Vite cache
-RUN rm -rf dist .vite && \
-    NODE_ENV=production npx vite build --mode production --emptyOutDir 2>&1 && \
-    echo "=== BUILD OUTPUT ===" && \
-    ls -la dist/public/ && \
-    echo "=== JS/CSS ASSETS ===" && \
-    ls dist/public/assets/ | grep -E "\.(js|css)$" || echo "WARNING: No JS/CSS found" && \
-    echo "=== INDEX HTML ===" && \
-    cat dist/public/index.html && \
-    echo "=== END ===" && \
+# Step 1: Build frontend with Vite
+RUN echo "=== STEP 1: VITE BUILD ===" && \
+    rm -rf dist .vite && \
+    NODE_ENV=production npx vite build --mode production --emptyOutDir && \
+    echo "=== VITE DONE ===" && \
+    ls -la dist/public/
+
+# Step 2: Verify JS/CSS assets exist - FAILS if missing
+RUN echo "=== STEP 2: VERIFY ASSETS ===" && \
+    ls dist/public/assets/ && \
+    JS_COUNT=$(ls dist/public/assets/*.js 2>/dev/null | wc -l) && \
+    CSS_COUNT=$(ls dist/public/assets/*.css 2>/dev/null | wc -l) && \
+    echo "JS files: $JS_COUNT" && \
+    echo "CSS files: $CSS_COUNT" && \
+    if [ "$JS_COUNT" -eq 0 ]; then echo "ERROR: No JS files!" && exit 1; fi && \
+    if [ "$CSS_COUNT" -eq 0 ]; then echo "ERROR: No CSS files!" && exit 1; fi && \
+    echo "=== VERIFY OK ==="
+
+# Step 3: Build backend
+RUN echo "=== STEP 3: ES BUILD ===" && \
     npx esbuild api/boot.ts --platform=node --bundle --format=esm --outdir=dist \
-    --banner:js="import { createRequire } from 'module';const require = createRequire(import.meta.url);" 2>&1
+    --banner:js="import { createRequire } from 'module';const require = createRequire(import.meta.url);" && \
+    echo "=== ES BUILD DONE ==="
 
 FROM node:22-slim
 
