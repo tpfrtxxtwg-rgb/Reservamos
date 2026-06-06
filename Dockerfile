@@ -2,22 +2,28 @@ FROM node:22-slim
 
 WORKDIR /app
 
-RUN echo "deploy-2025-06-05-06-00-00" > /tmp/cache-bust
+RUN echo "deploy-2025-06-05-07-00-00" > /tmp/cache-bust
 
 COPY package.json ./
 RUN npm install 2>&1 | tail -5
 
 COPY . .
 
-RUN echo "=== FIXING JSON ===" && \
-    for f in src/i18n/en.json src/i18n/es.json src/i18n/pt.json; do \
-        sed -i '/<<<<<<< HEAD/d' "$f" && \
-        sed -i '/=======/d' "$f" && \
-        sed -i '/>>>>>>>/d' "$f" && \
-        sed -i 's/\",,/\",/g' "$f" && \
-        echo "$f: cleaned"; \
-    done && \
-    echo "=== JSON CLEANED ==="
+RUN node -e "
+const fs = require('fs');
+for (const lang of ['en', 'es', 'pt']) {
+    const path = 'src/i18n/' + lang + '.json';
+    let content = fs.readFileSync(path, 'utf8');
+    content = content.replace(/<<<<<<< HEAD\\n/g, '');
+    content = content.replace(/=======\\n/g, '');
+    content = content.replace(/>>>>>>> [0-9a-f]+\\n/g, '');
+    content = content.replace(/',/g, ',');
+    const data = JSON.parse(content);
+    fs.writeFileSync(path, JSON.stringify(data, null, 2) + '\\n');
+    console.log(path + ': FIXED');
+}
+console.log('All JSON files fixed');
+"
 
 RUN echo "=== VITE BUILD ===" && \
     rm -rf dist .vite && \
