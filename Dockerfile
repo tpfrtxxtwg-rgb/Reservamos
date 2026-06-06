@@ -2,7 +2,8 @@ FROM node:22-slim
 
 WORKDIR /app
 
-RUN echo "deploy-2025-06-04-21-00-00" > /tmp/cache-bust
+# CHANGE TIMESTAMP FOR EVERY DEPLOY
+RUN echo "deploy-2025-06-04-22-00-00" > /tmp/cache-bust
 
 COPY package.json ./
 RUN npm install 2>&1 | tail -5
