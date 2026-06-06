@@ -2,32 +2,35 @@ FROM node:22-slim
 
 WORKDIR /app
 
-RUN echo "deploy-2025-06-05-04-00-00" > /tmp/cache-bust
+RUN echo "deploy-2025-06-05-05-00-00" > /tmp/cache-bust
 
 COPY package.json ./
 RUN npm install 2>&1 | tail -5
 
 COPY . .
 
-RUN echo "=== FIXING JSON ===" && \
-    python3 -c "
-import json, re
+RUN cat > /tmp/fix_json.py << 'PYEOF'
+import json, re, sys
 for lang in ['en', 'es', 'pt']:
     path = f'src/i18n/{lang}.json'
-    with open(path, 'r') as f:
-        content = f.read()
-    content = re.sub(r'<<<<<<< HEAD\n', '', content)
-    content = re.sub(r'=======\n', '', content)
-    content = re.sub(r'>>>>>>> [0-9a-f]+\n', '', content)
-    content = re.sub(r',,', ',', content)
-    data = json.loads(content)
-    with open(path, 'w') as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-        f.write('\n')
-    print(f'{path}: FIXED')
+    try:
+        with open(path, 'r') as f:
+            content = f.read()
+        content = re.sub(r'<<<<<<< HEAD\n', '', content)
+        content = re.sub(r'=======\n', '', content)
+        content = re.sub(r'>>>>>>> [0-9a-f]+\n', '', content)
+        content = re.sub(r',,', ',', content)
+        data = json.loads(content)
+        with open(path, 'w') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+            f.write('\n')
+        print(f'{path}: FIXED')
+    except Exception as e:
+        print(f'{path}: {e}')
+        sys.exit(1)
 print('All JSON files fixed')
-" && \
-    echo "=== JSON FIXED ==="
+PYEOF
+RUN python3 /tmp/fix_json.py
 
 RUN echo "=== VITE BUILD ===" && \
     rm -rf dist .vite && \
