@@ -2,7 +2,6 @@ FROM node:22-slim
 
 WORKDIR /app
 
-# CHANGE TIMESTAMP FOR EVERY DEPLOY
 RUN echo "deploy-2025-06-04-22-00-00" > /tmp/cache-bust
 
 COPY package.json ./
