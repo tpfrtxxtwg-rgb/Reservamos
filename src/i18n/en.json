@@ -340,7 +340,7 @@
     "smtpPass": "SMTP Password",
     "smtpFrom": "From Email Address",
     "smtpFromDesc": "This is the sender address customers will see",
-    "smtpProviders": "Popular SMTP Providers:"
+    "smtpProviders": "Popular SMTP Providers:",
     "dangerZone": "Danger Zone",
     "clearTestData": "Clear Test Data",
     "clearTestDataDesc": "Permanently delete all booking records for your account. This action cannot be undone.",

@@ -337,7 +337,7 @@
     "smtpPass": "Senha SMTP",
     "smtpFrom": "E-mail de Envio (From)",
     "smtpFromDesc": "Este é o endereço que os clientes verão como remetente",
-    "smtpProviders": "Provedores SMTP populares:"
+    "smtpProviders": "Provedores SMTP populares:",
     "dangerZone": "Zona Perigosa",
     "clearTestData": "Limpar Dados de Teste",
     "clearTestDataDesc": "Exclui permanentemente todos os registros de reservas da sua conta. Esta ação não pode ser desfeita.",
