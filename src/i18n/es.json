@@ -337,7 +337,7 @@
     "smtpPass": "Contraseña SMTP",
     "smtpFrom": "Correo de Envío (From)",
     "smtpFromDesc": "Esta es la dirección que los clientes verán como remitente",
-    "smtpProviders": "Proveedores SMTP populares:"
+    "smtpProviders": "Proveedores SMTP populares:",
     "dangerZone": "Zona Peligrosa",
     "clearTestData": "Borrar Datos de Prueba",
     "clearTestDataDesc": "Elimina permanentemente todos los registros de reservas de tu cuenta. Esta acción no se puede deshacer.",
