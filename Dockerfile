@@ -2,14 +2,14 @@ FROM node:22-slim
 
 WORKDIR /app
 
-RUN echo "deploy-2025-06-05-08-00-00" > /tmp/cache-bust
+RUN echo "deploy-2025-06-05-09-00-00" > /tmp/cache-bust
 
 COPY package.json ./
 RUN npm install 2>&1 | tail -5
 
 COPY . .
 
-RUN node fix-json.js
+RUN node fix-json.cjs
 
 RUN echo "=== VITE BUILD ===" && \
     rm -rf dist .vite && \
