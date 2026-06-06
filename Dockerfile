@@ -2,7 +2,7 @@ FROM node:22-slim
 
 WORKDIR /app
 
-RUN echo "deploy-2025-06-04-23-00-00" > /tmp/cache-bust
+RUN echo "deploy-2025-06-05-00-01-00
 
 COPY package.json ./
 RUN npm install 2>&1 | tail -5
