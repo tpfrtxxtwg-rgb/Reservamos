@@ -35,7 +35,7 @@
     "import": "Importar",
     "importing": "Importando...",
     "development": "En desarrollo",
-    "comingSoon": "Disponible pronto.",
+    "comingSoon": "Proximamente.",
     "oneWay": "Sencillo",
     "roundTrip": "Redondo",
     "zone": "Zona",
@@ -49,7 +49,9 @@
     "features": "Características",
     "pricing": "Precios",
     "integration": "Integración",
-    "adminPanel": "Panel Admin"
+    "adminPanel": "Panel Admin",
+    "signIn": "Iniciar Sesión",
+    "getStarted": "Comenzar"
   },
   "hero": {
     "title": "El Motor de Reservaciones para Transportación Privada",

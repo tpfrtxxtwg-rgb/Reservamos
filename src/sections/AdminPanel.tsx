@@ -42,24 +42,24 @@ export default function AdminPanel() {
 
   const clientId = user?.clientId ?? 0;
 
-  const sidebarItems = [
-    { icon: <SquaresFour size={20} />, label: t('admin.dashboard'), id: 'dashboard' },
-    { icon: <CalendarCheck size={20} />, label: t('admin.bookings'), id: 'reservations' },
-    { icon: <MapTrifold size={20} />, label: t('admin.zones'), id: 'zones' },
-    { icon: <Buildings size={20} />, label: t('admin.destinations'), id: 'destinations' },
-    { icon: <Car size={20} />, label: t('admin.vehicles'), id: 'vehicles' },
-    { icon: <MapPin size={20} />, label: t('admin.services'), id: 'services' },
-    { icon: <Money size={20} />, label: t('admin.pricing'), id: 'pricing' },
-    { icon: <ShoppingCart size={20} />, label: t('admin.optionalServices'), id: 'optionalServices' },
-    { icon: <Users size={20} />, label: t('admin.drivers'), id: 'drivers' },
-    { icon: <Calendar size={20} />, label: t('admin.calendar'), id: 'calendar' },
-    { icon: <ChartBar size={20} />, label: t('admin.reports'), id: 'reports' },
-    ...(isSuperAdmin ? [{ icon: <Buildings size={20} />, label: t('admin.companies') || 'Companies', id: 'companies' }] : []),
-    { icon: <Buildings size={20} />, label: t('admin.companyProfile') || 'Company Profile', id: 'companyProfile' },
-    { icon: <EnvelopeSimple size={20} />, label: t('admin.emailSettings') || 'Email Settings', id: 'emailSettings' },
-    { icon: <CreditCard size={20} />, label: t('admin.paymentSettings') || 'Payments', id: 'paymentSettings' },
-    { icon: <Ticket size={20} />, label: t('admin.coupons') || 'Coupons', id: 'coupons' },
-    { icon: <Gear size={20} />, label: t('admin.settings'), id: 'settings' },
+    const sidebarItemsBase = [
+    { icon: <SquaresFour size={20} />, labelKey: 'admin.dashboard', id: 'dashboard' },
+    { icon: <CalendarCheck size={20} />, labelKey: 'admin.bookings', id: 'reservations' },
+    { icon: <MapTrifold size={20} />, labelKey: 'admin.zones', id: 'zones' },
+    { icon: <Buildings size={20} />, labelKey: 'admin.destinations', id: 'destinations' },
+    { icon: <Car size={20} />, labelKey: 'admin.vehicles', id: 'vehicles' },
+    { icon: <MapPin size={20} />, labelKey: 'admin.services', id: 'services' },
+    { icon: <Money size={20} />, labelKey: 'admin.pricing', id: 'pricing' },
+    { icon: <ShoppingCart size={20} />, labelKey: 'admin.optionalServices', id: 'optionalServices' },
+    { icon: <Users size={20} />, labelKey: 'admin.drivers', id: 'drivers' },
+    { icon: <Calendar size={20} />, labelKey: 'admin.calendar', id: 'calendar' },
+    { icon: <ChartBar size={20} />, labelKey: 'admin.reports', id: 'reports' },
+    ...(isSuperAdmin ? [{ icon: <Buildings size={20} />, labelKey: 'admin.companies', id: 'companies' }] : []),
+    { icon: <Buildings size={20} />, labelKey: 'admin.companyProfile', id: 'companyProfile' },
+    { icon: <EnvelopeSimple size={20} />, labelKey: 'admin.emailSettings', id: 'emailSettings' },
+    { icon: <CreditCard size={20} />, labelKey: 'admin.paymentSettings', id: 'paymentSettings' },
+    { icon: <Ticket size={20} />, labelKey: 'admin.coupons', id: 'coupons' },
+    { icon: <Gear size={20} />, labelKey: 'admin.settings', id: 'settings' },
   ];
 
   const handlePreviewWidget = () => {
@@ -229,12 +229,12 @@ export default function AdminPanel() {
           <button onClick={() => setSidebarOpen(false)} className="md:hidden text-white"><X size={20} /></button>
         </div>
         <nav className="flex-1 px-3 py-4 overflow-y-auto">
-          {sidebarItems.map(item => (
-            <button key={item.id} onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-body text-sm transition-all mb-1 ${activeTab === item.id ? 'bg-[rgba(199,94,58,0.15)] text-terracotta border-l-[3px] border-terracotta' : 'text-white/70 hover:bg-white/5'}`}>
-              {item.icon} <span>{item.label}</span>
-            </button>
-          ))}
+          {sidebarItemsBase.map(item => (
+          <button key={item.id} onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
+          className={`...`}>
+          {item.icon} <span>{t(item.labelKey)}</span>
+          </button>
+     ))}
         </nav>
         <div className="p-4 border-t border-white/10">
           {user && (
@@ -255,7 +255,7 @@ export default function AdminPanel() {
         <header className="h-16 bg-white border-b border-[rgba(138,130,120,0.1)] flex items-center justify-between px-6">
           <div className="flex items-center gap-4">
             <button onClick={() => setSidebarOpen(true)} className="md:hidden text-charcoal"><SquaresFour size={24} /></button>
-            <h1 className="font-display text-xl font-semibold text-charcoal capitalize">{sidebarItems.find(i => i.id === activeTab)?.label}</h1>
+            <h1 className="...">{t(sidebarItemsBase.find(i => i.id === activeTab)?.labelKey || '')}</h1>
           </div>
           <button
             onClick={handlePreviewWidget}

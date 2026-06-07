@@ -1,18 +1,14 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import { List, X } from '@phosphor-icons/react';
+import { useClientAuth } from '@/providers/ClientAuthProvider';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
+import { useTranslation } from 'react-i18next';
 
-interface HeaderProps {
-  onNavigate: (page: string) => void;
-}
-
-const navLinks = [
-  { label: 'Producto', target: 'features' },
-  { label: 'Caracter\u00edsticas', target: 'demo' },
-  { label: 'Precios', target: 'pricing' },
-  { label: 'Integraci\u00f3n', target: 'integration' },
-];
-
-export default function Header({ onNavigate }: HeaderProps) {
+export default function Header() {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useClientAuth();
+  const { t } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -22,9 +18,16 @@ export default function Header({ onNavigate }: HeaderProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const navLinks = [
+    { label: t('header.product'), target: 'features' },
+    { label: t('header.features'), target: 'demo' },
+    { label: t('header.pricing'), target: 'pricing' },
+    { label: t('header.integration'), target: 'integration' },
+  ];
+
   const handleClick = (target: string) => {
     if (target === 'admin') {
-      onNavigate('admin');
+      navigate('/admin');
     } else {
       const el = document.getElementById(target);
       if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -39,12 +42,12 @@ export default function Header({ onNavigate }: HeaderProps) {
       }`}
     >
       <div className="w-full max-w-6xl mx-auto px-6 flex items-center justify-between">
-        <button onClick={() => onNavigate('landing')} className="font-display text-2xl font-bold text-charcoal">
+        <button onClick={() => navigate('/')} className="font-display text-2xl font-bold text-charcoal">
           ReserVamos
         </button>
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden md:flex items-center gap-6">
           {navLinks.map(link => (
             <button
               key={link.target}
@@ -54,18 +57,39 @@ export default function Header({ onNavigate }: HeaderProps) {
               {link.label}
             </button>
           ))}
-          <button
-            onClick={() => onNavigate('admin')}
-            className="bg-terracotta text-white px-6 py-2.5 rounded-full font-body text-sm font-semibold shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5 transition-all"
-          >
-            Panel Admin
-          </button>
+          {isAuthenticated ? (
+            <button
+              onClick={() => navigate('/admin')}
+              className="bg-terracotta text-white px-5 py-2 rounded-full font-body text-sm font-semibold shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5 transition-all"
+            >
+              {t('header.adminPanel')}
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={() => navigate('/login')}
+                className="font-body text-sm font-medium text-charcoal-light hover:text-charcoal transition-colors"
+              >
+                {t('header.signIn')}
+              </button>
+              <button
+                onClick={() => navigate('/register')}
+                className="bg-terracotta text-white px-5 py-2 rounded-full font-body text-sm font-semibold shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5 transition-all"
+              >
+                {t('header.getStarted')}
+              </button>
+            </>
+          )}
+          <LanguageSwitcher />
         </nav>
 
         {/* Mobile Toggle */}
-        <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden text-charcoal">
-          {mobileOpen ? <X size={24} /> : <List size={24} />}
-        </button>
+        <div className="md:hidden flex items-center gap-3">
+          <LanguageSwitcher />
+          <button onClick={() => setMobileOpen(!mobileOpen)} className="text-charcoal">
+            {mobileOpen ? <X size={24} /> : <List size={24} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
@@ -81,12 +105,30 @@ export default function Header({ onNavigate }: HeaderProps) {
                 {link.label}
               </button>
             ))}
-            <button
-              onClick={() => handleClick('admin')}
-              className="bg-terracotta text-white px-6 py-3 rounded-full font-body text-sm font-semibold shadow-button text-center mt-2"
-            >
-              Panel Admin
-            </button>
+            {isAuthenticated && (
+              <button
+                onClick={() => { navigate('/admin'); setMobileOpen(false); }}
+                className="bg-terracotta text-white px-6 py-3 rounded-full font-body text-sm font-semibold shadow-button text-center mt-2"
+              >
+                {t('header.adminPanel')}
+              </button>
+            )}
+            {!isAuthenticated && (
+              <>
+                <button
+                  onClick={() => { navigate('/login'); setMobileOpen(false); }}
+                  className="font-body text-base font-medium text-charcoal-light hover:text-charcoal text-left transition-colors"
+                >
+                  {t('header.signIn')}
+                </button>
+                <button
+                  onClick={() => { navigate('/register'); setMobileOpen(false); }}
+                  className="bg-terracotta text-white px-6 py-3 rounded-full font-body text-sm font-semibold shadow-button text-center mt-2"
+                >
+                  {t('header.getStarted')}
+                </button>
+              </>
+            )}
           </nav>
         </div>
       )}

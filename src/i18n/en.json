@@ -50,7 +50,9 @@
     "features": "Features",
     "pricing": "Pricing",
     "integration": "Integration",
-    "adminPanel": "Admin Panel"
+    "adminPanel": "Admin Panel",
+    "signIn": "Sign In",
+    "getStarted": "Get Started"
   },
   "hero": {
     "title": "The Booking Engine for Private Transportation",

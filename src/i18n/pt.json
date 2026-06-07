@@ -49,7 +49,9 @@
     "features": "Recursos",
     "pricing": "Preços",
     "integration": "Integração",
-    "adminPanel": "Painel Admin"
+    "adminPanel": "Painel Admin",
+    "signIn": "Entrar",
+    "getStarted": "Começar"
   },
   "hero": {
     "title": "O Motor de Reservas para Transporte Privado",
