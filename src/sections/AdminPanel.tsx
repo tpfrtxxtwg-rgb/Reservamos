@@ -42,7 +42,7 @@ export default function AdminPanel() {
 
   const clientId = user?.clientId ?? 0;
 
-    const sidebarItemsBase = [
+     const sidebarItemsBase = [
     { icon: <SquaresFour size={20} />, labelKey: 'admin.dashboard', id: 'dashboard' },
     { icon: <CalendarCheck size={20} />, labelKey: 'admin.bookings', id: 'reservations' },
     { icon: <MapTrifold size={20} />, labelKey: 'admin.zones', id: 'zones' },
@@ -229,12 +229,12 @@ export default function AdminPanel() {
           <button onClick={() => setSidebarOpen(false)} className="md:hidden text-white"><X size={20} /></button>
         </div>
         <nav className="flex-1 px-3 py-4 overflow-y-auto">
-          {sidebarItemsBase.map(item => (
-          <button key={item.id} onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
-          className={`...`}>
-          {item.icon} <span>{t(item.labelKey)}</span>
-          </button>
-     ))}
+                    {sidebarItemsBase.map(item => (
+            <button key={item.id} onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-body text-sm transition-all mb-1 ${activeTab === item.id ? 'bg-[rgba(199,94,58,0.15)] text-terracotta border-l-[3px] border-terracotta' : 'text-white/70 hover:bg-white/5'}`}>
+              {item.icon} <span>{t(item.labelKey)}</span>
+            </button>
+          ))}
         </nav>
         <div className="p-4 border-t border-white/10">
           {user && (
@@ -255,7 +255,7 @@ export default function AdminPanel() {
         <header className="h-16 bg-white border-b border-[rgba(138,130,120,0.1)] flex items-center justify-between px-6">
           <div className="flex items-center gap-4">
             <button onClick={() => setSidebarOpen(true)} className="md:hidden text-charcoal"><SquaresFour size={24} /></button>
-            <h1 className="...">{t(sidebarItemsBase.find(i => i.id === activeTab)?.labelKey || '')}</h1>
+            <h1 className="font-display text-xl font-semibold text-charcoal capitalize">{t(sidebarItemsBase.find(i => i.id === activeTab)?.labelKey || '')}</h1>
           </div>
           <button
             onClick={handlePreviewWidget}
