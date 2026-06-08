@@ -312,7 +312,6 @@
     "primaryColor": "Color Principal",
     "settingsSaved": "Configuración guardada exitosamente",
     "saveChanges": "Guardar Cambios",
-<<<<<<< HEAD
     "email": "Correo",
     "emailSettings": "Configuración de Correo",
     "emailSettingsDesc": "Configura los correos de confirmación enviados a tus clientes",
@@ -340,8 +339,7 @@
     "smtpPass": "Contraseña SMTP",
     "smtpFrom": "Correo de Envío (From)",
     "smtpFromDesc": "Esta es la dirección que los clientes verán como remitente",
-    "smtpProviders": "Proveedores SMTP populares:"
-=======
+    "smtpProviders": "Proveedores SMTP populares:",
     "dangerZone": "Zona Peligrosa",
     "clearTestData": "Borrar Datos de Prueba",
     "clearTestDataDesc": "Elimina permanentemente todos los registros de reservas de tu cuenta. Esta acción no se puede deshacer.",
@@ -375,7 +373,6 @@
     "noCoupons": "Aún no hay cupones. Crea tu primer código de descuento.",
     "couponPreview": "Vista previa",
     "couponDescPlaceholder": "ej. Promoción de lanzamiento 2025"
->>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
   },
   "lang": {
     "en": "English",

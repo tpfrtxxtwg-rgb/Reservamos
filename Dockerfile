@@ -9,6 +9,8 @@ RUN npm install 2>&1 | tail -5
 
 COPY . .
 
+RUN node fix-json.cjs
+
 RUN echo "=== VITE BUILD ===" && \
     rm -rf dist .vite && \
     NODE_ENV=production npx vite build --mode production --emptyOutDir && \

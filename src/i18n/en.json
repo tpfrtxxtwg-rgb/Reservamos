@@ -315,7 +315,6 @@
     "primaryColor": "Primary Color",
     "settingsSaved": "Settings saved successfully",
     "saveChanges": "Save Changes",
-<<<<<<< HEAD
     "email": "Email",
     "emailSettings": "Email Configuration",
     "emailSettingsDesc": "Configure confirmation emails sent to your customers",
@@ -343,8 +342,7 @@
     "smtpPass": "SMTP Password",
     "smtpFrom": "From Email Address",
     "smtpFromDesc": "This is the sender address customers will see",
-    "smtpProviders": "Popular SMTP Providers:"
-=======
+    "smtpProviders": "Popular SMTP Providers:",
     "dangerZone": "Danger Zone",
     "clearTestData": "Clear Test Data",
     "clearTestDataDesc": "Permanently delete all booking records for your account. This action cannot be undone.",
@@ -378,7 +376,6 @@
     "noCoupons": "No coupons yet. Create your first discount code.",
     "couponPreview": "Preview",
     "couponDescPlaceholder": "e.g. Launch promotion 2025"
->>>>>>> 6688a34e810e9ce150c1cc87b0709d5780c1b305
   },
   "lang": {
     "en": "English",
