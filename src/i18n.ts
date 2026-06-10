@@ -37,3 +37,9 @@ i18n
   });
 
 export default i18n;
+// Persist language changes to localStorage
+i18n.on('languageChanged', (lng) => {
+  try {
+    localStorage.setItem('i18nextLng', lng);
+  } catch { /* localStorage not available */ }
+});
