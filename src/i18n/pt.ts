@@ -1,5 +1,4 @@
-// PT translations - preserves UTF-8
-export default {
+const pt = {
   "common": {
     "continue": "Continuar",
     "back": "Voltar",
@@ -405,3 +404,4 @@ export default {
     "pt": "Português"
   }
 } as const;
+export default pt;
