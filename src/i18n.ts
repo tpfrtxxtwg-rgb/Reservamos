@@ -29,7 +29,14 @@ i18n
     resources,
     lng: getInitialLang(),
     fallbackLng: 'en',
-    interpolation: { escapeValue: false },
+    interpolation: {
+      escapeValue: false,
+    },
+    react: {
+      useSuspense: false,
+      bindI18n: 'languageChanged',
+      bindI18nStore: 'added removed',
+    },
   });
 
 i18n.on('languageChanged', (lng) => {
