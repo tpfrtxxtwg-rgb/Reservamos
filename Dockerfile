@@ -2,7 +2,7 @@ FROM node:22-slim
 
 WORKDIR /app
 
-RUN echo "deploy-2025-06-12-05-00-00" > /tmp/cache-bust
+RUN echo "deploy-2025-06-12-06-00-00" > /tmp/cache-bust
 
 COPY package.json ./
 RUN npm install 2>&1 | tail -5
@@ -16,6 +16,8 @@ RUN echo "=== VITE BUILD ===" && \
     NODE_ENV=production npx vite build --mode production --emptyOutDir && \
     echo "=== COPY PUBLIC FILES ===" && \
     cp -r public/* dist/public/ 2>/dev/null || true && \
+    echo "=== FIX UNICODE ===" && \
+    node fix-unicode.cjs && \
     echo "=== VITE DONE ===" && \
     ls -la dist/public/ && \
     ls dist/public/*.jpg 2>/dev/null && \
