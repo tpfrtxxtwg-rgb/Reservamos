@@ -62,4 +62,12 @@ i18n.on('languageChanged', (lng) => {
   }
 });
 
+// Expose i18n globally for debugging (remove in production)
+if (typeof window !== 'undefined') {
+  (window as any).i18nDebug = i18n;
+  console.log('[i18n] initialized with lang:', initialLang);
+  console.log('[i18n] localStorage:', (() => { try { return localStorage.getItem('i18nextLng'); } catch { return 'unavailable'; } })());
+  console.log('[i18n] navigator:', typeof navigator !== 'undefined' ? navigator.language : 'unavailable');
+}
+
 export default i18n;
