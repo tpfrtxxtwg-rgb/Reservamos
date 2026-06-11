@@ -24,12 +24,19 @@ export function serveStaticFiles(app: App) {
     console.log("[serveStatic] index.html loaded, size:", idx.length);
   }
 
-  app.use("*", serveStatic({
+  app.use("/assets/*", serveStatic({
     root: "./dist/public",
     onFound: (_path, c) => {
       c.header("Cache-Control", "no-cache, no-store, must-revalidate");
-      c.header("Pragma", "no-cache");
-      c.header("Expires", "0");
+    },
+  }));
+
+  // Serve i18n translation files
+  app.use("/i18n/*", serveStatic({
+    root: "./dist/public",
+    onFound: (_path, c) => {
+      c.header("Content-Type", "application/json; charset=utf-8");
+      c.header("Cache-Control", "no-cache, no-store, must-revalidate");
     },
   }));
 
