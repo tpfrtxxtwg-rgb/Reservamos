@@ -1,6 +1,8 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import { en, es, pt } from './i18n/translations';
+import en from './i18n/en';
+import es from './i18n/es';
+import pt from './i18n/pt';
 
 const resources = { en: { translation: en }, es: { translation: es }, pt: { translation: pt } };
 const SUPPORTED_LANGS = ['en', 'es', 'pt'];
