@@ -67,6 +67,6 @@ i18n.on('languageChanged', (lng) => {
   try {
     localStorage.setItem('i18nextLng', lng);
   } catch { /* localStorage not available */ }
-n});
+});
 
 export default i18n;
