@@ -89,7 +89,7 @@
     },
     "autoNotifications": {
       "title": "Automatic Notifications",
-      "description": "Instant email and WhatsApp confirmations."
+      "description": "Instant email confirmations."
     },
     "controlPanel": {
       "title": "Control Panel",
