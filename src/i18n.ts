@@ -1,6 +1,8 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import { en, es, pt } from './i18n/translations';
 
+const resources = { en: { translation: en }, es: { translation: es }, pt: { translation: pt } };
 const SUPPORTED_LANGS = ['en', 'es', 'pt'];
 
 function getInitialLang(): string {
@@ -19,54 +21,17 @@ function getInitialLang(): string {
   return 'en';
 }
 
-const initialLang = getInitialLang();
-
-async function loadResources() {
-  const [en, es, pt] = await Promise.all(
-    SUPPORTED_LANGS.map(async (lang) => {
-      try {
-        const response = await fetch(`/i18n/${lang}.json`);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return await response.json();
-      } catch (err) {
-        console.error(`[i18n] Failed to load ${lang}.json:`, err);
-        return {};
-      }
-    })
-  );
-
-  return {
-    en: { translation: en },
-    es: { translation: es },
-    pt: { translation: pt },
-  };
-}
-
 i18n
   .use(initReactI18next)
   .init({
-    lng: initialLang,
+    resources,
+    lng: getInitialLang(),
     fallbackLng: 'en',
-    resources: {},
-    interpolation: {
-      escapeValue: false,
-    },
-    react: {
-      useSuspense: false,
-    },
+    interpolation: { escapeValue: false },
   });
-
-loadResources().then((resources) => {
-  Object.entries(resources).forEach(([lang, resource]) => {
-    i18n.addResourceBundle(lang, 'translation', resource.translation, true, true);
-  });
-  i18n.changeLanguage(initialLang);
-});
 
 i18n.on('languageChanged', (lng) => {
-  try {
-    localStorage.setItem('i18nextLng', lng);
-  } catch { /* localStorage not available */ }
+  try { localStorage.setItem('i18nextLng', lng); } catch { /* localStorage not available */ }
 });
 
 export default i18n;
