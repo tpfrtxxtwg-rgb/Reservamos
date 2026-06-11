@@ -11,35 +11,55 @@ const resources = {
   pt: { translation: pt },
 };
 
+const SUPPORTED_LANGS = ['en', 'es', 'pt'];
+
 function getInitialLang(): string {
+  // Try localStorage first
   try {
     const saved = localStorage.getItem('i18nextLng');
-    if (saved && resources[saved as keyof typeof resources]) return saved;
-  } catch { /* localStorage not available */ }
+    if (saved && SUPPORTED_LANGS.includes(saved)) {
+      return saved;
+    }
+  } catch {
+    // localStorage not available
+  }
 
+  // Try browser language
   try {
-    const browserLang = navigator.language.split('-')[0];
-    if (resources[browserLang as keyof typeof resources]) return browserLang;
-  } catch { /* navigator not available */ }
+    if (typeof navigator !== 'undefined' && navigator.language) {
+      const browserLang = navigator.language.split('-')[0];
+      if (SUPPORTED_LANGS.includes(browserLang)) {
+        return browserLang;
+      }
+    }
+  } catch {
+    // navigator not available
+  }
 
+  // Default to English
   return 'en';
 }
+
+const initialLang = getInitialLang();
 
 i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: getInitialLang(),
+    lng: initialLang,
     fallbackLng: 'en',
     interpolation: {
       escapeValue: false,
     },
   });
 
-export default i18n;
 // Persist language changes to localStorage
 i18n.on('languageChanged', (lng) => {
   try {
     localStorage.setItem('i18nextLng', lng);
-  } catch { /* localStorage not available */ }
+  } catch {
+    // localStorage not available
+  }
 });
+
+export default i18n;
