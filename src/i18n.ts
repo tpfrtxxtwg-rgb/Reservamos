@@ -1,15 +1,8 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-
-// Import JSON as raw strings to preserve UTF-8 characters
-// ?raw prevents esbuild from escaping \uXXXX sequences
-import enRaw from './i18n/en.json?raw';
-import esRaw from './i18n/es.json?raw';
-import ptRaw from './i18n/pt.json?raw';
-
-const en = JSON.parse(enRaw);
-const es = JSON.parse(esRaw);
-const pt = JSON.parse(ptRaw);
+import en from './i18n/en';
+import es from './i18n/es';
+import pt from './i18n/pt';
 
 const resources = { en: { translation: en }, es: { translation: es }, pt: { translation: pt } };
 const SUPPORTED_LANGS = ['en', 'es', 'pt'];
