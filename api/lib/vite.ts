@@ -30,16 +30,7 @@ export function serveStaticFiles(app: App) {
       c.header("Cache-Control", "no-cache, no-store, must-revalidate");
     },
   }));
-
-  // Serve i18n translation files
-  app.use("/i18n/*", serveStatic({
-    root: "./dist/public",
-    onFound: (_path, c) => {
-      c.header("Content-Type", "application/json; charset=utf-8");
-      c.header("Cache-Control", "no-cache, no-store, must-revalidate");
-    },
-  }));
-
+  
   app.notFound((c) => {
     const accept = c.req.header("accept") ?? "";
     if (!accept.includes("text/html")) {
