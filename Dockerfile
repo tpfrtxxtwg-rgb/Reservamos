@@ -2,7 +2,7 @@ FROM node:22-slim
 
 WORKDIR /app
 
-RUN echo "deploy-2025-06-12-03-00-00" > /tmp/cache-bust
+RUN echo "deploy-2025-06-12-04-00-00" > /tmp/cache-bust
 
 COPY package.json ./
 RUN npm install 2>&1 | tail -5
@@ -18,9 +18,9 @@ RUN echo "=== VITE BUILD ===" && \
     cp -r public/* dist/public/ 2>/dev/null || true && \
     echo "=== VITE DONE ===" && \
     ls -la dist/public/ && \
-    ls dist/public/i18n/ 2>/dev/null || echo "NO i18n dir" && \
+    ls dist/public/*.jpg 2>/dev/null && \
     ls dist/public/assets/*.js && \
-    ls dist/public/assets/*.css
+    ls dist/public/assets/*.css 
 
 RUN echo "=== ES BUILD ===" && \
     npx esbuild api/boot.ts --platform=node --bundle --format=esm --outdir=dist \
