@@ -1,10 +1,6 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import en from './i18n/en';
-import es from './i18n/es';
-import pt from './i18n/pt';
 
-const resources = { en: { translation: en }, es: { translation: es }, pt: { translation: pt } };
 const SUPPORTED_LANGS = ['en', 'es', 'pt'];
 
 function getInitialLang(): string {
@@ -23,14 +19,45 @@ function getInitialLang(): string {
   return 'en';
 }
 
+const initialLang = getInitialLang();
+
 i18n
   .use(initReactI18next)
   .init({
-    resources,
-    lng: getInitialLang(),
+    lng: initialLang,
     fallbackLng: 'en',
+    resources: {
+      en: { translation: { hero: { title: 'Loading...' } } },
+    },
     interpolation: { escapeValue: false },
+    react: { useSuspense: false },
   });
+
+async function loadTranslations() {
+  const results = await Promise.all(
+    SUPPORTED_LANGS.map(async (lang) => {
+      try {
+        const res = await fetch(`/i18n/${lang}.json`);
+        if (!res.ok) return null;
+        return { lang, data: await res.json() };
+      } catch { return null; }
+    })
+  );
+
+  let loaded = false;
+  results.forEach((result) => {
+    if (result) {
+      i18n.addResourceBundle(result.lang, 'translation', result.data, true, true);
+      loaded = true;
+    }
+  });
+
+  if (loaded) {
+    i18n.changeLanguage(initialLang);
+  }
+}
+
+loadTranslations();
 
 i18n.on('languageChanged', (lng) => {
   try { localStorage.setItem('i18nextLng', lng); } catch { /* localStorage not available */ }

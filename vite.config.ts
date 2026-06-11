@@ -23,9 +23,6 @@ export default defineConfig(({ mode }) => ({
     },
   },
   envDir: path.resolve(__dirname),
-  esbuild: {
-    charset: 'utf8',
-  },
   build: {
     outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
