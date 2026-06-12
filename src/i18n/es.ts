@@ -54,7 +54,7 @@ const es = {
     "getStarted": "Comenzar"
   },
   "hero": {
-    "title": "El Motor de Reservaciones para Transportación Privada",
+    "title": "Motor de Reservaciones para Transportación Privada",
     "subtitle": "Widget embebible. Alta conversión. Sin complicaciones.",
     "ctaDemo": "Ver Demo",
     "ctaDocs": "Documentación",
@@ -84,15 +84,15 @@ const es = {
     },
     "realTimeAvailability": {
       "title": "Disponibilidad en Tiempo Real",
-      "description": "El calendario muestra solo fechas y horarios disponibles."
+      "description": "El widget muestra vehículos y destinos disponibles."
     },
     "autoNotifications": {
       "title": "Notificaciones Automáticas",
-      "description": "Confirmaciones por email y WhatsApp al instante."
+      "description": "Confirmaciones por email al instante."
     },
     "controlPanel": {
       "title": "Panel de Control",
-      "description": "Gestiona reservas, conductores, vehículos y reportes."
+      "description": "Gestiona reservas, zonas, hoteles, vehículos y reportes."
     }
   },
   "pricing": {
@@ -103,7 +103,7 @@ const es = {
     "getStarted": "Comenzar",
     "contactSales": "Contactar Ventas",
     "whatsIncluded": "Qué incluye",
-    "feature1": "1 Sitio web",
+    "feature1": "Widget para integrar en sitio web",
     "feature2": "Configurable por el propietario",
     "feature3": "Notificaciones por email",
     "feature4": "Reportes básicos",
