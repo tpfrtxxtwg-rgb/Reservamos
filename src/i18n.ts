@@ -12,35 +12,24 @@ const resources = {
 
 const SUPPORTED_LANGS = ['en', 'es', 'pt'];
 
-function getCookie(name: string): string | null {
-  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-  return match ? match[2] : null;
-}
-
 function getInitialLang(): string {
-  const cookieLang = getCookie('i18nextLng');
-  if (cookieLang && SUPPORTED_LANGS.includes(cookieLang)) return cookieLang;
-
   try {
-    const saved = localStorage.getItem('i18nextLng');
-    if (saved && SUPPORTED_LANGS.includes(saved)) return saved;
-  } catch { /* localStorage not available */ }
-
-  try {
-    if (typeof navigator !== 'undefined' && navigator.language) {
-      const browserLang = navigator.language.split('-')[0];
-      if (SUPPORTED_LANGS.includes(browserLang)) return browserLang;
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlLang = urlParams.get('lang');
+    if (urlLang && SUPPORTED_LANGS.includes(urlLang)) {
+      return urlLang;
     }
-  } catch { /* navigator not available */ }
-
+  } catch { /* ignore */ }
   return 'en';
 }
+
+const initialLang = getInitialLang();
 
 i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: getInitialLang(),
+    lng: initialLang,
     fallbackLng: 'en',
     interpolation: { escapeValue: false },
   });
