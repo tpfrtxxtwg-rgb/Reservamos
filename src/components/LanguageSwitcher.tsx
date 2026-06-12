@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Globe } from '@phosphor-icons/react';
 
 const languages = [
@@ -8,13 +7,20 @@ const languages = [
   { code: 'pt', label: 'Português' },
 ];
 
+function setLangCookie(code: string) {
+  document.cookie = `i18nextLng=${code};path=/;max-age=31536000`;
+}
+
+function getLangCookie(): string | null {
+  const match = document.cookie.match(/i18nextLng=([a-z]{2})/);
+  return match ? match[1] : null;
+}
+
 export default function LanguageSwitcher() {
-  const { i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const currentLang = i18n.language?.substring(0, 2) || 'en';
+  const currentLang = getLangCookie() || 'en';
 
-  // Close when clicking outside
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -27,10 +33,10 @@ export default function LanguageSwitcher() {
 
   const handleChange = (code: string) => {
     setOpen(false);
-    try {
-      localStorage.setItem('i18nextLng', code);
-    } catch { /* ignore */ }
-    window.location.reload();
+    setLangCookie(code);
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
 
   return (

@@ -85,7 +85,7 @@
     },
     "realTimeAvailability": {
       "title": "Real-Time Availability",
-      "description": "Calendar shows only available dates and times."
+      "description": "Widget shows vehicles and available destinations."
     },
     "autoNotifications": {
       "title": "Automatic Notifications",
@@ -93,7 +93,7 @@
     },
     "controlPanel": {
       "title": "Control Panel",
-      "description": "Manage bookings, drivers, vehicles, and reports."
+      "description": "Manage bookings, zones, hotels, vehicles, and reports."
     }
   },
   "pricing": {
@@ -104,7 +104,7 @@
     "getStarted": "Get Started",
     "contactSales": "Contact Sales",
     "whatsIncluded": "What's included",
-    "feature1": "1 Website",
+    "feature1": "Widget embeded for your website",
     "feature2": "Configurable by the owner",
     "feature3": "Email notifications",
     "feature4": "Basic reports",

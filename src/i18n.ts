@@ -4,10 +4,23 @@ import en from './i18n/en';
 import es from './i18n/es';
 import pt from './i18n/pt';
 
-const resources = { en: { translation: en }, es: { translation: es }, pt: { translation: pt } };
+const resources = {
+  en: { translation: en },
+  es: { translation: es },
+  pt: { translation: pt },
+};
+
 const SUPPORTED_LANGS = ['en', 'es', 'pt'];
 
+function getCookie(name: string): string | null {
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : null;
+}
+
 function getInitialLang(): string {
+  const cookieLang = getCookie('i18nextLng');
+  if (cookieLang && SUPPORTED_LANGS.includes(cookieLang)) return cookieLang;
+
   try {
     const saved = localStorage.getItem('i18nextLng');
     if (saved && SUPPORTED_LANGS.includes(saved)) return saved;
@@ -29,18 +42,7 @@ i18n
     resources,
     lng: getInitialLang(),
     fallbackLng: 'en',
-    interpolation: {
-      escapeValue: false,
-    },
-    react: {
-      useSuspense: false,
-      bindI18n: 'languageChanged',
-      bindI18nStore: 'added removed',
-    },
+    interpolation: { escapeValue: false },
   });
-
-i18n.on('languageChanged', (lng) => {
-  try { localStorage.setItem('i18nextLng', lng); } catch { /* localStorage not available */ }
-});
 
 export default i18n;
