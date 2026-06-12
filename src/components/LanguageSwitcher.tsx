@@ -22,7 +22,11 @@ export default function LanguageSwitcher() {
         {languages.map((lang) => (
           <button
             key={lang.code}
-            onClick={() => i18n.changeLanguage(lang.code)}
+            onClick={() => {
+              i18n.changeLanguage(lang.code).then(() => {
+                window.location.reload();
+              });
+            }}
             className={`w-full text-left px-3 py-2 text-sm font-body transition-colors ${
               currentLang === lang.code
                 ? 'bg-terracotta/10 text-terracotta font-semibold'
