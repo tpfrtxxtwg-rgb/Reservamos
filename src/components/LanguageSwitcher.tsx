@@ -6,7 +6,7 @@ const languages = [
   { code: 'en', label: 'English' },
   { code: 'es', label: 'Español' },
   { code: 'pt', label: 'Português' },
-n];
+];
 
 export default function LanguageSwitcher() {
   const { i18n } = useTranslation();
