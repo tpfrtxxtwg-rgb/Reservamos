@@ -11,7 +11,6 @@ export default function LanguageSwitcher() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Read lang from URL query param
   const urlParams = new URLSearchParams(window.location.search);
   const currentLang = urlParams.get('lang') || 'en';
 
@@ -27,7 +26,6 @@ export default function LanguageSwitcher() {
 
   const handleChange = (code: string) => {
     setOpen(false);
-    // Navigate to same page with ?lang= parameter
     const url = new URL(window.location.href);
     url.searchParams.set('lang', code);
     window.location.href = url.toString();
@@ -40,11 +38,11 @@ export default function LanguageSwitcher() {
         className="flex items-center gap-1.5 text-sm font-medium text-charcoal-light hover:text-terracotta transition-colors"
       >
         <Globe size={16} />
-        <span className="uppercase text-xs\">{currentLang}</span>
+        <span className="uppercase text-xs">{currentLang}</span>
       </button>
 
       {open && (
-n        <div className="absolute right-0 top-full mt-1 bg-white border border-[rgba(138,130,120,0.15)] rounded-lg shadow-md overflow-hidden z-50 min-w-[120px]">
+        <div className="absolute right-0 top-full mt-1 bg-white border border-[rgba(138,130,120,0.15)] rounded-lg shadow-md overflow-hidden z-50 min-w-[120px]">
           {languages.map((lang) => (
             <button
               key={lang.code}
