@@ -2,15 +2,23 @@ import { useTranslation } from 'react-i18next';
 import { Globe } from '@phosphor-icons/react';
 
 const languages = [
-  { code: 'en', label: 'lang.en' },
-  { code: 'es', label: 'lang.es' },
-  { code: 'pt', label: 'lang.pt' },
+  { code: 'en', label: 'English' },
+  { code: 'es', label: 'Español' },
+  { code: 'pt', label: 'Português' },
 ];
 
 export default function LanguageSwitcher() {
-  const { i18n, t } = useTranslation();
+  const { i18n } = useTranslation();
+  const currentLang = i18n.language?.substring(0, 2) || 'en';
 
-  const currentLang = i18n.language.substring(0, 2);
+  const handleChange = (code: string) => {
+    try {
+      localStorage.setItem('i18nextLng', code);
+    } catch (e) {
+      console.error('[LanguageSwitcher] error:', e);
+    }
+    window.location.reload();
+  };
 
   return (
     <div className="relative group">
@@ -22,18 +30,14 @@ export default function LanguageSwitcher() {
         {languages.map((lang) => (
           <button
             key={lang.code}
-            onClick={() => {
-              i18n.changeLanguage(lang.code).then(() => {
-                window.location.reload();
-              });
-            }}
+            onClick={() => handleChange(lang.code)}
             className={`w-full text-left px-3 py-2 text-sm font-body transition-colors ${
               currentLang === lang.code
                 ? 'bg-terracotta/10 text-terracotta font-semibold'
                 : 'text-charcoal hover:bg-sand-light'
             }`}
           >
-            {t(lang.label)}
+            {lang.label}
           </button>
         ))}
       </div>
