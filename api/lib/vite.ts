@@ -8,41 +8,72 @@ type App = Hono<{ Bindings: HttpBindings }>;
 
 export function serveStaticFiles(app: App) {
   const distPath = path.resolve(process.cwd(), "dist/public");
+  const indexPath = path.join(distPath, "index.html");
 
-  // Log for debugging what files are available
+  // Debug logging
+  console.log("[serveStatic] cwd:", process.cwd());
   console.log("[serveStatic] distPath:", distPath);
-  console.log("[serveStatic] exists:", fs.existsSync(distPath));
+  console.log("[serveStatic] dist exists:", fs.existsSync(distPath));
+
   if (fs.existsSync(distPath)) {
-    const files = fs.readdirSync(distPath);
-    console.log("[serveStatic] files in dist/public:", files);
-    const assetsPath = path.join(distPath, "assets");
-    if (fs.existsSync(assetsPath)) {
-      const assets = fs.readdirSync(assetsPath);
-      console.log("[serveStatic] assets:", assets.slice(0, 10));
+    try {
+      const files = fs.readdirSync(distPath);
+      console.log("[serveStatic] dist files:", files);
+      console.log("[serveStatic] index.html exists:", fs.existsSync(indexPath));
+    } catch (e: any) {
+      console.log("[serveStatic] error reading dist:", e.message);
     }
-    const idx = fs.readFileSync(path.join(distPath, "index.html"), "utf-8");
-    console.log("[serveStatic] index.html loaded, size:", idx.length);
   }
 
-  app.use("*", serveStatic({
+  // Serve assets with correct MIME types and no cache
+  app.use("/assets/*", serveStatic({
     root: "./dist/public",
     onFound: (_path, c) => {
       c.header("Cache-Control", "no-cache, no-store, must-revalidate");
-      c.header("Pragma", "no-cache");
-      c.header("Expires", "0");
     },
   }));
 
-  app.notFound((c) => {
-    const accept = c.req.header("accept") ?? "";
-    if (!accept.includes("text/html")) {
-      return c.json({ error: "Not Found" }, 404);
+  // Serve index.html for all non-API routes (SPA routing)
+  app.get("*", (c) => {
+    // Don't interfere with API routes
+    const url = new URL(c.req.url);
+    if (url.pathname.startsWith("/api/") ||
+        url.pathname.startsWith("/health") ||
+        url.pathname === "/widget/embed.js") {
+      return c.notFound();
     }
-    const indexPath = path.resolve(distPath, "index.html");
-    const content = fs.readFileSync(indexPath, "utf-8");
-    c.header("Cache-Control", "no-cache, no-store, must-revalidate");
-    c.header("Pragma", "no-cache");
-    c.header("Expires", "0");
-    return c.html(content);
+
+    // Serve static files if they exist
+    const filePath = path.join(distPath, url.pathname);
+    if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+      const content = fs.readFileSync(filePath);
+      const ext = path.extname(filePath);
+      const mimeTypes: Record<string, string> = {
+        ".html": "text/html",
+        ".js": "application/javascript",
+        ".css": "text/css",
+        ".json": "application/json",
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".svg": "image/svg+xml",
+        ".ico": "image/x-icon",
+        ".woff2": "font/woff2",
+        ".woff": "font/woff",
+      };
+      c.header("Content-Type", mimeTypes[ext] || "application/octet-stream");
+      c.header("Cache-Control", "no-cache, no-store, must-revalidate");
+      return c.body(content);
+    }
+
+    // For all other routes, serve index.html (SPA routing)
+    if (fs.existsSync(indexPath)) {
+      const content = fs.readFileSync(indexPath, "utf-8");
+      c.header("Content-Type", "text/html; charset=utf-8");
+      c.header("Cache-Control", "no-cache, no-store, must-revalidate");
+      return c.body(content);
+    }
+
+    return c.json({ error: "index.html not found" }, 500);
   });
 }
