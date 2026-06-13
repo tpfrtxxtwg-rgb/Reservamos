@@ -32,17 +32,17 @@ export default function LanguageSwitcher() {
   };
 
   return (
-    <div ref={ref} className=\"relative\">
+    <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className=\"flex items-center gap-1.5 text-sm font-medium text-charcoal-light hover:text-terracotta transition-colors\"
+        className="flex items-center gap-1.5 text-sm font-medium text-charcoal-light hover:text-terracotta transition-colors"
       >
         <Globe size={16} />
-        <span className=\"uppercase text-xs\">{currentLang}</span>
+        <span className="uppercase text-xs">{currentLang}</span>
       </button>
 
       {open && (
-        <div className=\"absolute right-0 top-full mt-1 bg-white border border-[rgba(138,130,120,0.15)] rounded-lg shadow-md overflow-hidden z-50 min-w-[120px]\">
+        <div className="absolute right-0 top-full mt-1 bg-white border border-[rgba(138,130,120,0.15)] rounded-lg shadow-md overflow-hidden z-50 min-w-[120px]">
           {languages.map((lang) => (
             <button
               key={lang.code}
