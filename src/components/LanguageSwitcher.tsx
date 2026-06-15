@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '../context/TranslationContext';
 import { Globe } from '@phosphor-icons/react';
 
 const languages = [
@@ -9,12 +9,10 @@ const languages = [
 ];
 
 export default function LanguageSwitcher() {
-  const { i18n } = useTranslation();
+  const { lang, setLang } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const currentLang = i18n.language?.substring(0, 2) || 'en';
 
-  // Close when clicking outside
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -25,14 +23,6 @@ export default function LanguageSwitcher() {
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-  const handleChange = (code: string) => {
-    setOpen(false);
-    try {
-      localStorage.setItem('i18nextLng', code);
-    } catch { /* ignore */ }
-    window.location.reload();
-  };
-
   return (
     <div ref={ref} className="relative">
       <button
@@ -40,22 +30,25 @@ export default function LanguageSwitcher() {
         className="flex items-center gap-1.5 text-sm font-medium text-charcoal-light hover:text-terracotta transition-colors"
       >
         <Globe size={16} />
-        <span className="uppercase text-xs">{currentLang}</span>
+        <span className="uppercase text-xs">{lang}</span>
       </button>
 
       {open && (
         <div className="absolute right-0 top-full mt-1 bg-white border border-[rgba(138,130,120,0.15)] rounded-lg shadow-md overflow-hidden z-50 min-w-[120px]">
-          {languages.map((lang) => (
+          {languages.map((language) => (
             <button
-              key={lang.code}
-              onClick={() => handleChange(lang.code)}
+              key={language.code}
+              onClick={() => {
+                setOpen(false);
+                setLang(language.code);
+              }}
               className={`w-full text-left px-3 py-2 text-sm font-body transition-colors ${
-                currentLang === lang.code
+                lang === language.code
                   ? 'bg-terracotta/10 text-terracotta font-semibold'
                   : 'text-charcoal hover:bg-sand-light'
               }`}
             >
-              {lang.label}
+              {language.label}
             </button>
           ))}
         </div>
