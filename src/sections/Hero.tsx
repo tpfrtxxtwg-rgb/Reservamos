@@ -57,7 +57,7 @@ export default function Hero({ onScrollToDemo }: HeroProps) {
       <div className="relative z-10 text-center px-6 pt-16 max-w-4xl mx-auto">
         <h1 className="font-display text-4xl sm:text-5xl md:text-[56px] font-bold text-white leading-tight mb-5"
           style={{ textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
-          El Motor de Reservaciones para Transportaci\u00f3n Privada
+          Motor de Reservaciones para Transportaci\u00f3n Privada
         </h1>
         <p className="font-body text-base sm:text-lg text-white/85 mb-8 max-w-2xl mx-auto">
           Widget embebible. Alta conversi\u00f3n. Sin complicaciones.
