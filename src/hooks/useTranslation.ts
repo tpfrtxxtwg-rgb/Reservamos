@@ -1,5 +1,3 @@
-// Simple translation utility - no React hooks needed
-// Language is determined once at module load (URL parameter)
 import en from '../i18n/en';
 import es from '../i18n/es';
 import pt from '../i18n/pt';
@@ -36,7 +34,7 @@ export function useTranslation() {
       // Try current language first, then English fallback
       return getNestedValue(currentData, key) 
         || getNestedValue(fallbackData, key) 
-        || key;
+        || '';
     },
     lang: currentLang,
     i18n: { language: currentLang },
