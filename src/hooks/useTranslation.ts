@@ -18,20 +18,26 @@ try {
 } catch { /* ignore */ }
 
 const currentData = translations[currentLang] || translations['en'];
+const fallbackData = translations['en'];
 
-function getNestedValue(obj: Record<string, unknown>, path: string): string {
+function getNestedValue(obj: Record<string, unknown>, path: string): string | undefined {
   const parts = path.split('.');
   let current: unknown = obj;
   for (const part of parts) {
-    if (current === null || current === undefined) return path;
+    if (current === null || current === undefined) return undefined;
     current = (current as Record<string, unknown>)[part];
   }
-  return typeof current === 'string' ? current : path;
+  return typeof current === 'string' ? current : undefined;
 }
 
 export function useTranslation() {
   return {
-    t: (key: string): string => getNestedValue(currentData, key),
+    t: (key: string): string => {
+      // Try current language first, then English fallback
+      return getNestedValue(currentData, key) 
+        || getNestedValue(fallbackData, key) 
+        || '';
+    },
     lang: currentLang,
     i18n: { language: currentLang },
     setLang: (newLang: string) => {
