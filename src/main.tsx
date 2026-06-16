@@ -1,7 +1,6 @@
-import { StrictMode } from 'react'
+mport { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
-import { TranslationProvider } from './context/TranslationContext'
 import './i18n'
 import './index.css'
 import { TRPCProvider } from "@/providers/trpc"
@@ -13,9 +12,7 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <TRPCProvider>
         <ClientAuthProvider>
-          <TranslationProvider>
-            <App />
-          </TranslationProvider>
+          <App />
         </ClientAuthProvider>
       </TRPCProvider>
     </BrowserRouter>
