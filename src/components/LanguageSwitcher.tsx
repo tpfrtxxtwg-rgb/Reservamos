@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '../hooks/useTranslation';
 import { Globe } from '@phosphor-icons/react';
 
 const languages = [
@@ -9,10 +9,10 @@ const languages = [
 ];
 
 export default function LanguageSwitcher() {
-  const { i18n } = useTranslation();
+  const { lang, setLang } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const currentLang = i18n.language || 'en';
+  const currentLang = lang || 'en';
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {

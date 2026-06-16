@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { useTranslation } from '../context/TranslationContext';
+import { useTranslation } from '../hooks/useTranslation';
 import { ArrowRight, FileText } from '@phosphor-icons/react';
+
+const { t } = useTranslation();
 
 interface HeroProps {
   onScrollToDemo: () => void;
@@ -58,22 +60,22 @@ export default function Hero({ onScrollToDemo }: HeroProps) {
       <div className="relative z-10 text-center px-6 pt-16 max-w-4xl mx-auto">
         <h1 className="font-display text-4xl sm:text-5xl md:text-[56px] font-bold text-white leading-tight mb-5"
           style={{ textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
-          Motor de Reservaciones para Transportaci\u00f3n Privada
+          {t('hero.title')}
         </h1>
         <p className="font-body text-base sm:text-lg text-white/85 mb-8 max-w-2xl mx-auto">
-          Widget embebible. Alta conversi\u00f3n. Sin complicaciones.
+          {t('hero.subtitle')}
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
           <button
             onClick={onScrollToDemo}
             className="flex items-center gap-2 bg-terracotta text-white px-8 py-3.5 rounded-full font-body font-semibold shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5 transition-all"
           >
-            Ver Demo
+            {t('hero.verifyDemo')}
             <ArrowRight size={18} />
           </button>
           <button className="flex items-center gap-2 border-[1.5px] border-white/40 text-white px-8 py-3.5 rounded-full font-body font-medium hover:bg-white/10 transition-all">
             <FileText size={18} />
-            Documentaci\u00f3n
+            {t('hero.documentation')}
           </button>
         </div>
 

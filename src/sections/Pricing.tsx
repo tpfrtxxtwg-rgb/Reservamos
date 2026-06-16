@@ -1,4 +1,4 @@
-import { useTranslation } from '../context/TranslationContext';
+import { useTranslation } from '../hooks/useTranslation';
 import { Check } from '@phosphor-icons/react';
 
 export default function Pricing() {
