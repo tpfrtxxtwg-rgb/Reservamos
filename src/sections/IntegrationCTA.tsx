@@ -1,6 +1,9 @@
+import { useTranslation } from '../context/TranslationContext';
 import { Key } from '@phosphor-icons/react';
 
 export default function IntegrationCTA() {
+  const { t } = useTranslation();
+
   return (
     <section id="integration" className="py-20 md:py-28 bg-charcoal">
       <div className="max-w-4xl mx-auto px-6 text-center">

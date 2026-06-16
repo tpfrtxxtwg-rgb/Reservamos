@@ -1,4 +1,7 @@
+import { useTranslation } from '../context/TranslationContext';
 import BookingWidget from '@/components/BookingWidget';
+
+const { t } = useTranslation();
 
 export default function DemoWidget() {
   return (

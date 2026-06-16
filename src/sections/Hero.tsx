@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from '../context/TranslationContext';
 import { ArrowRight, FileText } from '@phosphor-icons/react';
 
 interface HeroProps {

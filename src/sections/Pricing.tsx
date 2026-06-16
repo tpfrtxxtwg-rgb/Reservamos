@@ -1,5 +1,5 @@
+import { useTranslation } from '../context/TranslationContext';
 import { Check } from '@phosphor-icons/react';
-import { useTranslation } from 'react-i18next';
 
 export default function Pricing() {
   const { t } = useTranslation();

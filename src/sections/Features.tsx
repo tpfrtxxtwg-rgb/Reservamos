@@ -1,3 +1,4 @@
+import { useTranslation } from '../context/TranslationContext';
 import { Code, CreditCard, Translate, Clock, Bell, Layout } from '@phosphor-icons/react';
 
 const features = [
