@@ -1,8 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
-import { TranslationProvider } from './context/TranslationContext'
-import './i18n'
+import './i18n'  // For admin panel (react-i18next)
 import './index.css'
 import { TRPCProvider } from "@/providers/trpc"
 import { ClientAuthProvider } from "@/providers/ClientAuthProvider"
@@ -13,9 +12,7 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <TRPCProvider>
         <ClientAuthProvider>
-          <TranslationProvider>
-            <App />
-          </TranslationProvider>
+          <App />
         </ClientAuthProvider>
       </TRPCProvider>
     </BrowserRouter>

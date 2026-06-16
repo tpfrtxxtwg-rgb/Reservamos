@@ -1,14 +1,17 @@
+import { useTranslation } from '../hooks/useTranslation';
 import { Key } from '@phosphor-icons/react';
 
 export default function IntegrationCTA() {
+  const { t } = useTranslation();
+
   return (
     <section id="integration" className="py-20 md:py-28 bg-charcoal">
       <div className="max-w-4xl mx-auto px-6 text-center">
         <h2 className="font-display text-3xl md:text-[36px] font-bold text-white mb-4">
-          \u00bfListo para Integrar?
+          {t('integrationCTA.title')}
         </h2>
         <p className="font-body text-base text-white/70 mb-8 max-w-xl mx-auto">
-          Solo necesitas copiar y pegar este c\u00f3digo en tu sitio web. El widget se cargar\u00e1 autom\u00e1ticamente.
+          {t('integrationCTA.subtitle')}
         </p>
 
         {/* Code Snippet */}
@@ -42,7 +45,7 @@ export default function IntegrationCTA() {
 
         <button className="inline-flex items-center gap-2 bg-terracotta text-white px-8 py-3.5 rounded-full font-body font-semibold shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5 transition-all">
           <Key size={18} />
-          Obtener API Key
+          {t('integrationCTA.getAPIKey')}
         </button>
       </div>
     </section>

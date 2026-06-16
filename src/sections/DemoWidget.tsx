@@ -1,4 +1,7 @@
+import { useTranslation } from '../hooks/useTranslation';
 import BookingWidget from '@/components/BookingWidget';
+
+const { t } = useTranslation();
 
 export default function DemoWidget() {
   return (
@@ -7,10 +10,10 @@ export default function DemoWidget() {
         {/* Section Header */}
         <div className="text-center mb-12">
           <span className="font-body text-xs font-semibold uppercase tracking-[0.1em] text-terracotta mb-3 block">
-            Vive la Experiencia
+            {t('demo.viveLaExperiencia')}
           </span>
           <h2 className="font-display text-3xl md:text-[40px] font-bold text-charcoal mb-4">
-            Tu Cliente Reserva en Segundos
+            {t('demo.tuClienteReservaEnSegundos')}
           </h2>
           <p className="font-body text-base text-warm-gray max-w-2xl mx-auto">
             El widget se adapta al dise\u00f1o de cualquier sitio web. El viajero completa su reserva en menos de 2 minutos.
