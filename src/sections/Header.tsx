@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { List, X } from '@phosphor-icons/react';
 import { useClientAuth } from '@/providers/ClientAuthProvider';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '../hooks/useTranslation';
 
 export default function Header() {
   const navigate = useNavigate();
