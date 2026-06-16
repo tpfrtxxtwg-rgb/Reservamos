@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+// Simple translation utility - no React hooks needed
+// Language is determined once at module load (URL parameter)
 import en from '../i18n/en';
 import es from '../i18n/es';
 import pt from '../i18n/pt';
@@ -6,14 +7,17 @@ import pt from '../i18n/pt';
 const translations: Record<string, Record<string, unknown>> = { en, es, pt };
 const SUPPORTED_LANGS = ['en', 'es', 'pt'];
 
-function getUrlLang(): string {
-  try {
-    const params = new URLSearchParams(window.location.search);
-    const lang = params.get('lang');
-    if (lang && SUPPORTED_LANGS.includes(lang)) return lang;
-  } catch { /* ignore */ }
-  return 'en';
-}
+let currentLang = 'en';
+
+try {
+  const params = new URLSearchParams(window.location.search);
+  const urlLang = params.get('lang');
+  if (urlLang && SUPPORTED_LANGS.includes(urlLang)) {
+    currentLang = urlLang;
+  }
+} catch { /* ignore */ }
+
+const currentData = translations[currentLang] || translations['en'];
 
 function getNestedValue(obj: Record<string, unknown>, path: string): string {
   const parts = path.split('.');
@@ -26,19 +30,15 @@ function getNestedValue(obj: Record<string, unknown>, path: string): string {
 }
 
 export function useTranslation() {
-  const lang = useMemo(() => getUrlLang(), []);
-  const data = useMemo(() => translations[lang] || translations['en'], [lang]);
-
-  const t = useMemo(() => {
-    return (key: string): string => getNestedValue(data, key);
-  }, [data]);
-
-  const setLang = (newLang: string) => {
-    if (!SUPPORTED_LANGS.includes(newLang)) return;
-    const url = new URL(window.location.href);
-    url.searchParams.set('lang', newLang);
-    window.location.href = url.toString();
+  return {
+    t: (key: string): string => getNestedValue(currentData, key),
+    lang: currentLang,
+    i18n: { language: currentLang },
+    setLang: (newLang: string) => {
+      if (!SUPPORTED_LANGS.includes(newLang)) return;
+      const url = new URL(window.location.href);
+      url.searchParams.set('lang', newLang);
+      window.location.href = url.toString();
+    },
   };
-
-  return { t, lang, i18n: { language: lang, changeLanguage: setLang }, setLang };
 }
