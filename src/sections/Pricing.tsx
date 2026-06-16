@@ -1,5 +1,5 @@
-import { useTranslation } from '../hooks/useTranslation';
 import { Check } from '@phosphor-icons/react';
+import { useTranslation } from '../hooks/useTranslation';
 
 export default function Pricing() {
   const { t } = useTranslation();
@@ -28,39 +28,60 @@ export default function Pricing() {
         {/* Two cards layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto items-stretch">
           {/* Card 1 - Price */}
-          <div className="bg-white rounded-xl shadow-md p-8 flex flex-col justify-center items-center text-center">
-            <p className="font-body text-lg text-warm-gray mb-4">
-              {t('pricing.subtitle') || 'For all private transportation operators'}
-            </p>
-            <div className="mb-6">
-              <span className="font-body text-5xl font-bold text-charcoal">$50</span>
-              <span className="font-body text-base text-warm-gray ml-1">USD / {t('pricing.month') || 'month'}</span>
-            </div>
-            <div className="flex flex-col gap-3 w-full max-w-xs">
-              <button className="w-full py-3 rounded-full font-body font-semibold text-sm bg-terracotta text-white shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5 transition-all">
-                {t('pricing.getStarted') || 'Get Started'}
-              </button>
-              <button className="w-full py-3 rounded-full font-body font-semibold text-sm border-2 border-[rgba(138,130,120,0.2)] text-charcoal hover:border-terracotta hover:text-terracotta transition-all">
-                {t('pricing.contactSales') || 'Contact Sales'}
-              </button>
-            </div>
-          </div>
-
-          {/* Card 2 - Features */}
-          <div className="bg-white rounded-xl shadow-md p-8 flex flex-col">
-            <h3 className="font-display text-lg font-semibold text-charcoal mb-6">
-              {t('pricing.whatsIncluded') || "What's included"}
+          <div className="bg-white rounded-2xl p-8 md:p-10 border border-[rgba(138,130,120,0.15)] shadow-sm">
+            <h3 className="font-display text-2xl font-bold text-charcoal mb-2">
+              {t('pricing.card1Title') || 'Booking Engine'}
             </h3>
-            <ul className="space-y-4 flex-1">
+            <div className="flex items-baseline gap-1 mb-6">
+              <span className="font-display text-4xl md:text-5xl font-bold text-charcoal">$39</span>
+              <span className="font-body text-sm text-warm-gray">/ {t('pricing.month') || 'month'}</span>
+            </div>
+            <ul className="space-y-3 mb-8">
               {features.map((feature, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-[rgba(199,94,58,0.1)] flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Check size={14} weight="bold" className="text-terracotta" />
-                  </div>
-                  <span className="font-body text-sm text-charcoal">{feature}</span>
+                <li key={i} className="flex items-center gap-3">
+                  <span className="w-5 h-5 rounded-full bg-terracotta/10 flex items-center justify-center flex-shrink-0">
+                    <Check size={12} className="text-terracotta" weight="bold" />
+                  </span>
+                  <span className="font-body text-sm text-charcoal-light">{feature}</span>
                 </li>
               ))}
             </ul>
+            <button className="w-full py-3.5 border-2 border-terracotta text-terracotta rounded-full font-body font-semibold hover:bg-terracotta hover:text-white transition-all">
+              {t('pricing.cta') || 'Start Free Trial'}
+            </button>
+          </div>
+
+          {/* Card 2 - Why */}
+          <div className="bg-white rounded-2xl p-8 md:p-10 border border-[rgba(138,130,120,0.15)] shadow-sm">
+            <h3 className="font-display text-2xl font-bold text-charcoal mb-2">
+              {t('pricing.card2Title') || 'Why ReserVamos?'}
+            </h3>
+            <p className="font-body text-base text-charcoal-light mb-6">
+              {t('pricing.card2Desc') || 'No commissions per booking. Fixed monthly price. You control your brand, your clients, and your payments.'}
+            </p>
+            <ul className="space-y-3 mb-8">
+              <li className="flex items-center gap-3">
+                <span className="w-5 h-5 rounded-full bg-terracotta/10 flex items-center justify-center flex-shrink-0">
+                  <Check size={12} className="text-terracotta" weight="bold" />
+                </span>
+                <span className="font-body text-sm text-charcoal-light">{t('pricing.why1') || 'No commission per reservation'}</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="w-5 h-5 rounded-full bg-terracotta/10 flex items-center justify-center flex-shrink-0">
+                  <Check size={12} className="text-terracotta" weight="bold" />
+                </span>
+                <span className="font-body text-sm text-charcoal-light">{t('pricing.why2') || 'You keep your clients'}</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="w-5 h-5 rounded-full bg-terracotta/10 flex items-center justify-center flex-shrink-0">
+                  <Check size={12} className="text-terracotta" weight="bold" />
+                </span>
+                <span className="font-body text-sm text-charcoal-light">{t('pricing.why3') || 'Stripe & PayPal integrated'}</span>
+              </li>
+            </ul>
+            <button className="w-full py-3.5 border-2 border-terracotta text-terracotta rounded-full font-body font-semibold hover:bg-terracotta hover:text-white transition-all">
+              {t('pricing.cta') || 'Start Free Trial'}
+            </button>
           </div>
         </div>
       </div>
