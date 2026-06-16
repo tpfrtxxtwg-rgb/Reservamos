@@ -36,7 +36,7 @@ export function useTranslation() {
       // Try current language first, then English fallback
       return getNestedValue(currentData, key) 
         || getNestedValue(fallbackData, key) 
-        || '';
+        || key;
     },
     lang: currentLang,
     i18n: { language: currentLang },

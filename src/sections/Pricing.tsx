@@ -33,7 +33,7 @@ export default function Pricing() {
               {t('pricing.card1Title') || 'Booking Engine'}
             </h3>
             <div className="flex items-baseline gap-1 mb-6">
-              <span className="font-display text-4xl md:text-5xl font-bold text-charcoal">$39</span>
+              <span className="font-body text-5xl font-bold text-charcoal">{t('pricing.price') || '$50'}</span>
               <span className="font-body text-sm text-warm-gray">/ {t('pricing.month') || 'month'}</span>
             </div>
             <ul className="space-y-3 mb-8">
