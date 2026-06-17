@@ -45,9 +45,9 @@ export default function Pricing() {
               <span className="font-body text-base text-warm-gray ml-1">USD / {t('pricing.month') || 'month'}</span>
             </div>
             <div className="flex flex-col gap-3 w-full max-w-xs">
-              <button className="w-full py-3 rounded-full font-body font-semibold text-sm bg-terracotta text-white shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5 transition-all">
+              <a href="/register" className="w-full py-3 rounded-full font-body font-semibold text-sm bg-terracotta text-white shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5 transition-all text-center block">
                 {t('pricing.getStarted') || 'Get Started'}
-              </button>
+              </a>
             </div>
           </div>
 
