@@ -2,7 +2,8 @@ FROM node:22-slim
 
 WORKDIR /app
 
-RUN echo "deploy-2025-06-13-05-00-00" > /tmp/cache-bust
+RUN echo "deploy-2025-06-18-01-00-00" > /tmp/cache-bust
+
 COPY package.json ./
 RUN npm install 2>&1 | tail -5
 
@@ -10,7 +11,11 @@ COPY . .
 
 RUN node fix-json.cjs
 
+ARG VITE_STRIPE_PUBLISHABLE_KEY
+ARG VITE_APP_ID
+
 RUN echo "=== VITE BUILD ===" && \
+    echo "Stripe PK present: $([ -n \"$VITE_STRIPE_PUBLISHABLE_KEY\" ] && echo YES || echo NO)" && \
     rm -rf dist .vite && \
     NODE_ENV=production npx vite build --mode production --emptyOutDir && \
     cp -r public/* dist/public/ 2>/dev/null || true && \
