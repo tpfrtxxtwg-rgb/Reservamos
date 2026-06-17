@@ -1,51 +1,51 @@
 import { useTranslation } from '../hooks/useTranslation';
 import { Code, CreditCard, Translate, Clock, Bell, Layout } from '@phosphor-icons/react';
 
-const { t } = useTranslation();
-
-const features = [
-  {
-    icon: <Code size={22} />,
-    title: 'Widget Embebible',
-    description: 'Integra con un script. Funciona en WordPress, React, cualquier sitio.',
-  },
-  {
-    icon: <CreditCard size={22} />,
-    title: 'Pagos Integrados',
-    description: 'Stripe, PayPal, MercadoPago. El pago se procesa dentro del widget.',
-  },
-  {
-    icon: <Translate size={22} />,
-    title: 'Multi-Idioma',
-    description: 'Espa\u00f1ol, ingl\u00e9s, portugu\u00e9s. Detecci\u00f3n autom\u00e1tica del navegador.',
-  },
-  {
-    icon: <Clock size={22} />,
-    title: 'Disponibilidad en Tiempo Real',
-    description: 'El calendario muestra solo fechas y horarios disponibles.',
-  },
-  {
-    icon: <Bell size={22} />,
-    title: 'Notificaciones Autom\u00e1ticas',
-    description: 'Confirmaciones por email y WhatsApp al instante.',
-  },
-  {
-    icon: <Layout size={22} />,
-    title: 'Panel de Control',
-    description: 'Gestiona reservas, conductores, veh\u00edculos y reportes.',
-  },
-];
-
 export default function Features() {
+  const { t } = useTranslation();
+
+  const features = [
+    {
+      icon: <Code size={22} />,
+      title: t('features.embeddableWidget.title'),
+      description: t('features.embeddableWidget.description'),
+    },
+    {
+      icon: <CreditCard size={22} />,
+      title: t('features.integratedPayments.title'),
+      description: t('features.integratedPayments.description'),
+    },
+    {
+      icon: <Translate size={22} />,
+      title: t('features.multilanguage.title'),
+      description: t('features.multilanguage.description'),
+    },
+    {
+      icon: <Clock size={22} />,
+      title: t('features.realTimeAvailability.title'),
+      description: t('features.realTimeAvailability.description'),
+    },
+    {
+      icon: <Bell size={22} />,
+      title: t('features.autoNotifications.title'),
+      description: t('features.autoNotifications.description'),
+    },
+    {
+      icon: <Layout size={22} />,
+      title: t('features.controlPanel.title'),
+      description: t('features.controlPanel.description'),
+    },
+  ];
+
   return (
     <section id="features" className="py-20 md:py-28 bg-white">
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-14">
           <span className="font-body text-xs font-semibold uppercase tracking-[0.1em] text-terracotta mb-3 block">
-            Caracter\u00edsticas
+            {t('features.label')}
           </span>
           <h2 className="font-display text-3xl md:text-[40px] font-bold text-charcoal">
-            Todo lo que Necesitas
+            {t('features.title')}
           </h2>
         </div>
 
