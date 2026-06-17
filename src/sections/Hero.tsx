@@ -85,19 +85,17 @@ export default function Hero({ onScrollToDemo }: HeroProps) {
             <div className="font-display text-2xl sm:text-3xl font-bold text-white mb-1">
               <AnimatedCounter target={200} suffix="+" />
             </div>
-            <div className="font-body text-xs sm:text-sm text-white/70">Operadores</div>
-          </div>
+            <div className="font-body text-xs sm:text-sm text-white/70">{t('hero.statsOperators')}</div>
           <div className="text-center border-x border-white/20">
             <div className="font-display text-2xl sm:text-3xl font-bold text-white mb-1">
               <AnimatedCounter target={50} suffix="K+" />
             </div>
-            <div className="font-body text-xs sm:text-sm text-white/70">Reservas</div>
-          </div>
+            <div className="font-body text-xs sm:text-sm text-white/70">{t('hero.statsBookings')}</div>
           <div className="text-center">
             <div className="font-display text-2xl sm:text-3xl font-bold text-white mb-1">
               <AnimatedCounter target={99} suffix=".9%" />
             </div>
-            <div className="font-body text-xs sm:text-sm text-white/70">Uptime</div>
+            <div className="font-body text-xs sm:text-sm text-white/70">{t('hero.statsUptime')}</div>
           </div>
         </div>
       </div>
