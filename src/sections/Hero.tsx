@@ -1,100 +1,92 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowRight, FileText } from '@phosphor-icons/react';
 import { useTranslation } from '../hooks/useTranslation';
-import BookingWidget from '@/components/BookingWidget';
-import AnimatedCounter from '@/components/AnimatedCounter';
+import { ArrowRight, FileText } from '@phosphor-icons/react';
 
-export default function Hero() {
-  const { t } = useTranslation();
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
+interface HeroProps {
+  onScrollToDemo: () => void;
+}
+
+function AnimatedCounter({ target, suffix = '' }: { target: number; suffix?: string }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const hasAnimated = useRef(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
+        if (entry.isIntersecting && !hasAnimated.current) {
+          hasAnimated.current = true;
+          const duration = 1500;
+          const startTime = Date.now();
+          const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setCount(Math.floor(target * eased));
+            if (progress < 1) requestAnimationFrame(animate);
+          };
+          requestAnimationFrame(animate);
         }
       },
-      { threshold: 0.2 }
+      { threshold: 0.5 }
     );
-    if (sectionRef.current) observer.observe(sectionRef.current);
+    if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
-  }, []);
-
-  const handleScrollTo = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
+  }, [target]);
 
   return (
-    <section ref={sectionRef} className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden">
-      {/* Background image */}
-      <div className="absolute inset-0 z-0">
-        <img
-          src="/hero-cancun.jpg"
-          alt="Hero background"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-[rgba(30,30,30,0.6)]" />
+    <span ref={ref}>
+      {count.toLocaleString()}{suffix}
+    </span>
+  );
+}
+
+export default function Hero({ onScrollToDemo }: HeroProps) {
+  const { t } = useTranslation();
+
+  return (
+    <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
+      <div className="absolute inset-0">
+        <img src="/hero-cancun.jpg" alt="Cancun" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-[rgba(26,26,26,0.55)]" />
       </div>
-
-      <div className="relative z-10 max-w-6xl mx-auto px-6 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          {/* Left column */}
-          <div className="max-w-xl">
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-[56px] font-bold text-white leading-[1.1] mb-6">
-              {t('hero.title')}
-            </h1>
-            <p className="font-body text-base sm:text-lg text-white/85 leading-relaxed mb-8">
-              {t('hero.subtitle')}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 mb-8">
-              <button
-                onClick={() => handleScrollTo('demo')}
-                className="inline-flex items-center justify-center gap-2 bg-terracotta hover:bg-terracotta-dark text-white px-7 py-3.5 rounded-full font-body font-semibold shadow-button hover:-translate-y-0.5 transition-all"
-              >
-                <ArrowRight size={18} weight="bold" />
-                {t('hero.ctaDemo')}
-              </button>
-              <button
-                onClick={() => handleScrollTo('integration')}
-                className="inline-flex items-center justify-center gap-2 border-2 border-white/30 hover:border-white/60 text-white px-7 py-3.5 rounded-full font-body font-semibold transition-all"
-              >
-                <FileText size={18} />
-                {t('hero.ctaDocs')}
-              </button>
+      <div className="relative z-10 text-center px-6 pt-16 max-w-4xl mx-auto">
+        <h1 className="font-display text-4xl sm:text-5xl md:text-[56px] font-bold text-white leading-tight mb-5"
+          style={{ textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
+          {t('hero.title')}
+        </h1>
+        <p className="font-body text-base sm:text-lg text-white/85 mb-8 max-w-2xl mx-auto">
+          {t('hero.subtitle')}
+        </p>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+          <button onClick={onScrollToDemo}
+            className="flex items-center gap-2 bg-terracotta text-white px-8 py-3.5 rounded-full font-body font-semibold shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5 transition-all">
+            {t('hero.ctaDemo')}
+            <ArrowRight size={18} />
+          </button>
+          <button className="flex items-center gap-2 border-[1.5px] border-white/40 text-white px-8 py-3.5 rounded-full font-body font-medium hover:bg-white/10 transition-all">
+            <FileText size={18} />
+            {t('hero.ctaDocs')}
+          </button>
+        </div>
+        <div className="grid grid-cols-3 gap-4 max-w-xl mx-auto border-t border-white/20 pt-6">
+          <div className="text-center">
+            <div className="font-display text-2xl sm:text-3xl font-bold text-white mb-1">
+              <AnimatedCounter target={200} suffix="+" />
             </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 sm:gap-6">
-              <div className="text-center">
-                <div className="font-display text-2xl sm:text-3xl font-bold text-white mb-1">
-                  <AnimatedCounter target={200} suffix="+" />
-                </div>
-                <div className="font-body text-xs sm:text-sm text-white/70">{t('hero.statsOperators')}</div>
-              </div>
-              <div className="text-center">
-                <div className="font-display text-2xl sm:text-3xl font-bold text-white mb-1">
-                  <AnimatedCounter target={50} suffix="k" />
-                </div>
-                <div className="font-body text-xs sm:text-sm text-white/70">{t('hero.statsBookings')}</div>
-              </div>
-              <div className="text-center">
-                <div className="font-display text-2xl sm:text-3xl font-bold text-white mb-1">
-                  <AnimatedCounter target={99} suffix=".9%" />
-                </div>
-                <div className="font-body text-xs sm:text-sm text-white/70">{t('hero.statsUptime')}</div>
-              </div>
-            </div>
+            <div className="font-body text-xs sm:text-sm text-white/70">{t('hero.statsOperators')}</div>
           </div>
-
-          {/* Right column */}
-          <div className={`flex justify-center lg:justify-end transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-            <div className="w-full max-w-[420px]">
-              <BookingWidget />
+          <div className="text-center border-x border-white/20">
+            <div className="font-display text-2xl sm:text-3xl font-bold text-white mb-1">
+              <AnimatedCounter target={50} suffix="K+" />
             </div>
+            <div className="font-body text-xs sm:text-sm text-white/70">{t('hero.statsBookings')}</div>
+          </div>
+          <div className="text-center">
+            <div className="font-display text-2xl sm:text-3xl font-bold text-white mb-1">
+              <AnimatedCounter target={99} suffix=".9%" />
+            </div>
+            <div className="font-body text-xs sm:text-sm text-white/70">{t('hero.statsUptime')}</div>
           </div>
         </div>
       </div>
