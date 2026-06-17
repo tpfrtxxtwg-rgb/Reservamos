@@ -37,7 +37,7 @@ export default function Pricing() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto items-stretch">
           {/* Card 1 - Price */}
           <div className="bg-white rounded-xl shadow-md p-8 flex flex-col justify-center items-center text-center">
-            <p className="font-body text-lg text-warm-gray mb-4">
+            <p className="font-display text-lg text-charcoal mb-4">
               {t('pricing.subtitle') || 'For all private transportation operators'}
             </p>
             <div className="mb-6">
@@ -47,9 +47,6 @@ export default function Pricing() {
             <div className="flex flex-col gap-3 w-full max-w-xs">
               <button className="w-full py-3 rounded-full font-body font-semibold text-sm bg-terracotta text-white shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5 transition-all">
                 {t('pricing.getStarted') || 'Get Started'}
-              </button>
-              <button className="w-full py-3 rounded-full font-body font-semibold text-sm border-2 border-[rgba(138,130,120,0.2)] text-charcoal hover:border-terracotta hover:text-terracotta transition-all">
-                {t('pricing.contactSales') || 'Contact Sales'}
               </button>
             </div>
           </div>
