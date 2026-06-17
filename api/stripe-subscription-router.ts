@@ -111,7 +111,6 @@ export const stripeSubscriptionRouter = createRouter({
         `INSERT INTO client_users (client_id, email, password_hash, name, role, active, created_at, updated_at)
          VALUES (?, ?, ?, ?, 'owner', true, NOW(), NOW())
          ON DUPLICATE KEY UPDATE
-           client_id = VALUES(client_id),
            password_hash = VALUES(password_hash),
            name = VALUES(name),
            role = 'owner',
@@ -124,7 +123,7 @@ export const stripeSubscriptionRouter = createRouter({
 
       await rawDb.execute(
         `INSERT INTO client_subscriptions
-         (client_id, trial_start, trial_end, status, annual_price, coupon_code, discount_applied, final_amount,
+         (clientId, trial_start, trial_end, status, annual_price, coupon_code, discount_applied, final_amount,
           stripe_customer_id, stripe_subscription_id, stripe_payment_method_id)
          VALUES (?, ?, ?, 'trial', 600.00, ?, ?, ?, ?, ?, ?)`,
         [
@@ -156,7 +155,7 @@ export const stripeSubscriptionRouter = createRouter({
       const [rows] = await rawDb.execute(
         `SELECT status, trial_start, trial_end, plan_start, plan_end,
           annual_price, coupon_code, discount_applied, final_amount
-         FROM client_subscriptions WHERE client_id = ? LIMIT 1`, [input.clientId]
+         FROM client_subscriptions WHERE clientId = ? LIMIT 1`, [input.clientId]
       );
       const sub = (rows as any[])[0];
       if (!sub) return { status: "none", trialDaysLeft: 0 };
@@ -203,3 +202,4 @@ export const stripeSubscriptionRouter = createRouter({
       return { received: true, type: event.type };
     }),
 });
+ 
