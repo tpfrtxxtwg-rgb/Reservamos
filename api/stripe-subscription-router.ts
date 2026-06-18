@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import bcrypt from "bcryptjs";
 import { createRouter, publicQuery } from "./middleware";
 import { getRawDb } from "./queries/connection";
+import { sendWelcomeEmail } from "./lib/welcome-email";
 
 const ANNUAL_PRICE_CENTS = 60000;
 const TRIAL_DAYS = 7;
@@ -47,6 +48,7 @@ export const stripeSubscriptionRouter = createRouter({
       companyEmail: z.string().email(),
       companyPassword: z.string().min(6),
       couponCode: z.string().optional(),
+      lang: z.string().optional().default("en"),
     }))
     .mutation(async ({ input }) => {
       const s = getStripe();
@@ -139,6 +141,15 @@ export const stripeSubscriptionRouter = createRouter({
         await rawDb.execute("UPDATE coupons SET uses_count = uses_count + 1 WHERE code = ?", [input.couponCode.toUpperCase()]);
       }
 
+      // Send welcome email (non-blocking, don't fail registration if email fails)
+      sendWelcomeEmail({
+        companyName: input.companyName,
+        email: input.companyEmail,
+        apiKey,
+        trialEnd: trialEndDate.toISOString(),
+        lang: input.lang || "en",
+      }).catch((e) => console.error("[createSubscription] Welcome email failed:", e));
+
       return {
         clientId, apiKey,
         trialEnd: trialEndDate.toISOString(),
@@ -201,4 +212,35 @@ export const stripeSubscriptionRouter = createRouter({
       }
       return { received: true, type: event.type };
     }),
+
+  // Get current subscription status for the authenticated client
+  myStatus: publicQuery.query(async ({ ctx }) => {
+    const clientUser = ctx.clientUser;
+    if (!clientUser) return { status: "none" as const, trialDaysLeft: 0 };
+
+    const rawDb = getRawDb();
+    const [rows] = await rawDb.execute(
+      `SELECT status, trial_start, trial_end, plan_start, plan_end,
+        annual_price, coupon_code, discount_applied, final_amount
+       FROM client_subscriptions WHERE clientId = ? LIMIT 1`,
+      [clientUser.clientId]
+    );
+    const sub = (rows as any[])[0];
+    if (!sub) return { status: "none" as const, trialDaysLeft: 0 };
+
+    const trialEnd = sub.trial_end ? new Date(sub.trial_end) : null;
+    const trialDaysLeft = trialEnd
+      ? Math.max(0, Math.ceil((trialEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+      : 0;
+
+    return {
+      status: sub.status,
+      trialDaysLeft,
+      trialEnd: sub.trial_end,
+      planEnd: sub.plan_end,
+      annualPrice: parseFloat(sub.annual_price) || 600,
+      finalAmount: parseFloat(sub.final_amount) || 600,
+      discountApplied: sub.discount_applied || 0,
+    };
+  }),
 });

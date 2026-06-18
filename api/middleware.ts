@@ -2,6 +2,7 @@ import { ErrorMessages } from "@contracts/constants";
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import type { TrpcContext } from "./context";
+import { validateClientSubscription } from "./lib/subscription-check";
 
 const t = initTRPC.context<TrpcContext>().create({
   transformer: superjson,
@@ -51,7 +52,36 @@ const requireClientAuth = t.middleware(async (opts) => {
   return next({ ctx: { ...ctx, clientUser: ctx.clientUser } });
 });
 
+/**
+ * Validates that the authenticated client has an active subscription
+ * (trial or paid). Throws FORBIDDEN with subscriptionExpired code
+ * if the subscription has expired or been cancelled.
+ */
+const requireActiveSubscription = t.middleware(async (opts) => {
+  const { ctx, next } = opts;
+
+  if (!ctx.clientUser) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: ErrorMessages.unauthenticated,
+    });
+  }
+
+  const check = await validateClientSubscription(ctx.clientUser.clientId);
+
+  if (!check.valid) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: check.reason,
+      cause: { code: "subscriptionExpired", status: check.status },
+    });
+  }
+
+  return next({ ctx: { ...ctx, clientUser: ctx.clientUser } });
+});
+
 export const authedQuery = t.procedure.use(requireAuth);
 export const adminQuery = authedQuery.use(requireRole("admin"));
 export const clientAuthedQuery = t.procedure.use(requireClientAuth);
+export const clientSubscribedQuery = t.procedure.use(requireClientAuth).use(requireActiveSubscription);
 export const superAdminQuery = clientAuthedQuery.use(requireRole("super_admin"));

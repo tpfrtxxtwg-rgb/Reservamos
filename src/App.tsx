@@ -3,6 +3,7 @@ import LandingPage from '@/pages/LandingPage';
 import AdminPanel from '@/sections/AdminPanel';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
+import ExpiredSubscription from '@/pages/ExpiredSubscription';
 import WidgetPreview from '@/pages/WidgetPreview';
 import EmbedWidget from '@/pages/EmbedWidget';
 import NotFound from '@/pages/NotFound';
@@ -30,6 +31,7 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+      <Route path="/subscription-expired" element={<ExpiredSubscription />} />
       <Route path="/widget/embed" element={<EmbedWidget />} />
       <Route path="*" element={<NotFound />} />
     </Routes>

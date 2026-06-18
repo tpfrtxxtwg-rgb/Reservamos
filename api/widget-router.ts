@@ -4,6 +4,7 @@ import { createRouter, publicQuery } from "./middleware";
 import { getDb } from "./queries/connection";
 import { clients, services, vehicles, destinations, vehicleZonePrices, bookings, optionalServices, serviceAirports, serviceTours } from "@db/schema";
 import { sendBookingConfirmationEmail } from "./email-router";
+import { validateClientSubscription } from "./lib/subscription-check";
 
 function generateCode() {
   const ts = Date.now().toString(36).toUpperCase();
@@ -11,17 +12,27 @@ function generateCode() {
   return `RSV-${ts.slice(-4)}-${rnd}`;
 }
 
+/** Validates client exists and has active subscription */
+async function validateWidgetClient(apiKey: string) {
+  const db = getDb();
+  const client = await db.query.clients.findFirst({
+    where: eq(clients.apiKey, apiKey),
+  });
+  if (!client || client.status !== "active") {
+    throw new Error("Invalid or inactive client");
+  }
+  const subCheck = await validateClientSubscription(client.id);
+  if (!subCheck.valid) {
+    throw new Error(`Subscription ${subCheck.status}: ${subCheck.reason}`);
+  }
+  return client;
+}
+
 export const widgetRouter = createRouter({
   config: publicQuery
     .input(z.object({ apiKey: z.string().min(1) }))
     .query(async ({ input }) => {
-      const db = getDb();
-      const client = await db.query.clients.findFirst({
-        where: eq(clients.apiKey, input.apiKey),
-      });
-      if (!client || client.status !== "active") {
-        throw new Error("Invalid or inactive client");
-      }
+      const client = await validateWidgetClient(input.apiKey);
       return {
         id: client.id,
         name: client.name,
@@ -169,10 +180,7 @@ export const widgetRouter = createRouter({
     .mutation(async ({ input }) => {
       const db = getDb();
 
-      const client = await db.query.clients.findFirst({
-        where: eq(clients.apiKey, input.apiKey),
-      });
-      if (!client || client.status !== "active") throw new Error("Invalid client");
+      const client = await validateWidgetClient(input.apiKey);
 
       const destination = await db.query.destinations.findFirst({
         where: eq(destinations.id, input.destinationId),
