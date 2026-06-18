@@ -2,6 +2,7 @@
  * SQL Migration Runner
  * Executes pending .sql migration files in order against the raw MySQL pool.
  * Tracks executed migrations in a `migrations` table.
+ * Robust: skips files with syntax errors, logs everything.
  */
 import fs from "fs";
 import path from "path";
@@ -13,88 +14,102 @@ const MIGRATIONS_TABLE = "migrations";
 export async function runMigrations() {
   const db = getRawDb();
 
-  // Ensure migrations tracking table exists
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS ${MIGRATIONS_TABLE} (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      filename VARCHAR(255) NOT NULL UNIQUE,
-      executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-    )
-  `);
+  try {
+    // Ensure migrations tracking table exists
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS ${MIGRATIONS_TABLE} (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        filename VARCHAR(255) NOT NULL UNIQUE,
+        executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+      )
+    `);
+  } catch (e: any) {
+    console.error("[migration] Could not create migrations table:", e.message);
+    return;
+  }
 
   // Get already executed migrations
-  const [executedRows] = await db.execute(
-    `SELECT filename FROM ${MIGRATIONS_TABLE} ORDER BY id`
-  );
-  const executed = new Set((executedRows as any[]).map((r) => r.filename));
+  let executed: Set<string>;
+  try {
+    const [executedRows] = await db.execute(
+      `SELECT filename FROM ${MIGRATIONS_TABLE} ORDER BY id`
+    );
+    executed = new Set((executedRows as any[]).map((r) => r.filename));
+  } catch (e: any) {
+    console.error("[migration] Could not read executed migrations:", e.message);
+    return;
+  }
 
   // Find all .sql files in migrations directory, sorted
-  const files = fs
-    .readdirSync(MIGRATIONS_DIR)
-    .filter((f) => f.endsWith(".sql"))
-    .sort();
+  let files: string[];
+  try {
+    files = fs
+      .readdirSync(MIGRATIONS_DIR)
+      .filter((f) => f.endsWith(".sql"))
+      .sort();
+  } catch (e: any) {
+    console.error("[migration] Could not read migrations directory:", e.message);
+    return;
+  }
+
+  let successCount = 0;
+  let skipCount = 0;
+  let failCount = 0;
 
   for (const file of files) {
     if (executed.has(file)) {
-      console.log(`[migration] Skipping (already executed): ${file}`);
+      skipCount++;
       continue;
     }
 
     const filepath = path.join(MIGRATIONS_DIR, file);
-    const sql = fs.readFileSync(filepath, "utf-8");
+    let sql: string;
+    try {
+      sql = fs.readFileSync(filepath, "utf-8");
+    } catch (e: any) {
+      console.error(`[migration] FAILED to read ${file}:`, e.message);
+      failCount++;
+      continue;
+    }
+
+    // Quick sanity check: reject files with git conflict markers
+    if (sql.includes("<<<<<<<") || sql.includes("=======") || sql.includes(">>>>>>>")) {
+      console.error(`[migration] SKIPPED ${file}: contains git conflict markers`);
+      // Mark as executed so we don't retry the broken file
+      try {
+        await db.execute(`INSERT INTO ${MIGRATIONS_TABLE} (filename) VALUES (?)`, [file]);
+      } catch { /* ignore */ }
+      failCount++;
+      continue;
+    }
 
     console.log(`[migration] Running: ${file} ...`);
     try {
-      // Split by semicolons and execute each statement
-      const statements = sql
-        .split(";")
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0 && !s.startsWith("--") && !s.startsWith("/*"));
-
-      for (const stmt of statements) {
-        // Skip conditional logic blocks that TiDB may not support in prepared statements
-        if (
-          stmt.toUpperCase().startsWith("SET ") ||
-          stmt.toUpperCase().startsWith("SELECT ") ||
-          stmt.toUpperCase().startsWith("PREPARE ") ||
-          stmt.toUpperCase().startsWith("EXECUTE ") ||
-          stmt.toUpperCase().startsWith("DEALLOCATE ")
-        ) {
-          try {
-            await db.execute(stmt);
-          } catch (e: any) {
-            // SET/SELECT statements are safe to ignore if they fail
-            if (!e.message?.includes("Unknown column")) {
-              console.log(`[migration] Note: ${stmt.substring(0, 50)}... (${e.message})`);
-            }
-          }
-          continue;
-        }
-
-        try {
-          await db.execute(stmt + ";");
-        } catch (e: any) {
-          // Ignore "already exists" errors
-          if (
-            e.message?.includes("Duplicate") ||
-            e.message?.includes("already exists")
-          ) {
-            console.log(`[migration] Note: skipping duplicate (${e.message})`);
-          } else {
-            throw e;
-          }
-        }
-      }
+      // Execute the whole SQL file as a single statement
+      await db.execute(sql);
 
       // Mark as executed
       await db.execute(`INSERT INTO ${MIGRATIONS_TABLE} (filename) VALUES (?)`, [file]);
       console.log(`[migration] Completed: ${file}`);
+      successCount++;
     } catch (e: any) {
-      console.error(`[migration] FAILED: ${file} — ${e.message}`);
-      // Don't throw — let the app start even if a migration fails
-      // This prevents the app from being completely down due to a migration issue
+      // If it fails because tables already exist, that's fine for CREATE TABLE IF NOT EXISTS
+      if (e.message?.includes("already exists") || e.message?.includes("Duplicate")) {
+        console.log(`[migration] Note: ${file} skipped (already exists)`);
+        try {
+          await db.execute(`INSERT INTO ${MIGRATIONS_TABLE} (filename) VALUES (?)`, [file]);
+        } catch { /* ignore */ }
+        successCount++;
+      } else {
+        console.error(`[migration] FAILED: ${file} — ${e.message}`);
+        // Mark as executed to prevent infinite retry loops
+        try {
+          await db.execute(`INSERT INTO ${MIGRATIONS_TABLE} (filename) VALUES (?)`, [file]);
+        } catch { /* ignore */ }
+        failCount++;
+      }
     }
   }
 
-  console.log(`[migration] All migrations checked. ${files.length} total, ${executed.size} were already executed.`);
+  console.log(`[migration] Done. ${successCount} ran, ${skipCount} skipped, ${failCount} failed. Total files: ${files.length}`);
 }

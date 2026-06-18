@@ -2,7 +2,7 @@ FROM node:22-slim
 
 WORKDIR /app
 
-RUN echo "deploy-2025-06-18-05-00-00" > /tmp/cache-bust
+RUN echo "deploy-2025-06-18-07-00-00" > /tmp/cache-bust
 
 COPY package.json ./
 RUN npm install 2>&1 | tail -5
@@ -11,6 +11,8 @@ COPY . .
 
 RUN node fix-json.cjs
 
+# Declare build args right before the Vite build step
+# to minimize exposure in Docker image layers
 ARG VITE_STRIPE_PUBLISHABLE_KEY
 ARG VITE_APP_ID
 
