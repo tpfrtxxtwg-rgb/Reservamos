@@ -13,22 +13,63 @@ interface WelcomeEmailData {
 }
 
 // System email config from environment or global settings
-function getSystemEmailConfig(): { provider: string; apiKey: string; from: string } | null {
-  // Priority: explicit system config → fall back to Stripe-related env vars as signal
-  const apiKey = process.env.SENDGRID_API_KEY
+// Tries multiple sources: env vars (case-insensitive), then client owner config
+async function getSystemEmailConfig(): Promise<{ provider: string; apiKey: string; from: string } | null> {
+  let apiKey = "";
+  let provider = "";
+  let ownerFrom = "";
+
+  // ── Step 1: Read client owner config first (we need the verified from address) ──
+  try {
+    const rawDb = getRawDb();
+    const [rows] = await rawDb.execute(
+      `SELECT smtp_host, smtp_user, smtp_from
+       FROM client_email_settings WHERE clientId = 1 LIMIT 1`
+    );
+    const cfg = (rows as any[])[0];
+    if (cfg) {
+      ownerFrom = cfg.smtp_from || "";
+      if (cfg.smtp_user) {
+        apiKey = cfg.smtp_user;
+        provider = cfg.smtp_host === "resend" ? "resend" : "sendgrid";
+        console.log(`[WelcomeEmail] Using client owner email config (provider=${provider})`);
+      }
+    }
+  } catch (e: any) {
+    console.log("[WelcomeEmail] Could not read client owner config:", e.message);
+  }
+
+  // ── Step 2: Override with env vars if present (they take priority) ──
+  const envKey = process.env.SENDGRID_API_KEY
     || process.env.RESEND_API_KEY
     || process.env.SMTP_USER
     || "";
 
-  if (!apiKey) return null;
+  if (envKey) {
+    apiKey = envKey;
+    provider = process.env.RESEND_API_KEY ? "resend" : "sendgrid";
+    console.log("[WelcomeEmail] Using env var API key (overrides client owner)");
+  }
 
-  const provider = process.env.RESEND_API_KEY ? "resend"
-    : process.env.SENDGRID_API_KEY ? "sendgrid"
-    : "sendgrid"; // default
+  if (!apiKey) {
+    console.log("[WelcomeEmail] No email provider found. Checked: env vars + client owner config");
+    return null;
+  }
 
-  const from = process.env.SYSTEM_EMAIL_FROM
-    || "ReserVamos <noreply@reservamos.app>";
+  // ── Step 3: Determine verified from address ──
+  // SendGrid requires a verified Sender Identity. We MUST use an address
+  // that has been verified in the SendGrid dashboard.
+  let from = process.env.SYSTEM_EMAIL_FROM
+    || process.env.system_email_from
+    || ownerFrom
+    || "";
 
+  // Final fallback — this domain MUST be verified in SendGrid
+  if (!from) {
+    from = "ReserVamos <noreply@vamosreserve.com>";
+  }
+
+  console.log(`[WelcomeEmail] Config: provider=${provider}, from=${from}`);
   return { provider, apiKey, from };
 }
 
@@ -288,17 +329,25 @@ async function sendViaResend(params: { apiKey: string; from: string; to: string;
 // ─── Public API ───────────────────────────────────────────────────
 
 export async function sendWelcomeEmail(data: WelcomeEmailData): Promise<{ sent: boolean; reason?: string }> {
-  console.log(`[WelcomeEmail] Sending welcome email to ${data.email} (lang=${data.lang})`);
+  console.log(`[WelcomeEmail] ===== START =====`);
+  console.log(`[WelcomeEmail] Recipient: ${data.email}`);
+  console.log(`[WelcomeEmail] Company: ${data.companyName}`);
+  console.log(`[WelcomeEmail] Lang: ${data.lang}`);
 
-  const config = getSystemEmailConfig();
+  const config = await getSystemEmailConfig();
   if (!config) {
-    console.log("[WelcomeEmail] No email provider configured. Skipping welcome email.");
+    console.log("[WelcomeEmail] SKIPPED: No email provider configured.");
+    console.log("[WelcomeEmail] To fix: Add SENDGRID_API_KEY or sendgrid_api_key to Railway variables.");
     return { sent: false, reason: "No email provider configured" };
   }
 
   const lang = ["en", "es", "pt"].includes(data.lang) ? data.lang : "en";
   const subject = t[lang].subject;
   const html = buildWelcomeHtml(data);
+
+  console.log(`[WelcomeEmail] Provider: ${config.provider}`);
+  console.log(`[WelcomeEmail] From: ${config.from}`);
+  console.log(`[WelcomeEmail] Subject: ${subject}`);
 
   try {
     if (config.provider === "resend") {
@@ -318,10 +367,11 @@ export async function sendWelcomeEmail(data: WelcomeEmailData): Promise<{ sent: 
         html,
       });
     }
-    console.log(`[WelcomeEmail] Welcome email sent successfully to ${data.email}`);
+    console.log(`[WelcomeEmail] ===== SUCCESS: Email sent to ${data.email} =====`);
     return { sent: true };
   } catch (err: any) {
-    console.error("[WelcomeEmail] Failed to send:", err.message);
+    console.error("[WelcomeEmail] ===== FAILED =====");
+    console.error("[WelcomeEmail] Error:", err.message);
     return { sent: false, reason: err.message };
   }
 }
