@@ -119,6 +119,15 @@ export const stripeSubscriptionRouter = createRouter({
       const s = getStripe();
       const rawDb = getRawDb();
 
+      // Check if email is already registered
+      const [existingUsers] = await rawDb.execute(
+        "SELECT client_id FROM client_users WHERE email = ? LIMIT 1",
+        [input.companyEmail]
+      );
+      if ((existingUsers as any[]).length > 0) {
+        throw new Error("This email is already registered. Please log in or use a different email address.");
+      }
+
       let discountPercent = 0;
       if (input.couponCode) {
         const [couponRows] = await rawDb.execute(
