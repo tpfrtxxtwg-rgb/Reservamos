@@ -5,7 +5,10 @@ import { createRouter, publicQuery } from "./middleware";
 import { getRawDb } from "./queries/connection";
 import { sendWelcomeEmail } from "./lib/welcome-email";
 
-const ANNUAL_PRICE_CENTS = 60000;
+// Annual price in cents. Currency defaults to MXN for Mexican Stripe accounts.
+// Set STRIPE_CURRENCY=USD in Railway if your Stripe account supports USD.
+const STRIPE_CURRENCY = (process.env.STRIPE_CURRENCY || "mxn").toLowerCase();
+const ANNUAL_PRICE_CENTS = STRIPE_CURRENCY === "usd" ? 60000 : 600000; // $600 USD or $6,000 MXN
 const TRIAL_DAYS = 7;
 
 function getStripe(): Stripe {
@@ -16,6 +19,68 @@ function getStripe(): Stripe {
 
 function getWebhookSecret(): string {
   return process.env.STRIPE_WEBHOOK_SECRET || "";
+}
+
+/**
+ * Process a Stripe webhook event.
+ * Extracted so it can be called from both the tRPC endpoint and the Hono HTTP route.
+ */
+export async function processStripeWebhook(
+  signature: string,
+  payload: string
+): Promise<{ received: boolean; type: string }> {
+  const secret = getWebhookSecret();
+  if (!secret) throw new Error("Webhook secret not configured. Set STRIPE_WEBHOOK_SECRET env var.");
+
+  const s = getStripe();
+  let event: Stripe.Event;
+  try {
+    event = s.webhooks.constructEvent(payload, signature, secret);
+  } catch (err: any) {
+    throw new Error(`Webhook verification failed: ${err.message}`);
+  }
+
+  console.log(`[StripeWebhook] Received event: ${event.type}, id: ${event.id}`);
+  const rawDb = getRawDb();
+
+  switch (event.type) {
+    case "invoice.payment_succeeded": {
+      const invoice = event.data.object as any;
+      const subId = invoice.subscription as string;
+      console.log(`[StripeWebhook] Payment succeeded for subscription: ${subId}`);
+      await rawDb.execute(
+        "UPDATE client_subscriptions SET status='active', plan_start=NOW(), plan_end=DATE_ADD(NOW(), INTERVAL 1 YEAR) WHERE stripe_subscription_id=?",
+        [subId]
+      );
+      console.log(`[StripeWebhook] Subscription ${subId} marked as active`);
+      break;
+    }
+    case "invoice.payment_failed": {
+      const invoice = event.data.object as any;
+      const subId = invoice.subscription as string;
+      console.log(`[StripeWebhook] Payment failed for subscription: ${subId}`);
+      await rawDb.execute(
+        "UPDATE client_subscriptions SET status='expired' WHERE stripe_subscription_id=?",
+        [subId]
+      );
+      console.log(`[StripeWebhook] Subscription ${subId} marked as expired`);
+      break;
+    }
+    case "customer.subscription.deleted": {
+      const subscription = event.data.object as Stripe.Subscription;
+      console.log(`[StripeWebhook] Subscription deleted: ${subscription.id}`);
+      await rawDb.execute(
+        "UPDATE client_subscriptions SET status='cancelled' WHERE stripe_subscription_id=?",
+        [subscription.id]
+      );
+      console.log(`[StripeWebhook] Subscription ${subscription.id} marked as cancelled`);
+      break;
+    }
+    default:
+      console.log(`[StripeWebhook] Unhandled event type: ${event.type}`);
+  }
+
+  return { received: true, type: event.type };
 }
 
 export const stripeSubscriptionRouter = createRouter({
@@ -87,7 +152,7 @@ export const stripeSubscriptionRouter = createRouter({
       const price = await s.prices.create({
         product: product.id,
         unit_amount: finalAmountCents,
-        currency: "usd",
+        currency: STRIPE_CURRENCY,
         recurring: { interval: "year" },
       });
 
@@ -178,39 +243,7 @@ export const stripeSubscriptionRouter = createRouter({
   webhook: publicQuery
     .input(z.object({ signature: z.string(), payload: z.string() }))
     .mutation(async ({ input }) => {
-      const secret = getWebhookSecret();
-      if (!secret) throw new Error("Webhook secret not configured");
-      const s = getStripe();
-      let event: Stripe.Event;
-      try {
-        event = s.webhooks.constructEvent(input.payload, input.signature, secret);
-      } catch (err: any) {
-        throw new Error(`Webhook verification failed: ${err.message}`);
-      }
-      const rawDb = getRawDb();
-      switch (event.type) {
-        case "invoice.payment_succeeded": {
-          const invoice = event.data.object as any;
-          const subId = invoice.subscription as string;
-          await rawDb.execute(
-            "UPDATE client_subscriptions SET status='active', plan_start=NOW(), plan_end=DATE_ADD(NOW(), INTERVAL 1 YEAR) WHERE stripe_subscription_id=?",
-            [subId]
-          );
-          break;
-        }
-        case "invoice.payment_failed": {
-          const invoice = event.data.object as any;
-          const subId = invoice.subscription as string;
-          await rawDb.execute("UPDATE client_subscriptions SET status='expired' WHERE stripe_subscription_id=?", [subId]);
-          break;
-        }
-        case "customer.subscription.deleted": {
-          const subscription = event.data.object as Stripe.Subscription;
-          await rawDb.execute("UPDATE client_subscriptions SET status='cancelled' WHERE stripe_subscription_id=?", [subscription.id]);
-          break;
-        }
-      }
-      return { received: true, type: event.type };
+      return processStripeWebhook(input.signature, input.payload);
     }),
 
   // Get current subscription status for the authenticated client
