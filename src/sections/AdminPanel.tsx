@@ -42,7 +42,7 @@ export default function AdminPanel() {
 
   const clientId = user?.clientId ?? 0;
 
-     const sidebarItemsBase = [
+  const sidebarItemsBase = [
     { icon: <SquaresFour size={20} />, labelKey: 'admin.dashboard', id: 'dashboard' },
     { icon: <CalendarCheck size={20} />, labelKey: 'admin.bookings', id: 'reservations' },
     { icon: <MapTrifold size={20} />, labelKey: 'admin.zones', id: 'zones' },
@@ -58,7 +58,7 @@ export default function AdminPanel() {
     { icon: <Buildings size={20} />, labelKey: 'admin.companyProfile', id: 'companyProfile' },
     { icon: <EnvelopeSimple size={20} />, labelKey: 'admin.emailSettings', id: 'emailSettings' },
     { icon: <CreditCard size={20} />, labelKey: 'admin.paymentSettings', id: 'paymentSettings' },
-    { icon: <Ticket size={20} />, labelKey: 'admin.coupons', id: 'coupons' },
+    ...(isSuperAdmin ? [{ icon: <Ticket size={20} />, labelKey: 'admin.coupons', id: 'coupons' }] : []),
     { icon: <Gear size={20} />, labelKey: 'admin.settings', id: 'settings' },
   ];
 
@@ -229,7 +229,7 @@ export default function AdminPanel() {
           <button onClick={() => setSidebarOpen(false)} className="md:hidden text-white"><X size={20} /></button>
         </div>
         <nav className="flex-1 px-3 py-4 overflow-y-auto">
-                    {sidebarItemsBase.map(item => (
+          {sidebarItemsBase.map(item => (
             <button key={item.id} onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-body text-sm transition-all mb-1 ${activeTab === item.id ? 'bg-[rgba(199,94,58,0.15)] text-terracotta border-l-[3px] border-terracotta' : 'text-white/70 hover:bg-white/5'}`}>
               {item.icon} <span>{t(item.labelKey)}</span>
