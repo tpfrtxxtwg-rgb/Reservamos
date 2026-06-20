@@ -1,5 +1,5 @@
-import { useTranslation } from '../hooks/useTranslation';
 import { Key } from '@phosphor-icons/react';
+import { useTranslation } from '../hooks/useTranslation';
 
 export default function IntegrationCTA() {
   const { t } = useTranslation();
@@ -8,17 +8,15 @@ export default function IntegrationCTA() {
     <section id="integration" className="py-20 md:py-28 bg-charcoal">
       <div className="max-w-4xl mx-auto px-6 text-center">
         <h2 className="font-display text-3xl md:text-[36px] font-bold text-white mb-4">
-          {t('integrationCTA.title')}
+          {t('integration.title')}
         </h2>
         <p className="font-body text-base text-white/70 mb-8 max-w-xl mx-auto">
-          {t('integrationCTA.subtitle')}
+          {t('integration.description')}
         </p>
-
-        {/* Code Snippet */}
         <div className="bg-[#252525] rounded-lg p-6 mb-8 text-left max-w-2xl mx-auto overflow-x-auto">
           <pre className="font-mono text-sm">
             <code>
-              <span className="text-warm-gray">{`<!-- ReserVamos Widget -->`}</span>
+              <span className="text-warm-gray">{`<!-- ${t('integration.codeComment')} -->`}</span>
               {'\n'}
               <span className="text-terracotta">{'<'}</span>
               <span className="text-[#7DD3FC]">{'script'}</span>
@@ -29,7 +27,7 @@ export default function IntegrationCTA() {
               {'\n  '}
               <span className="text-[#A5D6A7]">{'data-client-id'}</span>
               <span className="text-white">{'='}</span>
-              <span className="text-terracotta">{'"tu-client-id"'}</span>
+              <span className="text-terracotta">{'"your-client-id"'}</span>
               {'\n  '}
               <span className="text-[#A5D6A7]">{'data-theme'}</span>
               <span className="text-white">{'='}</span>
@@ -42,11 +40,10 @@ export default function IntegrationCTA() {
             </code>
           </pre>
         </div>
-
-        <button className="inline-flex items-center gap-2 bg-terracotta text-white px-8 py-3.5 rounded-full font-body font-semibold shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5 transition-all">
+        <a href="/register" className="inline-flex items-center gap-2 bg-terracotta text-white px-8 py-3.5 rounded-full font-body font-semibold shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5 transition-all">
           <Key size={18} />
-          {t('integrationCTA.getAPIKey')}
-        </button>
+          {t('integration.cta') || 'Get Your API Key'}
+        </a>
       </div>
     </section>
   );
