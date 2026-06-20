@@ -92,6 +92,17 @@ export const stripeSubscriptionRouter = createRouter({
     };
   }),
 
+  checkEmail: publicQuery
+    .input(z.object({ email: z.string().email() }))
+    .query(async ({ input }) => {
+      const rawDb = getRawDb();
+      const [existingUsers] = await rawDb.execute(
+        "SELECT client_id FROM client_users WHERE email = ? LIMIT 1",
+        [input.email]
+      );
+      return { available: (existingUsers as any[]).length === 0 };
+    }),
+
   createSetupIntent: publicQuery
     .input(z.object({ email: z.string().email(), name: z.string().min(1) }))
     .mutation(async ({ input }) => {

@@ -277,10 +277,29 @@ export default function Register() {
     return Object.keys(newErrors).length === 0;
   }, [form, acceptedTerms, t]);
 
-  const handleNext = () => {
-    if (validateStep1()) {
-      setStep(2);
+  const checkEmail = trpc.stripeSubscription.checkEmail.useQuery(
+    { email: form.email },
+    { enabled: false }
+  );
+
+  const handleNext = async () => {
+    if (!validateStep1()) return;
+
+    // Check if email is already registered
+    try {
+      const result = await checkEmail.refetch();
+      if (result.data?.available === false) {
+        setErrors(prev => ({
+          ...prev,
+          email: 'This email is already registered. Please log in or use a different email address.'
+        }));
+        return;
+      }
+    } catch (e) {
+      // If check fails, still allow to proceed (backend will validate again)
     }
+
+    setStep(2);
   };
 
   const handleApplyCoupon = async () => {
