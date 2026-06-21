@@ -219,7 +219,7 @@ export default function AdminCompanies() {
         </div>
       )}
 
-      {selectedCompany && payments && (
+      {selectedCompany && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
           className="mt-6 bg-white rounded-lg shadow-sm border border-[rgba(138,130,120,0.08)] p-5">
           <div className="flex items-center justify-between mb-4">
@@ -228,7 +228,11 @@ export default function AdminCompanies() {
               <XCircle size={18} />
             </button>
           </div>
-          {!payments || payments.length === 0 ? (
+          {!payments ? (
+            <div className="flex items-center justify-center py-4">
+              <span className="font-body text-sm text-warm-gray">{t('common.loading') || 'Loading...'}</span>
+            </div>
+          ) : payments.length === 0 ? (
             <p className="font-body text-sm text-warm-gray">{t('admin.noPayments') || 'No payments recorded.'}</p>
           ) : (
             <div className="space-y-2">
