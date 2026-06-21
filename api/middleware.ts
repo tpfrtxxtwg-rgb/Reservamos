@@ -80,8 +80,26 @@ const requireActiveSubscription = t.middleware(async (opts) => {
   return next({ ctx: { ...ctx, clientUser: ctx.clientUser } });
 });
 
+/**
+ * Check client user role (for client_users table, not users table)
+ */
+function requireClientRole(role: string) {
+  return t.middleware(async (opts) => {
+    const { ctx, next } = opts;
+
+    if (!ctx.clientUser || ctx.clientUser.role !== role) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: ErrorMessages.insufficientRole,
+      });
+    }
+
+    return next({ ctx: { ...ctx, clientUser: ctx.clientUser } });
+  });
+}
+
 export const authedQuery = t.procedure.use(requireAuth);
 export const adminQuery = authedQuery.use(requireRole("admin"));
 export const clientAuthedQuery = t.procedure.use(requireClientAuth);
 export const clientSubscribedQuery = t.procedure.use(requireClientAuth).use(requireActiveSubscription);
-export const superAdminQuery = clientAuthedQuery.use(requireRole("super_admin"));
+export const superAdminQuery = clientAuthedQuery.use(requireClientRole("super_admin"));
