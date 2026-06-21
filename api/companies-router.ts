@@ -61,7 +61,7 @@ export const companiesRouter = createRouter({
     }
   }),
 
-  // Admin: Get payment history for a company
+  // Admin: Get payment history for a company (super admin only)
   payments: superAdminQuery
     .input(z.object({ clientId: z.number().int().positive() }))
     .query(async ({ input }) => {
@@ -74,7 +74,7 @@ export const companiesRouter = createRouter({
       return rows as any[];
     }),
 
-  // Admin: Toggle company status (active/inactive)
+  // Admin: Toggle company status (active/inactive) (super admin only)
   toggleStatus: superAdminQuery
     .input(z.object({ clientId: z.number().int().positive() }))
     .mutation(async ({ input }) => {

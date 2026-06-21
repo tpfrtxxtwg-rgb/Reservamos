@@ -33,7 +33,7 @@ export default function AdminCompanies() {
   const [selectedCompany, setSelectedCompany] = useState<number | null>(null);
 
   const { data: companies, isLoading } = trpc.companies.list.useQuery();
-  const { data: payments } = trpc.companies.payments.useQuery(
+  const { data: payments, isLoading: paymentsLoading, isError: paymentsError } = trpc.companies.payments.useQuery(
     { clientId: selectedCompany! },
     { enabled: !!selectedCompany }
   );
@@ -228,11 +228,15 @@ export default function AdminCompanies() {
               <XCircle size={18} />
             </button>
           </div>
-          {!payments ? (
+          {paymentsLoading ? (
             <div className="flex items-center justify-center py-4">
               <span className="font-body text-sm text-warm-gray">{t('common.loading') || 'Loading...'}</span>
             </div>
-          ) : payments.length === 0 ? (
+          ) : paymentsError ? (
+            <div className="flex items-center justify-center py-4">
+              <span className="font-body text-sm text-[#B23A2F]">{t('common.error') || 'Error loading payments'}</span>
+            </div>
+          ) : !payments || payments.length === 0 ? (
             <p className="font-body text-sm text-warm-gray">{t('admin.noPayments') || 'No payments recorded.'}</p>
           ) : (
             <div className="space-y-2">
