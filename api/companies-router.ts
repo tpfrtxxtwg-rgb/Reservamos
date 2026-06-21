@@ -64,13 +64,35 @@ export const companiesRouter = createRouter({
   // Admin: Get payment history for a company (super admin only)
   payments: superAdminQuery
     .input(z.object({ clientId: z.number().int().positive() }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      try {
+        console.log(`[Companies.payments] Called by clientUser:`, ctx.clientUser ? { id: ctx.clientUser.id, email: ctx.clientUser.email, role: ctx.clientUser.role } : 'none');
+        const rawDb = getRawDb();
+        const [rows] = await rawDb.execute(
+          `SELECT id, amount, currency, status, description, paidAt, createdAt
+           FROM subscription_payments WHERE clientId = ? ORDER BY createdAt DESC`,
+          [input.clientId]
+        );
+        console.log(`[Companies.payments] Found ${(rows as any[]).length} payments for clientId ${input.clientId}`);
+        return rows as any[];
+      } catch (e: any) {
+        console.error(`[Companies.payments] ERROR:`, e.message, e.stack);
+        throw e;
+      }
+    }),
+
+  // TEMP: Test endpoint without superAdminQuery to isolate the issue
+  paymentsTest: clientAuthedQuery
+    .input(z.object({ clientId: z.number().int().positive() }))
+    .query(async ({ input, ctx }) => {
+      console.log(`[Companies.paymentsTest] Called by clientUser:`, ctx.clientUser ? { id: ctx.clientUser.id, email: ctx.clientUser.email, role: ctx.clientUser.role } : 'none');
       const rawDb = getRawDb();
       const [rows] = await rawDb.execute(
         `SELECT id, amount, currency, status, description, paidAt, createdAt
          FROM subscription_payments WHERE clientId = ? ORDER BY createdAt DESC`,
         [input.clientId]
       );
+      console.log(`[Companies.paymentsTest] Found ${(rows as any[]).length} payments for clientId ${input.clientId}`);
       return rows as any[];
     }),
 
