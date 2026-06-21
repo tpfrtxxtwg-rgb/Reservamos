@@ -109,7 +109,7 @@ export default function AdminPanel() {
                     <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('admin.code')}</th>
                     <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('admin.client')}</th>
                     <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide hidden md:table-cell">{t('admin.service')}</th>
-                    <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide hidden lg:table-cell">{t('common.zone')}</th>
+                    <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide hidden lg:table-cell">{t('admin.hotel')}</th>
                     <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide hidden lg:table-cell">{t('admin.date')}</th>
                     <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('common.status')}</th>
                     <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide"></th>
@@ -126,7 +126,7 @@ export default function AdminPanel() {
                           <div className="font-body text-xs text-warm-gray">{reservation.passengerEmail}</div>
                         </td>
                         <td className="px-6 py-4 font-body text-sm text-charcoal hidden md:table-cell">{(reservation as any).service?.name || 'Service'}</td>
-                        <td className="px-6 py-4 font-body text-sm text-charcoal hidden lg:table-cell">{(reservation as any).zone?.name || 'Zone'}</td>
+                        <td className="px-6 py-4 font-body text-sm text-charcoal hidden lg:table-cell">{reservation.destination || 'N/A'}</td>
                         <td className="px-6 py-4 font-body text-sm text-warm-gray hidden lg:table-cell">{reservation.date}</td>
                         <td className="px-6 py-4">
                           <button onClick={() => updateStatus.mutate({ id: reservation.id, status: reservation.status === 'confirmed' ? 'pending' : 'confirmed' })}
@@ -155,7 +155,7 @@ export default function AdminPanel() {
                   <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('admin.code')}</th>
                   <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('admin.client')}</th>
                   <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('admin.service')}</th>
-                  <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('common.zone')}</th>
+                  <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('admin.hotel')}</th>
                   <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('admin.date')}</th>
                   <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide hidden md:table-cell">{t('admin.vehicle')}</th>
                   <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('common.status')}</th>
@@ -174,7 +174,7 @@ export default function AdminPanel() {
                         <div className="font-body text-xs text-warm-gray">{reservation.passengerEmail}</div>
                       </td>
                       <td className="px-6 py-4 font-body text-sm text-charcoal">{(reservation as any).service?.name || 'Service'}</td>
-                      <td className="px-6 py-4 font-body text-sm text-charcoal">{(reservation as any).zone?.name || 'Zone'}</td>
+                      <td className="px-6 py-4 font-body text-sm text-charcoal">{reservation.destination || 'N/A'}</td>
                       <td className="px-6 py-4 font-body text-sm text-warm-gray">{reservation.date}<br/><span className="text-xs">{reservation.time}</span></td>
                       <td className="px-6 py-4 font-body text-sm text-charcoal hidden md:table-cell">{(reservation as any).vehicle?.name || 'Vehicle'}</td>
                       <td className="px-6 py-4">
@@ -290,9 +290,21 @@ export default function AdminPanel() {
                   <span className="font-body text-sm font-medium text-charcoal">{item.value}</span>
                 </div>
               ))}
-              <div className="flex items-center gap-2 text-warm-gray">
-                <MapPin size={14} />
-                <span className="font-body text-sm">{(selectedReservation as any).zone?.name || selectedReservation.destination}</span>
+              {/* Pickup Location */}
+              <div className="flex items-center gap-2">
+                <MapPin size={14} className="text-terracotta flex-shrink-0" />
+                <div>
+                  <span className="font-body text-xs text-warm-gray block">{t('admin.pickupLocation')}</span>
+                  <span className="font-body text-sm font-medium text-charcoal">{selectedReservation.origin || selectedReservation.pickupLocation || 'N/A'}</span>
+                </div>
+              </div>
+              {/* Destination */}
+              <div className="flex items-center gap-2">
+                <Buildings size={14} className="text-terracotta flex-shrink-0" />
+                <div>
+                  <span className="font-body text-xs text-warm-gray block">{t('admin.destination')}</span>
+                  <span className="font-body text-sm font-medium text-charcoal">{selectedReservation.destination || 'N/A'}</span>
+                </div>
               </div>
               <div className="flex justify-between items-center">
                 <span className="font-body text-sm text-warm-gray">{t('common.status')}</span>
