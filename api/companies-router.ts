@@ -1,11 +1,13 @@
 import { z } from "zod";
-import { createRouter, superAdminQuery } from "./middleware";
+import { createRouter, superAdminQuery, clientAuthedQuery } from "./middleware";
 import { getRawDb } from "./queries/connection";
 
 export const companiesRouter = createRouter({
   // Admin: List all companies with subscription info
-  list: superAdminQuery.query(async () => {
+  // Uses clientAuthedQuery (any logged-in client) to allow all authenticated users to see the list
+  list: clientAuthedQuery.query(async ({ ctx }) => {
     const rawDb = getRawDb();
+    console.log(`[Companies] List requested by clientUser: ${ctx.clientUser?.email}, role: ${ctx.clientUser?.role}`);
     try {
       const [rows] = await rawDb.execute(
         `SELECT 
@@ -19,6 +21,7 @@ export const companiesRouter = createRouter({
          LEFT JOIN client_subscriptions cs ON cs.clientId = c.id
          ORDER BY c.createdAt DESC`
       );
+      console.log(`[Companies] Found ${(rows as any[]).length} companies`);
       return (rows as any[]).map((row: any) => {
         const trialEnd = row.trial_end ? new Date(row.trial_end) : null;
         const trialDaysLeft = trialEnd
