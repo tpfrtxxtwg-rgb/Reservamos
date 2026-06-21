@@ -33,7 +33,7 @@ export default function AdminCompanies() {
   const [selectedCompany, setSelectedCompany] = useState<number | null>(null);
 
   const { data: companies, isLoading } = trpc.companies.list.useQuery();
-  const { data: payments, isLoading: paymentsLoading, isError: paymentsError } = trpc.companies.paymentsTest.useQuery(
+  const { data: payments, isLoading: paymentsLoading, isError: paymentsError } = trpc.companies.payments.useQuery(
     { clientId: selectedCompany! },
     { enabled: !!selectedCompany }
   );

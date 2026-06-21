@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createRouter, superAdminQuery, clientAuthedQuery } from "./middleware";
+import { createRouter, publicQuery, superAdminQuery, clientAuthedQuery } from "./middleware";
 import { getRawDb } from "./queries/connection";
 
 export const companiesRouter = createRouter({
@@ -69,8 +69,8 @@ export const companiesRouter = createRouter({
         console.log(`[Companies.payments] Called by clientUser:`, ctx.clientUser ? { id: ctx.clientUser.id, email: ctx.clientUser.email, role: ctx.clientUser.role } : 'none');
         const rawDb = getRawDb();
         const [rows] = await rawDb.execute(
-          `SELECT id, amount, currency, status, description, paidAt, createdAt
-           FROM subscription_payments WHERE clientId = ? ORDER BY createdAt DESC`,
+          `SELECT id, amount, currency, status, description, paid_at, created_at
+           FROM subscription_payments WHERE clientId = ? ORDER BY created_at DESC`,
           [input.clientId]
         );
         console.log(`[Companies.payments] Found ${(rows as any[]).length} payments for clientId ${input.clientId}`);
@@ -81,6 +81,12 @@ export const companiesRouter = createRouter({
       }
     }),
 
+  // TEMP: Ultra simple test endpoint - no auth, no db, just returns static data
+  ping: publicQuery.query(() => {
+    console.log(`[Companies.ping] Called`);
+    return { pong: true, timestamp: Date.now() };
+  }),
+
   // TEMP: Test endpoint without superAdminQuery to isolate the issue
   paymentsTest: clientAuthedQuery
     .input(z.object({ clientId: z.number().int().positive() }))
@@ -88,8 +94,8 @@ export const companiesRouter = createRouter({
       console.log(`[Companies.paymentsTest] Called by clientUser:`, ctx.clientUser ? { id: ctx.clientUser.id, email: ctx.clientUser.email, role: ctx.clientUser.role } : 'none');
       const rawDb = getRawDb();
       const [rows] = await rawDb.execute(
-        `SELECT id, amount, currency, status, description, paidAt, createdAt
-         FROM subscription_payments WHERE clientId = ? ORDER BY createdAt DESC`,
+        `SELECT id, amount, currency, status, description, paid_at, created_at
+         FROM subscription_payments WHERE clientId = ? ORDER BY created_at DESC`,
         [input.clientId]
       );
       console.log(`[Companies.paymentsTest] Found ${(rows as any[]).length} payments for clientId ${input.clientId}`);
