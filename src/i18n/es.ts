@@ -35,7 +35,7 @@ const es = {
     "import": "Importar",
     "importing": "Importando...",
     "development": "En desarrollo",
-    "comingSoon": "Proximamente.",
+    "comingSoon": "Próximamente",
     "oneWay": "Sencillo",
     "roundTrip": "Redondo",
     "zone": "Zona",
@@ -54,7 +54,7 @@ const es = {
     "getStarted": "Comenzar"
   },
   "hero": {
-    "title": "Motor de Reservaciones para Transportación Privada",
+    "title": "El Motor de Reservaciones para Transportación Privada",
     "subtitle": "Widget embebible. Alta conversión. Sin complicaciones.",
     "ctaDemo": "Ver Demo",
     "ctaDocs": "Documentación",
@@ -84,15 +84,15 @@ const es = {
     },
     "realTimeAvailability": {
       "title": "Disponibilidad en Tiempo Real",
-      "description": "El widget muestra vehículos y destinos disponibles."
+      "description": "El calendario muestra solo fechas y horarios disponibles."
     },
     "autoNotifications": {
       "title": "Notificaciones Automáticas",
-      "description": "Confirmaciones por email al instante."
+      "description": "Confirmaciones por email y WhatsApp al instante."
     },
     "controlPanel": {
       "title": "Panel de Control",
-      "description": "Gestiona reservas, zonas, hoteles, vehículos y reportes."
+      "description": "Gestiona reservas, conductores, vehículos y reportes."
     }
   },
   "pricing": {
@@ -103,11 +103,12 @@ const es = {
     "getStarted": "Comenzar",
     "contactSales": "Contactar Ventas",
     "whatsIncluded": "Qué incluye",
-    "feature1": "Widget para integrar en sitio web",
+    "feature1": "1 Sitio web",
     "feature2": "Configurable por el propietario",
     "feature3": "Notificaciones por email",
     "feature4": "Reportes básicos",
-    "feature5": "Pagos avanzados (PayPal, Stripe)"
+    "feature5": "Pagos avanzados (PayPal, Stripe)",
+    "price": "$50"
   },
   "integration": {
     "title": "¿Listo para Integrar?",
@@ -184,8 +185,8 @@ const es = {
       "arrivalTime": "Hora de Llegada",
       "roundTripDetails": "Detalles de Viaje Redondo",
       "departureTitle": "Información de Salida",
-      "hotelPickupTime": "Hora de Pickup en Hotel",
-      "pickupRecommendation": "Se recomienda agendar la recogida 3 horas antes de su vuelo"
+      "hotelPickupTime": "Hora de Recogida en el Hotel",
+      "pickupRecommendation": "Se recomienda programar la recogida 3 horas antes de su vuelo"
     },
     "step4": {
       "title": "Resumen de Orden",
@@ -196,7 +197,7 @@ const es = {
       "email": "Email",
       "phone": "Teléfono",
       "specialNotes": "Notas Especiales",
-      "notesPlaceholder": "Vuelo de llegada, sillas de bebé, etc.",
+      "notesPlaceholder": "Vuelo de llegada, asientos para bebé, etc.",
       "paymentMethod": "Método de Pago",
       "creditCard": "Tarjeta de Crédito",
       "paypal": "PayPal",
@@ -240,14 +241,14 @@ const es = {
     "reports": "Reportes",
     "settings": "Configuración",
     "companyProfile": "Perfil de Empresa",
-    "emailSettings": "Configuración de Correo",
-    "emailSettingsDesc": "Configura los correos de confirmación enviados a tus clientes",
+    "emailSettings": "Configuración de Email",
+    "emailSettingsDesc": "Configura las notificaciones por email enviadas a los clientes",
     "emailNotifications": "Notificaciones por Email",
     "emailNotificationsDesc": "Enviar correos de confirmación a los clientes después de reservar",
     "emailProvider": "Proveedor de Email",
-    "emailContent": "Contenido del Correo",
-    "emailSubject": "Asunto del Correo",
-    "emailMessage": "Mensaje de Bienvenida",
+    "emailContent": "Contenido del Email",
+    "emailSubject": "Asunto",
+    "emailMessage": "Mensaje",
     "pickupInstructions": "Instrucciones de Recogida",
     "contactInfo": "Información de Contacto en Emails",
     "companyPhone": "Teléfono",
@@ -256,6 +257,9 @@ const es = {
     "testConnection": "Probar Conexión",
     "zones": "Zonas",
     "destinations": "Hoteles",
+    "hotel": "Hotel",
+    "pickupLocation": "Lugar de Recogida",
+    "destination": "Destino",
     "pricing": "Precios",
     "optionalServices": "Servicios Opcionales",
     "totalBookings": "Total Reservas",
@@ -312,26 +316,6 @@ const es = {
     "primaryColor": "Color Principal",
     "settingsSaved": "Configuración guardada exitosamente",
     "saveChanges": "Guardar Cambios",
-    "email": "Correo",
-    "emailConfigured": "SMTP configurado — los correos de confirmación se enviarán automáticamente",
-    "emailNotConfigured": "SMTP no configurado — agrega los datos de tu servidor de correo",
-    "emailStatusInfo": "Cuando está activo, cada nueva reserva envía automáticamente un correo con voucher PDF al cliente y una notificación a ti.",
-    "emailEnabled": "Enviar Correos de Confirmación",
-    "emailEnabledDesc": "Enviar correos de confirmación automáticamente al crear una reserva",
-    "emailSubjectDesc": "El código de reserva se agregará automáticamente",
-    "emailMessageDesc": "Este mensaje aparece al inicio del correo de confirmación",
-    "pickupInstructionsDesc": "Indicaciones para el cliente sobre cómo encontrar a su conductor en el aeropuerto. Se muestra en el correo y en el voucher PDF.",
-    "companyContactInfo": "Información de Contacto de la Empresa",
-    "companyContactDesc": "Se muestra en el voucher PDF enviado a los clientes",
-    "smtpSettings": "Configuración del Servidor SMTP",
-    "smtpDesc": "Configura tu servidor de correo. Recomendamos SendGrid, Mailgun, AWS SES o Gmail SMTP.",
-    "smtpHost": "Host SMTP",
-    "smtpPort": "Puerto SMTP",
-    "smtpUser": "Usuario SMTP",
-    "smtpPass": "Contraseña SMTP",
-    "smtpFrom": "Correo de Envío (From)",
-    "smtpFromDesc": "Esta es la dirección que los clientes verán como remitente",
-    "smtpProviders": "Proveedores SMTP populares:",
     "dangerZone": "Zona Peligrosa",
     "clearTestData": "Borrar Datos de Prueba",
     "clearTestDataDesc": "Elimina permanentemente todos los registros de reservas de tu cuenta. Esta acción no se puede deshacer.",
@@ -354,6 +338,17 @@ const es = {
     "stripeSecretKey": "Secret Key",
     "paypalClientId": "Client ID",
     "paypalClientSecret": "Client Secret",
+    "companies": "Empresas",
+    "companiesDesc": "Administra empresas y su estado de suscripción",
+    "searchCompanies": "Buscar empresas...",
+    "company": "Empresa",
+    "trial": "Prueba",
+    "plan": "Plan",
+    "amount": "Monto",
+    "paymentHistory": "Historial de Pagos",
+    "noPayments": "No hay pagos registrados.",
+    "noCompanies": "Aún no hay empresas registradas.",
+    "noCompaniesFilter": "Ninguna empresa coincide con tu filtro.",
     "coupons": "Cupones",
     "couponsDesc": "Administra códigos de descuento para suscripciones anuales",
     "newCoupon": "Nuevo Cupón",
@@ -404,4 +399,5 @@ const es = {
     "pt": "Português"
   }
 } as const;
+
 export default es;
