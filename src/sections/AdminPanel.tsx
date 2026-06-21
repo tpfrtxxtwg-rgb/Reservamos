@@ -109,7 +109,7 @@ export default function AdminPanel() {
                     <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('admin.code')}</th>
                     <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('admin.client')}</th>
                     <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide hidden md:table-cell">{t('admin.service')}</th>
-                    <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide hidden lg:table-cell">{t('admin.hotel')}</th>
+                    <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide hidden lg:table-cell">{t('admin.destination')}</th>
                     <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide hidden lg:table-cell">{t('admin.date')}</th>
                     <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('common.status')}</th>
                     <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide"></th>
@@ -155,7 +155,7 @@ export default function AdminPanel() {
                   <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('admin.code')}</th>
                   <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('admin.client')}</th>
                   <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('admin.service')}</th>
-                  <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('admin.hotel')}</th>
+                  <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('admin.destination')}</th>
                   <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('admin.date')}</th>
                   <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide hidden md:table-cell">{t('admin.vehicle')}</th>
                   <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('common.status')}</th>
