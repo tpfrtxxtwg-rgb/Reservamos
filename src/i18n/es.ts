@@ -42,7 +42,10 @@ const es = {
     "flightNumber": "Número de Vuelo",
     "airline": "Aerolínea",
     "departureDate": "Fecha de Salida",
-    "departureTime": "Hora de Salida"
+    "departureTime": "Hora de Salida",
+    "add": "Agregar",
+    "active": "Activo",
+    "inactive": "Inactivo"
   },
   "header": {
     "product": "Producto",
@@ -358,7 +361,9 @@ const es = {
     "couponCreated": "Cupón creado exitosamente",
     "noCoupons": "Aún no hay cupones. Crea tu primer código de descuento.",
     "couponPreview": "Vista previa",
-    "couponDescPlaceholder": "ej. Promoción de lanzamiento 2025"
+    "couponDescPlaceholder": "ej. Promoción de lanzamiento 2025",
+    "confirmDelete": "¿Eliminar esta zona?",
+    "noZones": "No hay zonas creadas"
   },
   "login": {
     "title": "Iniciar Sesión",

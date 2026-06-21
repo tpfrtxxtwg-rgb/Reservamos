@@ -43,7 +43,10 @@ const en = {
     "flightNumber": "Flight Number",
     "airline": "Airline",
     "departureDate": "Departure Date",
-    "departureTime": "Departure Time"
+    "departureTime": "Departure Time",
+    "add": "Add",
+    "active": "Active",
+    "inactive": "Inactive"
   },
   "header": {
     "product": "Product",
@@ -359,7 +362,9 @@ const en = {
     "couponCreated": "Coupon created successfully",
     "noCoupons": "No coupons yet. Create your first discount code.",
     "couponPreview": "Preview",
-    "couponDescPlaceholder": "e.g. Launch promotion 2025"
+    "couponDescPlaceholder": "e.g. Launch promotion 2025",
+    "confirmDelete": "Delete this zone?",
+    "noZones": "No zones created yet"
   },
   "login": {
     "title": "Sign In",
