@@ -363,7 +363,10 @@ const pt = {
     "couponPreview": "Pré-visualização",
     "couponDescPlaceholder": "ex. Promoção de lançamento 2025",
     "confirmDelete": "Excluir esta zona?",
-    "noZones": "Nenhuma zona criada"
+    "noZones": "Nenhuma zona criada",
+    "dateRange": "Intervalo de Datas",
+    "byZoneVehicle": "Reservas por Zona e Veículo",
+    "byServiceType": "Por Tipo de Serviço (Simples / Ida e Volta)"
   },
   "login": {
     "title": "Entrar",

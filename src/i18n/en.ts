@@ -364,7 +364,10 @@ const en = {
     "couponPreview": "Preview",
     "couponDescPlaceholder": "e.g. Launch promotion 2025",
     "confirmDelete": "Delete this zone?",
-    "noZones": "No zones created yet"
+    "noZones": "No zones created yet",
+    "dateRange": "Date Range",
+    "byZoneVehicle": "Bookings by Zone & Vehicle",
+    "byServiceType": "By Service Type (One Way / Round Trip)"
   },
   "login": {
     "title": "Sign In",

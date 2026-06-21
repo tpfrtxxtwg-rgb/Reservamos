@@ -363,7 +363,10 @@ const es = {
     "couponPreview": "Vista previa",
     "couponDescPlaceholder": "ej. Promoción de lanzamiento 2025",
     "confirmDelete": "¿Eliminar esta zona?",
-    "noZones": "No hay zonas creadas"
+    "noZones": "No hay zonas creadas",
+    "dateRange": "Rango de Fechas",
+    "byZoneVehicle": "Reservas por Zona y Vehículo",
+    "byServiceType": "Por Tipo de Servicio (Sencillo / Redondo)"
   },
   "login": {
     "title": "Iniciar Sesión",
