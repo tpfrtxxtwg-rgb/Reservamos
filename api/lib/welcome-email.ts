@@ -13,13 +13,14 @@ interface WelcomeEmailData {
 }
 
 // System email config from environment or global settings
-// Tries multiple sources: env vars (case-insensitive), then client owner config
+// Always reads client owner config for verified from address,
+// env var only overrides the API key.
 async function getSystemEmailConfig(): Promise<{ provider: string; apiKey: string; from: string } | null> {
   let apiKey = "";
   let provider = "";
-  let ownerFrom = "";
+  let verifiedFrom = "";
 
-  // ── Step 1: Read client owner config first (we need the verified from address) ──
+  // ── Step 1: ALWAYS read client owner config (for verified from address + fallback API key) ──
   try {
     const rawDb = getRawDb();
     const [rows] = await rawDb.execute(
@@ -28,18 +29,18 @@ async function getSystemEmailConfig(): Promise<{ provider: string; apiKey: strin
     );
     const cfg = (rows as any[])[0];
     if (cfg) {
-      ownerFrom = cfg.smtp_from || "";
+      verifiedFrom = cfg.smtp_from || "";
       if (cfg.smtp_user) {
         apiKey = cfg.smtp_user;
         provider = cfg.smtp_host === "resend" ? "resend" : "sendgrid";
-        console.log(`[WelcomeEmail] Using client owner email config (provider=${provider})`);
+        console.log(`[WelcomeEmail] Client owner config: provider=${provider}, from=${verifiedFrom}`);
       }
     }
   } catch (e: any) {
     console.log("[WelcomeEmail] Could not read client owner config:", e.message);
   }
 
-  // ── Step 2: Override with env vars if present (they take priority) ──
+  // ── Step 2: Override API key with env var if present ──
   const envKey = process.env.SENDGRID_API_KEY
     || process.env.RESEND_API_KEY
     || process.env.SMTP_USER
@@ -48,28 +49,29 @@ async function getSystemEmailConfig(): Promise<{ provider: string; apiKey: strin
   if (envKey) {
     apiKey = envKey;
     provider = process.env.RESEND_API_KEY ? "resend" : "sendgrid";
-    console.log("[WelcomeEmail] Using env var API key (overrides client owner)");
+    console.log("[WelcomeEmail] Env var API key overrides client owner key");
   }
 
   if (!apiKey) {
-    console.log("[WelcomeEmail] No email provider found. Checked: env vars + client owner config");
+    console.log("[WelcomeEmail] No email provider found");
     return null;
   }
 
   // ── Step 3: Determine verified from address ──
-  // SendGrid requires a verified Sender Identity. We MUST use an address
-  // that has been verified in the SendGrid dashboard.
+  // Priority: SYSTEM_EMAIL_FROM env var → client owner verified from → never use unverified fallback
   let from = process.env.SYSTEM_EMAIL_FROM
     || process.env.system_email_from
-    || ownerFrom
+    || verifiedFrom
     || "";
 
-  // Final fallback — this domain MUST be verified in SendGrid
   if (!from) {
+    console.log("[WelcomeEmail] WARNING: No verified from address configured. SendGrid will reject.");
+    console.log("[WelcomeEmail] To fix: Set SYSTEM_EMAIL_FROM in Railway or verify a sender in SendGrid.");
+    // Return anyway — the error will be clear in logs
     from = "ReserVamos <noreply@vamosreserve.com>";
   }
 
-  console.log(`[WelcomeEmail] Config: provider=${provider}, from=${from}`);
+  console.log(`[WelcomeEmail] Final config: provider=${provider}, from=${from}`);
   return { provider, apiKey, from };
 }
 
@@ -150,7 +152,8 @@ function buildWelcomeHtml(data: WelcomeEmailData): string {
   );
   const greeting = interpolate(d.greeting, { companyName: data.companyName });
   const trialLabel = interpolate(d.trialLabel, { days: "7" });
-  const loginUrl = "https://vamosreserve.com/login";
+  const BASE_URL = process.env.APP_BASE_URL || "https://www.vamosreserve.com";
+  const loginUrl = `${BASE_URL}/login`;
   const whatsappUrl = "https://wa.me/526243551663";
 
   return `<!DOCTYPE html>
