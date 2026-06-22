@@ -395,7 +395,11 @@ const es = {
     "passwordRequired": "La contraseña es obligatoria",
     "passwordsDoNotMatch": "Las contraseñas no coinciden",
     "updatePassword": "Actualizar Contraseña",
-    "passwordUpdated": "Contraseña actualizada exitosamente"
+    "passwordUpdated": "Contraseña actualizada exitosamente",
+    "discount": "Descuento",
+    "uses": "Usos",
+    "status": "Estado",
+    "validUntil": "Válido Hasta"
   },
   "login": {
     "title": "Iniciar Sesión",

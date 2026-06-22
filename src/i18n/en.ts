@@ -396,7 +396,11 @@ const en = {
     "passwordRequired": "Password is required",
     "passwordsDoNotMatch": "Passwords do not match",
     "updatePassword": "Update Password",
-    "passwordUpdated": "Password updated successfully"
+    "passwordUpdated": "Password updated successfully",
+    "discount": "Discount",
+    "uses": "Uses",
+    "status": "Status",
+    "validUntil": "Valid Until"
   },
   "login": {
     "title": "Sign In",

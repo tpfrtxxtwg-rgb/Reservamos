@@ -395,7 +395,11 @@ const pt = {
     "passwordRequired": "A senha é obrigatória",
     "passwordsDoNotMatch": "As senhas não coincidem",
     "updatePassword": "Atualizar Senha",
-    "passwordUpdated": "Senha atualizada com sucesso"
+    "passwordUpdated": "Senha atualizada com sucesso",
+    "discount": "Desconto",
+    "uses": "Usos",
+    "status": "Status",
+    "validUntil": "Válido Até"
   },
   "login": {
     "title": "Entrar",
