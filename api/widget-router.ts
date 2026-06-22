@@ -313,4 +313,18 @@ export const widgetRouter = createRouter({
         total: total.toFixed(2),
       }).$returningId();
 
-      const createdBooking = await db.query.bookings.findFirst({ where: 
+      const createdBooking = await db.query.bookings.findFirst({ where: eq(bookings.id, id) });
+
+      // Send confirmation email asynchronously (don't block the response)
+      if (createdBooking) {
+        console.log(`[Widget] Triggering confirmation email for booking #${createdBooking.id}`);
+        sendBookingConfirmationEmail(createdBooking.id).then((result) => {
+          console.log(`[Widget] Email result:`, JSON.stringify(result));
+        }).catch((err: any) => {
+          console.error("[Widget] Failed to send confirmation email:", err?.message || err);
+        });
+      }
+
+      return createdBooking;
+    }),
+});
