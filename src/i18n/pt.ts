@@ -45,7 +45,8 @@ const pt = {
     "departureTime": "Hora de Partida",
     "add": "Adicionar",
     "active": "Ativo",
-    "inactive": "Inativo"
+    "inactive": "Inativo",
+    "all": "Todos"
   },
   "header": {
     "product": "Produto",

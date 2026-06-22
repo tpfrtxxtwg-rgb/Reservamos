@@ -46,7 +46,8 @@ const en = {
     "departureTime": "Departure Time",
     "add": "Add",
     "active": "Active",
-    "inactive": "Inactive"
+    "inactive": "Inactive",
+    "all": "All"
   },
   "header": {
     "product": "Product",

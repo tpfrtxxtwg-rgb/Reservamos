@@ -45,7 +45,8 @@ const es = {
     "departureTime": "Hora de Salida",
     "add": "Agregar",
     "active": "Activo",
-    "inactive": "Inactivo"
+    "inactive": "Inactivo",
+    "all": "Todos"
   },
   "header": {
     "product": "Producto",
