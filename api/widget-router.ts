@@ -28,11 +28,26 @@ async function validateWidgetClient(apiKey: string) {
     throw new Error("Invalid or inactive client");
   }
   console.log(`[validateWidgetClient] Client found: id=${client.id}, name=${client.name}`);
+
+  // Check subscription
   const subCheck = await validateClientSubscription(client.id);
+
+  // Allow legacy clients (created before subscription system) that have services configured
+  if (!subCheck.valid && subCheck.status === "none") {
+    const servicesCount = await db.query.services.findMany({
+      where: eq(services.clientId, client.id),
+    });
+    if (servicesCount.length > 0) {
+      console.log(`[validateWidgetClient] LEGACY client with ${servicesCount.length} services - allowing access`);
+      return client;
+    }
+  }
+
   if (!subCheck.valid) {
     console.log(`[validateWidgetClient] Subscription invalid: ${subCheck.status} - ${subCheck.reason}`);
     throw new Error(`Subscription ${subCheck.status}: ${subCheck.reason}`);
   }
+
   console.log(`[validateWidgetClient] OK - clientId=${client.id}`);
   return client;
 }
