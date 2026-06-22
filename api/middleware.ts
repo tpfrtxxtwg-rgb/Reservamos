@@ -87,8 +87,6 @@ function requireClientRole(role: string) {
   return t.middleware(async (opts) => {
     const { ctx, next } = opts;
 
-    console.log(`[requireClientRole] Required: ${role}, clientUser:`, ctx.clientUser ? { id: ctx.clientUser.id, email: ctx.clientUser.email, role: ctx.clientUser.role } : 'undefined');
-
     if (!ctx.clientUser) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
@@ -97,14 +95,12 @@ function requireClientRole(role: string) {
     }
 
     if (ctx.clientUser.role !== role) {
-      console.log(`[requireClientRole] DENIED: user role is "${ctx.clientUser.role}", required "${role}"`);
       throw new TRPCError({
         code: "FORBIDDEN",
         message: ErrorMessages.insufficientRole,
       });
     }
 
-    console.log(`[requireClientRole] ALLOWED: user role "${ctx.clientUser.role}" matches required "${role}"`);
     return next({ ctx: { ...ctx, clientUser: ctx.clientUser } });
   });
 }

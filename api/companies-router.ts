@@ -1,13 +1,11 @@
 import { z } from "zod";
-import { createRouter, publicQuery, superAdminQuery, clientAuthedQuery } from "./middleware";
+import { createRouter, superAdminQuery, clientAuthedQuery } from "./middleware";
 import { getRawDb } from "./queries/connection";
 
 export const companiesRouter = createRouter({
   // Admin: List all companies with subscription info
-  // Uses clientAuthedQuery (any logged-in client) to allow all authenticated users to see the list
-  list: clientAuthedQuery.query(async ({ ctx }) => {
+  list: clientAuthedQuery.query(async () => {
     const rawDb = getRawDb();
-    console.log(`[Companies] List requested by clientUser: ${ctx.clientUser?.email}, role: ${ctx.clientUser?.role}`);
     try {
       const [rows] = await rawDb.execute(
         `SELECT 
@@ -21,7 +19,6 @@ export const companiesRouter = createRouter({
          LEFT JOIN client_subscriptions cs ON cs.clientId = c.id
          ORDER BY c.createdAt DESC`
       );
-      console.log(`[Companies] Found ${(rows as any[]).length} companies`);
       return (rows as any[]).map((row: any) => {
         const trialEnd = row.trial_end ? new Date(row.trial_end) : null;
         const trialDaysLeft = trialEnd
@@ -64,41 +61,13 @@ export const companiesRouter = createRouter({
   // Admin: Get payment history for a company (super admin only)
   payments: superAdminQuery
     .input(z.object({ clientId: z.number().int().positive() }))
-    .query(async ({ input, ctx }) => {
-      try {
-        console.log(`[Companies.payments] Called by clientUser:`, ctx.clientUser ? { id: ctx.clientUser.id, email: ctx.clientUser.email, role: ctx.clientUser.role } : 'none');
-        const rawDb = getRawDb();
-        const [rows] = await rawDb.execute(
-          `SELECT id, amount, currency, status, description, paid_at, created_at
-           FROM subscription_payments WHERE clientId = ? ORDER BY created_at DESC`,
-          [input.clientId]
-        );
-        console.log(`[Companies.payments] Found ${(rows as any[]).length} payments for clientId ${input.clientId}`);
-        return rows as any[];
-      } catch (e: any) {
-        console.error(`[Companies.payments] ERROR:`, e.message, e.stack);
-        throw e;
-      }
-    }),
-
-  // TEMP: Ultra simple test endpoint - no auth, no db, just returns static data
-  ping: publicQuery.query(() => {
-    console.log(`[Companies.ping] Called`);
-    return { pong: true, timestamp: Date.now() };
-  }),
-
-  // TEMP: Test endpoint without superAdminQuery to isolate the issue
-  paymentsTest: clientAuthedQuery
-    .input(z.object({ clientId: z.number().int().positive() }))
-    .query(async ({ input, ctx }) => {
-      console.log(`[Companies.paymentsTest] Called by clientUser:`, ctx.clientUser ? { id: ctx.clientUser.id, email: ctx.clientUser.email, role: ctx.clientUser.role } : 'none');
+    .query(async ({ input }) => {
       const rawDb = getRawDb();
       const [rows] = await rawDb.execute(
         `SELECT id, amount, currency, status, description, paid_at, created_at
          FROM subscription_payments WHERE clientId = ? ORDER BY created_at DESC`,
         [input.clientId]
       );
-      console.log(`[Companies.paymentsTest] Found ${(rows as any[]).length} payments for clientId ${input.clientId}`);
       return rows as any[];
     }),
 
