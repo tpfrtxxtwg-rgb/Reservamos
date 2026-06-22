@@ -369,7 +369,8 @@ const en = {
     "dateRange": "Date Range",
     "byZoneVehicle": "Bookings by Zone & Vehicle",
     "byServiceType": "By Service Type (One Way / Round Trip)",
-    "zone": "Zone"
+    "zone": "Zone",
+    "services": "Services"
   },
   "login": {
     "title": "Sign In",

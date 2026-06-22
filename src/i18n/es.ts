@@ -368,7 +368,8 @@ const es = {
     "dateRange": "Rango de Fechas",
     "byZoneVehicle": "Reservas por Zona y Vehículo",
     "byServiceType": "Por Tipo de Servicio (Sencillo / Redondo)",
-    "zone": "Zona"
+    "zone": "Zona",
+    "services": "Servicios"
   },
   "login": {
     "title": "Iniciar Sesión",
