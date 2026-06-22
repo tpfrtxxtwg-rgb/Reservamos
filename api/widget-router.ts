@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { eq, and } from "drizzle-orm";
 import { createRouter, publicQuery } from "./middleware";
-import { getDb } from "./queries/connection";
+import { getDb, getRawDb } from "./queries/connection";
 import { clients, services, vehicles, destinations, vehicleZonePrices, bookings, optionalServices, serviceAirports, serviceTours } from "@db/schema";
 import { sendBookingConfirmationEmail } from "./email-router";
 import { validateClientSubscription } from "./lib/subscription-check";
@@ -48,11 +48,38 @@ export const widgetRouter = createRouter({
   listServices: publicQuery
     .input(z.object({ clientId: z.number().positive() }))
     .query(async ({ input }) => {
+      console.log(`[Widget.listServices] clientId=${input.clientId}`);
       const db = getDb();
-      return db.query.services.findMany({
+      const result = await db.query.services.findMany({
         where: and(eq(services.clientId, input.clientId), eq(services.active, true)),
         orderBy: services.sortOrder,
       });
+      console.log(`[Widget.listServices] Found ${result.length} services`);
+      return result;
+    }),
+
+  // TEMP: Diagnostic endpoint
+  debugServices: publicQuery
+    .input(z.object({ clientId: z.number().positive() }))
+    .query(async ({ input }) => {
+      const rawDb = getRawDb();
+      const [servicesRows] = await rawDb.execute(
+        "SELECT id, name, type, active, clientId FROM services WHERE clientId = ?",
+        [input.clientId]
+      );
+      const [airportsRows] = await rawDb.execute(
+        "SELECT id, name, clientId FROM service_airports WHERE clientId = ?",
+        [input.clientId]
+      );
+      const [toursRows] = await rawDb.execute(
+        "SELECT id, name, clientId FROM service_tours WHERE clientId = ?",
+        [input.clientId]
+      );
+      return {
+        services: servicesRows,
+        serviceAirports: airportsRows,
+        serviceTours: toursRows,
+      };
     }),
 
   listDestinations: publicQuery
