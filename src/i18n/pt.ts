@@ -46,7 +46,8 @@ const pt = {
     "add": "Adicionar",
     "active": "Ativo",
     "inactive": "Inativo",
-    "all": "Todos"
+    "all": "Todos",
+    "logout": "Sair"
   },
   "header": {
     "product": "Produto",

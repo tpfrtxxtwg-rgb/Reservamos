@@ -47,7 +47,8 @@ const en = {
     "add": "Add",
     "active": "Active",
     "inactive": "Inactive",
-    "all": "All"
+    "all": "All",
+    "logout": "Logout"
   },
   "header": {
     "product": "Product",

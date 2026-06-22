@@ -46,7 +46,8 @@ const es = {
     "add": "Agregar",
     "active": "Activo",
     "inactive": "Inactivo",
-    "all": "Todos"
+    "all": "Todos",
+    "logout": "Cerrar Sesión"
   },
   "header": {
     "product": "Producto",
