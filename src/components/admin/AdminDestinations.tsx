@@ -190,7 +190,7 @@ export default function AdminDestinations({ clientId }: Props) {
         <table className="w-full">
           <thead>
             <tr className="border-b border-[rgba(138,130,120,0.1)]">
-              <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('admin.hotelName') || 'Hotel Name'}</th>
+              <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('admin.hotel') || 'Hotel'}</th>
               <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('admin.zone') || 'Zone'}</th>
               <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('common.status') || 'Status'}</th>
               <th className="text-right px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide"></th>

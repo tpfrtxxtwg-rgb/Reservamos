@@ -367,7 +367,8 @@ const en = {
     "noZones": "No zones created yet",
     "dateRange": "Date Range",
     "byZoneVehicle": "Bookings by Zone & Vehicle",
-    "byServiceType": "By Service Type (One Way / Round Trip)"
+    "byServiceType": "By Service Type (One Way / Round Trip)",
+    "zone": "Zone"
   },
   "login": {
     "title": "Sign In",

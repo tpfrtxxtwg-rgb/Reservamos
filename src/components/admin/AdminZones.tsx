@@ -48,7 +48,7 @@ export default function AdminZones({ clientId }: Props) {
           <div className="flex items-center gap-3">
             <MapPin size={18} className="text-terracotta" />
             <input type="text" value={newName} onChange={e => setNewName(e.target.value)}
-              placeholder={t('admin.zoneName') || 'Zone name...'}
+              placeholder={t('admin.zone') || 'Zone name...'}
               className="flex-1 h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all"
               autoFocus />
             <button onClick={() => createZone.mutate({ name: newName })}
@@ -66,7 +66,7 @@ export default function AdminZones({ clientId }: Props) {
         <table className="w-full">
           <thead>
             <tr className="border-b border-[rgba(138,130,120,0.1)]">
-              <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('admin.zoneName') || 'Zone Name'}</th>
+              <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('admin.zone') || 'Zone'}</th>
               <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide">{t('common.status') || 'Status'}</th>
               <th className="text-right px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase tracking-wide"></th>
             </tr>

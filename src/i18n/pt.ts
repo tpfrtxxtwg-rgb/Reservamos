@@ -366,7 +366,8 @@ const pt = {
     "noZones": "Nenhuma zona criada",
     "dateRange": "Intervalo de Datas",
     "byZoneVehicle": "Reservas por Zona e Veículo",
-    "byServiceType": "Por Tipo de Serviço (Simples / Ida e Volta)"
+    "byServiceType": "Por Tipo de Serviço (Simples / Ida e Volta)",
+    "zone": "Zona"
   },
   "login": {
     "title": "Entrar",

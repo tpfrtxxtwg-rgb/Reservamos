@@ -366,7 +366,8 @@ const es = {
     "noZones": "No hay zonas creadas",
     "dateRange": "Rango de Fechas",
     "byZoneVehicle": "Reservas por Zona y Vehículo",
-    "byServiceType": "Por Tipo de Servicio (Sencillo / Redondo)"
+    "byServiceType": "Por Tipo de Servicio (Sencillo / Redondo)",
+    "zone": "Zona"
   },
   "login": {
     "title": "Iniciar Sesión",
