@@ -14,17 +14,26 @@ function generateCode() {
 
 /** Validates client exists and has active subscription */
 async function validateWidgetClient(apiKey: string) {
+  console.log(`[validateWidgetClient] apiKey=${apiKey.substring(0, 15)}...`);
   const db = getDb();
   const client = await db.query.clients.findFirst({
     where: eq(clients.apiKey, apiKey),
   });
-  if (!client || client.status !== "active") {
+  if (!client) {
+    console.log(`[validateWidgetClient] Client not found for apiKey`);
     throw new Error("Invalid or inactive client");
   }
+  if (client.status !== "active") {
+    console.log(`[validateWidgetClient] Client status=${client.status}, not active`);
+    throw new Error("Invalid or inactive client");
+  }
+  console.log(`[validateWidgetClient] Client found: id=${client.id}, name=${client.name}`);
   const subCheck = await validateClientSubscription(client.id);
   if (!subCheck.valid) {
+    console.log(`[validateWidgetClient] Subscription invalid: ${subCheck.status} - ${subCheck.reason}`);
     throw new Error(`Subscription ${subCheck.status}: ${subCheck.reason}`);
   }
+  console.log(`[validateWidgetClient] OK - clientId=${client.id}`);
   return client;
 }
 
@@ -32,7 +41,9 @@ export const widgetRouter = createRouter({
   config: publicQuery
     .input(z.object({ apiKey: z.string().min(1) }))
     .query(async ({ input }) => {
+      console.log(`[Widget.config] apiKey received: ${input.apiKey.substring(0, 15)}...`);
       const client = await validateWidgetClient(input.apiKey);
+      console.log(`[Widget.config] Returning config for clientId=${client.id}`);
       return {
         id: client.id,
         name: client.name,
@@ -302,18 +313,4 @@ export const widgetRouter = createRouter({
         total: total.toFixed(2),
       }).$returningId();
 
-      const createdBooking = await db.query.bookings.findFirst({ where: eq(bookings.id, id) });
-
-      // Send confirmation email asynchronously (don't block the response)
-      if (createdBooking) {
-        console.log(`[Widget] Triggering confirmation email for booking #${createdBooking.id}`);
-        sendBookingConfirmationEmail(createdBooking.id).then((result) => {
-          console.log(`[Widget] Email result:`, JSON.stringify(result));
-        }).catch((err: any) => {
-          console.error("[Widget] Failed to send confirmation email:", err?.message || err);
-        });
-      }
-
-      return createdBooking;
-    }),
-});
+      const createdBooking = await db.query.bookings.findFirst({ where: 
