@@ -441,6 +441,20 @@ const en = {
     "en": "English",
     "es": "Español",
     "pt": "Português"
+  },
+  "widgetPreview": {
+    "title": "Widget Preview",
+    "preview": "Preview",
+    "embedCode": "Embed Code",
+    "howItLooks": "How It Looks",
+    "description": "Your booking widget is ready to be embedded on your website.",
+    "bookingEngine": "Booking Engine",
+    "addToWebsite": "Add to Your Website",
+    "embedInstructions": "Copy and paste this code into your website HTML:",
+    "method1": "Method 1: Embed Code (Recommended)",
+    "method2": "Method 2: Direct Link",
+    "directLink": "Direct Link",
+    "directLinkDesc": "Share this link with your customers for direct bookings:"
   }
 } as const;
 

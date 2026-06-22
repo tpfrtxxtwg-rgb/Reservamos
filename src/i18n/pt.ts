@@ -440,6 +440,20 @@ const pt = {
     "en": "English",
     "es": "Español",
     "pt": "Português"
+  },
+  "widgetPreview": {
+    "title": "Pré-visualização do Widget",
+    "preview": "Pré-visualização",
+    "embedCode": "Código de Inserção",
+    "howItLooks": "Como Parece",
+    "description": "Seu widget de reservas está pronto para ser integrado ao seu site.",
+    "bookingEngine": "Motor de Reservas",
+    "addToWebsite": "Adicionar ao Seu Site",
+    "embedInstructions": "Copie e cole este código no HTML do seu site:",
+    "method1": "Método 1: Código de Inserção (Recomendado)",
+    "method2": "Método 2: Link Direto",
+    "directLink": "Link Direto",
+    "directLinkDesc": "Compartilhe este link com seus clientes para reservas diretas:"
   }
 } as const;
 
