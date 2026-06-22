@@ -400,7 +400,8 @@ const es = {
     "discount": "Descuento",
     "uses": "Usos",
     "status": "Estado",
-    "validUntil": "Válido Hasta"
+    "validUntil": "Válido Hasta",
+    "previewWidget": "Vista Previa del Widget"
   },
   "login": {
     "title": "Iniciar Sesión",

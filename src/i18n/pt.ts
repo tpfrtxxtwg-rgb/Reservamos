@@ -400,7 +400,8 @@ const pt = {
     "discount": "Desconto",
     "uses": "Usos",
     "status": "Status",
-    "validUntil": "Válido Até"
+    "validUntil": "Válido Até",
+    "previewWidget": "Pré-visualizar Widget"
   },
   "login": {
     "title": "Entrar",

@@ -401,7 +401,8 @@ const en = {
     "discount": "Discount",
     "uses": "Uses",
     "status": "Status",
-    "validUntil": "Valid Until"
+    "validUntil": "Valid Until",
+    "previewWidget": "Preview Widget"
   },
   "login": {
     "title": "Sign In",
