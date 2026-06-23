@@ -280,11 +280,18 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
 
   if (confirmed) return (
     <div className="w-full max-w-[420px] bg-white rounded-2xl border border-[rgba(138,130,120,0.12)] shadow-lg overflow-hidden">
+      {/* Company Branding Header */}
       <div className="h-14 bg-terracotta flex items-center justify-between px-5">
-        <span className="font-body text-white font-semibold text-base">{t('widget.title')}</span>
-        <div className="flex items-center gap-1.5 text-white/80">
+        <div className="flex items-center min-w-0 flex-1">
+          {clientConfig?.logoUrl ? (
+            <img src={clientConfig.logoUrl} alt={clientConfig.name} className="h-8 max-w-[200px] object-contain flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          ) : (
+            <span className="font-body text-white font-semibold text-base truncate">{clientConfig?.name || t('widget.title')}</span>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5 text-white/80 flex-shrink-0 ml-2">
           <ShieldCheck size={14} weight="fill" />
-          <span className="font-body text-[11px]">{t('common.securePayment')}</span>
+          <span className="font-body text-[11px] hidden sm:inline">{t('common.securePayment')}</span>
         </div>
       </div>
       <div className="flex items-center justify-center py-10 px-6">
@@ -327,11 +334,18 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
 
   return (
     <div className="w-full max-w-[420px] bg-white rounded-2xl border border-[rgba(138,130,120,0.12)] shadow-lg overflow-hidden">
+      {/* Company Branding Header */}
       <div className="h-14 bg-terracotta flex items-center justify-between px-5">
-        <span className="font-body text-white font-semibold text-base">{t('widget.title')}</span>
-        <div className="flex items-center gap-1.5 text-white/80">
+        <div className="flex items-center min-w-0 flex-1">
+          {clientConfig?.logoUrl ? (
+            <img src={clientConfig.logoUrl} alt={clientConfig.name} className="h-8 max-w-[200px] object-contain flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          ) : (
+            <span className="font-body text-white font-semibold text-base truncate">{clientConfig?.name || t('widget.title')}</span>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5 text-white/80 flex-shrink-0 ml-2">
           <ShieldCheck size={14} weight="fill" />
-          <span className="font-body text-[11px]">{t('common.securePayment')}</span>
+          <span className="font-body text-[11px] hidden sm:inline">{t('common.securePayment')}</span>
         </div>
       </div>
       <div className="h-[3px] bg-[rgba(199,94,58,0.15)]">
