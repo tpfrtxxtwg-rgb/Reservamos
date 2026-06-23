@@ -12,6 +12,7 @@ import {
 import { trpc } from '@/providers/trpc.tsx';
 import type { BookingData } from '@/types';
 import PayPalButton from '@/components/PayPalButton';
+import { useWidgetTheme } from '@/hooks/useWidgetTheme';
 
 interface BookingWidgetProps {
   apiKey?: string;
@@ -73,23 +74,6 @@ const airlines = [
 
 const timeSlots = ['05:00 AM','05:30 AM','06:00 AM','06:30 AM','07:00 AM','07:30 AM','08:00 AM','08:30 AM','09:00 AM','09:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM','12:00 PM','12:30 PM','01:00 PM','01:30 PM','02:00 PM','02:30 PM','03:00 PM','03:30 PM','04:00 PM','04:30 PM','05:00 PM','05:30 PM','06:00 PM','06:30 PM','07:00 PM','07:30 PM','08:00 PM','08:30 PM','09:00 PM','09:30 PM','10:00 PM'];
 
-/** Darken a hex color by a percentage (0-100) */
-function darkenColor(hex: string, percent: number): string {
-  const rgb = hexToRgb(hex);
-  if (!rgb) return hex;
-  const r = Math.max(0, Math.floor(rgb.r * (1 - percent / 100)));
-  const g = Math.max(0, Math.floor(rgb.g * (1 - percent / 100)));
-  const b = Math.max(0, Math.floor(rgb.b * (1 - percent / 100)));
-  return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
-}
-
-function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result
-    ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) }
-    : null;
-}
-
 export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: BookingWidgetProps) {
   const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(1);
@@ -109,21 +93,18 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
     { enabled: !!apiKey }
   );
 
+  // Dynamic theme from primaryColor
+  const theme = useWidgetTheme(clientConfig?.primaryColor);
+
   const effectiveClientId = clientConfig?.id || 0;
   const isReady = effectiveClientId > 0;
 
-  // Apply client primary color to CSS variables
-  useEffect(() => {
-    if (!clientConfig?.primaryColor) return;
-    const root = document.documentElement;
-    root.style.setProperty("--terracotta", clientConfig.primaryColor);
-    const darker = darkenColor(clientConfig.primaryColor, 20);
-    root.style.setProperty("--terracotta-dark", darker);
-    const rgb = hexToRgb(clientConfig.primaryColor);
-    if (rgb) {
-      root.style.setProperty("--terracotta-rgb", `${rgb.r}, ${rgb.g}, ${rgb.b}`);
-    }
-  }, [clientConfig?.primaryColor]);
+  // Scoped CSS variables for Tailwind terracotta classes
+  const cssVariables = {
+    '--terracotta': theme.primary,
+    '--terracotta-dark': theme.primaryDark,
+    '--terracotta-rgb': theme.primaryRgb,
+  } as React.CSSProperties;
 
   const { data: servicesList, isLoading: servicesLoading } = trpc.widget.listServices.useQuery(
     { clientId: effectiveClientId },
@@ -278,10 +259,11 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
     d.name.toLowerCase().includes(destSearch.toLowerCase())
   ) || [];
 
+  // ─── Confirmation Screen ───
   if (confirmed) return (
-    <div className="w-full max-w-[420px] bg-white rounded-2xl border border-[rgba(138,130,120,0.12)] shadow-lg overflow-hidden">
+    <div className="w-full max-w-[420px] bg-white rounded-2xl border border-[rgba(138,130,120,0.12)] shadow-lg overflow-hidden" style={cssVariables}>
       {/* Company Branding Header */}
-      <div className="h-14 bg-terracotta flex items-center justify-between px-5">
+      <div className="h-14 flex items-center justify-between px-5" style={{ backgroundColor: theme.primary }}>
         <div className="flex items-center min-w-0 flex-1">
           {clientConfig?.logoUrl ? (
             <img src={clientConfig.logoUrl} alt={clientConfig.name} className="h-8 max-w-[200px] object-contain flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -297,14 +279,14 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
       <div className="flex items-center justify-center py-10 px-6">
         <div className="text-center">
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-            className="w-16 h-16 rounded-full bg-[rgba(45,106,79,0.1)] flex items-center justify-center mx-auto mb-5">
-            <Check size={32} weight="bold" className="text-[#2D6A4F]" />
+            className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style={{ backgroundColor: theme.primary08 }}>
+            <Check size={32} weight="bold" style={{ color: theme.primary }} />
           </motion.div>
           <h3 className="font-display text-2xl font-bold text-charcoal mb-2">{t('widget.confirmation.title')}</h3>
           <p className="font-body text-sm text-warm-gray mb-5">{t('widget.confirmation.message')}</p>
           <div className="bg-sand rounded-lg p-3 mb-4 flex items-center justify-between">
             <span className="font-body text-sm font-semibold text-charcoal">{reservationCode}</span>
-            <button onClick={handleCopyCode} className="flex items-center gap-1 text-terracotta hover:text-terracotta-dark transition-colors">
+            <button onClick={handleCopyCode} className="flex items-center gap-1 transition-colors" style={{ color: theme.primary }}>
               {copied ? <Check size={16} /> : <Copy size={16} />}
               <span className="font-body text-xs">{copied ? t('common.copied') : t('common.copy')}</span>
             </button>
@@ -319,12 +301,13 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
             {booking.paymentOption === 'deposit' && depositEnabled && (
               <>
                 <div className="flex justify-between"><span className="font-body text-xs text-warm-gray">{t('widget.step5.amountPaid') || 'Amount Paid'}</span><span className="font-body text-xs font-semibold text-[#2D6A4F]">${amountToPayNow.toFixed(2)}</span></div>
-                <div className="flex justify-between"><span className="font-body text-xs text-warm-gray">{t('widget.step5.balanceDue') || 'Balance Due'}</span><span className="font-body text-xs font-semibold text-terracotta">${balanceDue.toFixed(2)}</span></div>
+                <div className="flex justify-between"><span className="font-body text-xs text-warm-gray">{t('widget.step5.balanceDue') || 'Balance Due'}</span><span className="font-body text-xs font-semibold" style={{ color: theme.primary }}>${balanceDue.toFixed(2)}</span></div>
               </>
             )}
-            <div className="flex justify-between border-t border-[rgba(138,130,120,0.15)] pt-1"><span className="font-body text-xs text-warm-gray">{t('common.total')}</span><span className="font-body text-sm font-bold text-terracotta">${total.toFixed(2)} {t('common.usd')}</span></div>
+            <div className="flex justify-between border-t border-[rgba(138,130,120,0.15)] pt-1"><span className="font-body text-xs text-warm-gray">{t('common.total')}</span><span className="font-body text-sm font-bold" style={{ color: theme.primary }}>${total.toFixed(2)} {t('common.usd')}</span></div>
           </div>
-          <button onClick={handleReset} className="w-full h-12 border-2 border-terracotta text-terracotta rounded-lg font-body font-semibold text-sm hover:bg-terracotta hover:text-white transition-all">
+          <button onClick={handleReset} className="w-full h-12 border-2 rounded-lg font-body font-semibold text-sm transition-all"
+            style={{ borderColor: theme.primary, color: theme.primary }}>
             {t('widget.confirmation.newBooking')}
           </button>
         </div>
@@ -332,10 +315,11 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
     </div>
   );
 
+  // ─── Main Booking Widget ───
   return (
-    <div className="w-full max-w-[420px] bg-white rounded-2xl border border-[rgba(138,130,120,0.12)] shadow-lg overflow-hidden">
+    <div className="w-full max-w-[420px] bg-white rounded-2xl border border-[rgba(138,130,120,0.12)] shadow-lg overflow-hidden" style={cssVariables}>
       {/* Company Branding Header */}
-      <div className="h-14 bg-terracotta flex items-center justify-between px-5">
+      <div className="h-14 flex items-center justify-between px-5" style={{ backgroundColor: theme.primary }}>
         <div className="flex items-center min-w-0 flex-1">
           {clientConfig?.logoUrl ? (
             <img src={clientConfig.logoUrl} alt={clientConfig.name} className="h-8 max-w-[200px] object-contain flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -348,7 +332,8 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
           <span className="font-body text-[11px] hidden sm:inline">{t('common.securePayment')}</span>
         </div>
       </div>
-      <div className="h-[3px] bg-[rgba(199,94,58,0.15)]">
+      {/* Progress Bar */}
+      <div className="h-[3px]" style={{ backgroundColor: theme.primary15 }}>
         <motion.div className="h-full bg-terracotta" initial={false} animate={{ width: `${progressWidth}%` }} transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }} />
       </div>
       <div className="relative min-h-[420px]">
@@ -362,11 +347,13 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                 <p className="font-body text-[13px] text-warm-gray mb-4">{t('widget.step1.subtitle')}</p>
                 <div className="flex gap-2 mb-5 p-1 bg-[#FAFAF8] rounded-lg">
                   <button onClick={() => updateBooking({ tripType: 'one_way' })}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md font-body text-sm font-medium transition-all ${booking.tripType === 'one_way' ? 'bg-white text-terracotta shadow-sm' : 'text-warm-gray hover:text-charcoal'}`}>
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md font-body text-sm font-medium transition-all ${booking.tripType === 'one_way' ? 'bg-white shadow-sm' : 'text-warm-gray hover:text-charcoal'}`}
+                    style={booking.tripType === 'one_way' ? { color: theme.primary } : {}}>
                     <ArrowRight size={18} /> {t('widget.tripType.oneWay')}
                   </button>
                   <button onClick={() => updateBooking({ tripType: 'round_trip' })}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md font-body text-sm font-medium transition-all ${booking.tripType === 'round_trip' ? 'bg-white text-terracotta shadow-sm' : 'text-warm-gray hover:text-charcoal'}`}>
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md font-body text-sm font-medium transition-all ${booking.tripType === 'round_trip' ? 'bg-white shadow-sm' : 'text-warm-gray hover:text-charcoal'}`}
+                    style={booking.tripType === 'round_trip' ? { color: theme.primary } : {}}>
                     <ArrowsLeftRight size={18} /> {t('widget.tripType.roundTrip')}
                   </button>
                 </div>
@@ -380,8 +367,9 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                   <div className="grid grid-cols-1 gap-3 mb-6">
                     {servicesList.map(service => (
                       <button key={service.id} onClick={() => updateBooking({ serviceId: String(service.id) })}
-                        className={`p-4 rounded-lg border-2 text-left transition-all duration-200 hover:shadow-sm hover:-translate-y-0.5 flex items-center gap-4 ${Number(booking.serviceId) === service.id ? 'border-terracotta bg-[rgba(199,94,58,0.04)]' : 'border-[rgba(138,130,120,0.15)] bg-white'}`}>
-                        <div className={`${Number(booking.serviceId) === service.id ? 'text-terracotta' : 'text-warm-gray'}`}>
+                        className={`p-4 rounded-lg border-2 text-left transition-all duration-200 hover:shadow-sm hover:-translate-y-0.5 flex items-center gap-4 ${Number(booking.serviceId) === service.id ? 'border-terracotta' : 'border-[rgba(138,130,120,0.15)] bg-white'}`}
+                        style={Number(booking.serviceId) === service.id ? { backgroundColor: theme.primary04 } : {}}>
+                        <div style={{ color: Number(booking.serviceId) === service.id ? theme.primary : undefined }} className={Number(booking.serviceId) === service.id ? '' : 'text-warm-gray'}>
                           {serviceIcons[service.slug] || <MapPin size={28} />}
                         </div>
                         <div>
@@ -404,7 +392,8 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                     {servicesList && servicesList.length > 0 ? (t('widget.step1.priceFrom') || '') : ''}
                   </span>
                   <button onClick={handleNext} disabled={!canProceed()}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-full font-body font-semibold text-sm transition-all ${canProceed() ? 'bg-terracotta text-white shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5' : 'bg-terracotta/50 text-white/70 cursor-not-allowed'}`}>
+                    className={`flex items-center gap-2 px-6 py-3 rounded-full font-body font-semibold text-sm transition-all ${canProceed() ? 'bg-terracotta text-white hover:-translate-y-0.5' : 'cursor-not-allowed'}`}
+                    style={canProceed() ? { backgroundColor: theme.primary, boxShadow: `0 2px 8px ${theme.primary25}` } : { backgroundColor: theme.primary50, color: 'rgba(255,255,255,0.7)' }}>
                     {t('common.continue')} <ArrowRight size={16} />
                   </button>
                 </div>
@@ -427,7 +416,8 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                     <div className="relative">
                       <AirplaneTilt size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
                       <select value={booking.origin} onChange={e => updateBooking({ origin: e.target.value })}
-                        className="w-full h-12 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-10 pr-4 font-body text-sm text-charcoal focus:border-terracotta focus:ring-[3px] focus:ring-[rgba(199,94,58,0.1)] outline-none transition-all appearance-none">
+                        className="w-full h-12 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-10 pr-4 font-body text-sm text-charcoal outline-none transition-all appearance-none focus:border-terracotta"
+                        style={{ '--tw-ring-color': theme.primary10 } as React.CSSProperties}>
                         <option value="">{t('widget.step2.selectAirport') || 'Select airport'}</option>
                         {airportsList && airportsList.length > 0 ? (
                           airportsList.map((apt: any) => (
@@ -446,7 +436,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                       <input type="text" value={booking.origin === 'Other' ? '' : booking.origin}
                         onChange={e => updateBooking({ origin: e.target.value })}
                         placeholder={t('widget.step2.enterLocation') || 'Enter pickup location'}
-                        className="w-full h-10 mt-2 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 focus:border-terracotta outline-none transition-all" />
+                        className="w-full h-10 mt-2 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 outline-none transition-all" />
                     )}
                   </div>
 
@@ -458,7 +448,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                         <Calendar size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
                         <input type="date" value={booking.date} min={new Date().toISOString().split('T')[0]}
                           onChange={e => updateBooking({ date: e.target.value })}
-                          className="w-full h-12 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-10 pr-4 font-body text-sm text-charcoal focus:border-terracotta focus:ring-[3px] focus:ring-[rgba(199,94,58,0.1)] outline-none transition-all" />
+                          className="w-full h-12 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-10 pr-4 font-body text-sm text-charcoal outline-none transition-all focus:border-terracotta" />
                       </div>
                     </div>
                     <div>
@@ -466,7 +456,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                       <div className="relative">
                         <Clock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
                         <select value={booking.time} onChange={e => updateBooking({ time: e.target.value })}
-                          className="w-full h-12 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-10 pr-4 font-body text-sm text-charcoal focus:border-terracotta focus:ring-[3px] focus:ring-[rgba(199,94,58,0.1)] outline-none transition-all appearance-none">
+                          className="w-full h-12 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-10 pr-4 font-body text-sm text-charcoal outline-none transition-all appearance-none focus:border-terracotta">
                           <option value="">{t('widget.step2.selectTime')}</option>
                           {timeSlots.map(o => <option key={o} value={o}>{o}</option>)}
                         </select>
@@ -484,7 +474,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                         <div>
                           <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.airline')}</label>
                           <select value={booking.airline} onChange={e => updateBooking({ airline: e.target.value })}
-                            className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all appearance-none">
+                            className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal outline-none transition-all appearance-none focus:border-terracotta">
                             <option value="">{t('widget.flight.selectAirline') || 'Select airline'}</option>
                             {airlines.map(a => <option key={a} value={a}>{a}</option>)}
                           </select>
@@ -492,7 +482,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                         <div>
                           <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.flightNumber')}</label>
                           <input type="text" value={booking.flightNumber} onChange={e => updateBooking({ flightNumber: e.target.value })}
-                            placeholder="AA1234" className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 focus:border-terracotta outline-none transition-all" />
+                            placeholder="AA1234" className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 outline-none transition-all focus:border-terracotta" />
                         </div>
                       </div>
                     </div>
@@ -504,9 +494,9 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
 
                     {/* Selected destination badge */}
                     {booking.destinationId && selectedDestination && (
-                      <div className="mb-2 flex items-center justify-between bg-[rgba(199,94,58,0.06)] border border-[rgba(199,94,58,0.15)] rounded-md px-3 py-2.5">
+                      <div className="mb-2 flex items-center justify-between rounded-md px-3 py-2.5" style={{ backgroundColor: theme.primary06, border: `1px solid ${theme.primary15}` }}>
                         <div className="flex items-center gap-2">
-                          <Check size={14} className="text-terracotta" />
+                          <Check size={14} style={{ color: theme.primary }} />
                           <span className="font-body text-sm font-medium text-charcoal">{selectedDestination.name}</span>
                         </div>
                         <button onClick={() => { updateBooking({ destinationId: null }); setDestSearch(''); setShowDestSearch(true); }} className="text-warm-gray hover:text-[#B23A2F] transition-colors"><ArrowLeft size={14} className="rotate-45" /></button>
@@ -521,7 +511,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                           onChange={e => { setDestSearch(e.target.value); if (booking.destinationId) updateBooking({ destinationId: null }); }}
                           onFocus={() => setShowDestSearch(true)}
                           placeholder={t('widget.step2.searchDestination') || 'Click to search hotels and destinations...'}
-                          className="w-full h-12 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-10 pr-4 font-body text-sm text-charcoal placeholder:text-warm-gray/50 focus:border-terracotta focus:ring-[3px] focus:ring-[rgba(199,94,58,0.1)] outline-none transition-all" />
+                          className="w-full h-12 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-10 pr-4 font-body text-sm text-charcoal placeholder:text-warm-gray/50 outline-none transition-all focus:border-terracotta" />
                       </div>
                     )}
 
@@ -552,7 +542,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                       <div className="relative">
                         <MapTrifold size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
                         <select value={booking.tourId || ''} onChange={e => updateBooking({ tourId: e.target.value })}
-                          className="w-full h-12 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-10 pr-4 font-body text-sm text-charcoal focus:border-terracotta focus:ring-[3px] focus:ring-[rgba(199,94,58,0.1)] outline-none transition-all appearance-none">
+                          className="w-full h-12 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-10 pr-4 font-body text-sm text-charcoal outline-none transition-all appearance-none focus:border-terracotta">
                           <option value="">Select a tour</option>
                           {toursList.map((tour: any) => (
                             <option key={tour.id} value={String(tour.id)}>{tour.name}{tour.duration ? ` (${tour.duration})` : ''} - ${tour.price}</option>
@@ -569,10 +559,10 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                       <Users size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
                       <div className="flex items-center h-12 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-10 pr-3">
                         <button onClick={() => updateBooking({ passengers: Math.max(1, booking.passengers - 1) })}
-                          className="w-8 h-8 rounded-md bg-white border border-[rgba(138,130,120,0.2)] flex items-center justify-center font-body font-semibold text-charcoal hover:border-terracotta transition-colors">-</button>
+                          className="w-8 h-8 rounded-md bg-white border border-[rgba(138,130,120,0.2)] flex items-center justify-center font-body font-semibold text-charcoal transition-colors hover:border-terracotta">-</button>
                         <span className="flex-1 text-center font-body text-sm font-medium text-charcoal">{booking.passengers} {t('common.passenger')}{booking.passengers > 1 ? 's' : ''}</span>
                         <button onClick={() => updateBooking({ passengers: Math.min(16, booking.passengers + 1) })}
-                          className="w-8 h-8 rounded-md bg-white border border-[rgba(138,130,120,0.2)] flex items-center justify-center font-body font-semibold text-charcoal hover:border-terracotta transition-colors">+</button>
+                          className="w-8 h-8 rounded-md bg-white border border-[rgba(138,130,120,0.2)] flex items-center justify-center font-body font-semibold text-charcoal transition-colors hover:border-terracotta">+</button>
                       </div>
                     </div>
                   </div>
@@ -587,9 +577,10 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                         { id: 'extra' as const, label: t('widget.step2.luggageExtra'), icon: <ShoppingCart size={18} /> },
                       ].map(opt => (
                         <button key={opt.id} onClick={() => updateBooking({ luggage: opt.id })}
-                          className={`flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all ${booking.luggage === opt.id ? 'border-terracotta bg-[rgba(199,94,58,0.04)]' : 'border-[rgba(138,130,120,0.15)] bg-white hover:border-[rgba(138,130,120,0.3)]'}`}>
-                          <span className={booking.luggage === opt.id ? 'text-terracotta' : 'text-warm-gray'}>{opt.icon}</span>
-                          <span className={`font-body text-[11px] font-medium ${booking.luggage === opt.id ? 'text-terracotta' : 'text-charcoal'}`}>{opt.label}</span>
+                          className={`flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all ${booking.luggage === opt.id ? 'border-terracotta' : 'border-[rgba(138,130,120,0.15)] bg-white hover:border-[rgba(138,130,120,0.3)]'}`}
+                          style={booking.luggage === opt.id ? { backgroundColor: theme.primary04 } : {}}>
+                          <span style={{ color: booking.luggage === opt.id ? theme.primary : undefined }} className={booking.luggage === opt.id ? '' : 'text-warm-gray'}>{opt.icon}</span>
+                          <span className={`font-body text-[11px] font-medium ${booking.luggage === opt.id ? '' : 'text-charcoal'}`} style={booking.luggage === opt.id ? { color: theme.primary } : {}}>{opt.label}</span>
                         </button>
                       ))}
                     </div>
@@ -599,7 +590,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                   {isRoundTrip && (
                     <div className="border-t border-[rgba(138,130,120,0.12)] pt-4">
                       <h3 className="font-body text-sm font-semibold text-charcoal mb-3 flex items-center gap-2">
-                        <ArrowsLeftRight size={16} className="text-terracotta" />{t('widget.flight.departureTitle') || 'Departure Information'}
+                        <ArrowsLeftRight size={16} style={{ color: theme.primary }} />{t('widget.flight.departureTitle') || 'Departure Information'}
                       </h3>
 
                       {/* Departure Date & Departure Flight Time */}
@@ -610,7 +601,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                             <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
                             <input type="date" value={booking.departureDate} min={booking.date || new Date().toISOString().split('T')[0]}
                               onChange={e => updateBooking({ departureDate: e.target.value })}
-                              className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-9 pr-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all" />
+                              className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-9 pr-3 font-body text-sm text-charcoal outline-none transition-all focus:border-terracotta" />
                           </div>
                         </div>
                         <div>
@@ -618,7 +609,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                           <div className="relative">
                             <Clock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
                             <select value={booking.departureTime} onChange={e => updateBooking({ departureTime: e.target.value })}
-                              className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-9 pr-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all appearance-none">
+                              className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-9 pr-3 font-body text-sm text-charcoal outline-none transition-all appearance-none focus:border-terracotta">
                               <option value="">{t('widget.step2.selectTime')}</option>
                               {timeSlots.map(o => <option key={o} value={o}>{o}</option>)}
                             </select>
@@ -631,7 +622,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                         <div>
                           <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.departureAirline') || 'Airline'}</label>
                           <select value={booking.departureAirline} onChange={e => updateBooking({ departureAirline: e.target.value })}
-                            className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all appearance-none">
+                            className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal outline-none transition-all appearance-none focus:border-terracotta">
                             <option value="">{t('widget.flight.selectAirline') || 'Select airline'}</option>
                             {airlines.map(a => <option key={a} value={a}>{a}</option>)}
                           </select>
@@ -639,7 +630,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                         <div>
                           <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.departureFlightNumber') || 'Flight Number'}</label>
                           <input type="text" value={booking.departureFlightNumber} onChange={e => updateBooking({ departureFlightNumber: e.target.value })}
-                            placeholder="AA1234" className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 focus:border-terracotta outline-none transition-all" />
+                            placeholder="AA1234" className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 outline-none transition-all focus:border-terracotta" />
                         </div>
                       </div>
 
@@ -649,7 +640,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                         <div className="relative">
                           <Clock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
                           <select value={booking.hotelPickupTime} onChange={e => updateBooking({ hotelPickupTime: e.target.value })}
-                            className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-9 pr-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all appearance-none">
+                            className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-9 pr-3 font-body text-sm text-charcoal outline-none transition-all appearance-none focus:border-terracotta">
                             <option value="">{t('widget.step2.selectTime')}</option>
                             {timeSlots.map(o => <option key={o} value={o}>{o}</option>)}
                           </select>
@@ -657,14 +648,15 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                       </div>
 
                       {/* Recommendation comment */}
-                      <p className="font-body text-[11px] text-terracotta/80 italic mt-1">
+                      <p className="font-body text-[11px] italic mt-1" style={{ color: theme.primary80 }}>
                         * {t('widget.flight.pickupRecommendation') || 'Se recomienda agendar la reserva 3 horas antes de su vuelo'}
                       </p>
                     </div>
                   )}
                 </div>
                 <button onClick={handleNext} disabled={!canProceed()}
-                  className={`w-full flex items-center justify-center gap-2 h-12 rounded-full font-body font-semibold text-sm transition-all ${canProceed() ? 'bg-terracotta text-white shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5' : 'bg-terracotta/50 text-white/70 cursor-not-allowed'}`}>
+                  className={`w-full flex items-center justify-center gap-2 h-12 rounded-full font-body font-semibold text-sm transition-all ${canProceed() ? 'text-white hover:-translate-y-0.5' : 'cursor-not-allowed'}`}
+                  style={canProceed() ? { backgroundColor: theme.primary, boxShadow: `0 2px 8px ${theme.primary25}` } : { backgroundColor: theme.primary50, color: 'rgba(255,255,255,0.7)' }}>
                   {t('common.continue')} <ArrowRight size={16} />
                 </button>
               </div>
@@ -680,7 +672,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                 <div className="bg-sand rounded-lg p-3 mb-4">
                   <div className="flex items-center justify-between">
                     <span className="font-body text-xs font-medium text-charcoal">{selectedDestination?.name}</span>
-                    <button onClick={() => { setDirection(-1); setCurrentStep(2); }} className="font-body text-xs text-terracotta font-medium hover:underline">{t('common.edit')}</button>
+                    <button onClick={() => { setDirection(-1); setCurrentStep(2); }} className="font-body text-xs font-medium hover:underline" style={{ color: theme.primary }}>{t('common.edit')}</button>
                   </div>
                   <div className="font-body text-[11px] text-warm-gray mt-1">{booking.date} &middot; {booking.time} &middot; {booking.passengers} {t('common.passengers')}</div>
                 </div>
@@ -689,15 +681,17 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                     const vPrice = parseFloat(String(vehicle.price));
                     const vTax = Math.round(vPrice * taxRateDecimal * 100) / 100;
                     const vTotal = Math.round((vPrice + vTax) * 100) / 100;
+                    const isSelected = Number(booking.vehicleId) === vehicle.id;
                     return (
                     <button key={vehicle.id} onClick={() => updateBooking({ vehicleId: String(vehicle.id) })}
-                      className={`w-full flex gap-4 p-4 rounded-lg border-2 text-left transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${Number(booking.vehicleId) === vehicle.id ? 'border-terracotta bg-[rgba(199,94,58,0.03)]' : 'border-[rgba(138,130,120,0.12)] bg-white'}`}>
+                      className={`w-full flex gap-4 p-4 rounded-lg border-2 text-left transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${isSelected ? 'border-terracotta' : 'border-[rgba(138,130,120,0.12)] bg-white'}`}
+                      style={isSelected ? { backgroundColor: theme.primary04 } : {}}>
                       <img src={vehicle.image || '/vehicle-suburban.jpg'} alt={vehicle.name} className="w-20 h-[60px] object-cover rounded-md flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
                           <span className="font-body text-[15px] font-semibold text-charcoal">{vehicle.name}</span>
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${Number(booking.vehicleId) === vehicle.id ? 'border-terracotta' : 'border-warm-gray'}`}>
-                            {Number(booking.vehicleId) === vehicle.id && <div className="w-2.5 h-2.5 rounded-full bg-terracotta" />}
+                          <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center" style={{ borderColor: isSelected ? theme.primary : '#8A8278' }}>
+                            {isSelected && <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: theme.primary }} />}
                           </div>
                         </div>
                         <div className="flex items-center gap-1 mb-2">
@@ -709,7 +703,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                             <span key={f} className="inline-flex items-center gap-0.5 bg-sand rounded-full px-2 py-0.5 font-body text-[11px] text-warm-gray">{featureIcons[f] || null}{f}</span>
                           ))}
                         </div>
-                        <span className="font-body text-lg font-bold text-terracotta">${vPrice} {t('common.usd')}</span>
+                        <span className="font-body text-lg font-bold" style={{ color: theme.primary }}>${vPrice} {t('common.usd')}</span>
                         <span className="font-body text-xs text-warm-gray ml-2">({t('common.iva', { rate: taxRate })} + {t('common.total')}: ${vTotal} USD)</span>
                       </div>
                     </button>
@@ -717,9 +711,10 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                   })}
                 </div>
                 <div className="flex items-center justify-between pt-2">
-                  <div className="font-body text-sm text-warm-gray">{t('common.total')}: <span className="font-bold text-terracotta text-base">${total.toFixed(2)} {t('common.usd')}</span></div>
+                  <div className="font-body text-sm text-warm-gray">{t('common.total')}: <span className="font-bold text-base" style={{ color: theme.primary }}>${total.toFixed(2)} {t('common.usd')}</span></div>
                   <button onClick={handleNext} disabled={!canProceed()}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-full font-body font-semibold text-sm transition-all ${canProceed() ? 'bg-terracotta text-white shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5' : 'bg-terracotta/50 text-white/70 cursor-not-allowed'}`}>
+                    className={`flex items-center gap-2 px-6 py-3 rounded-full font-body font-semibold text-sm transition-all ${canProceed() ? 'bg-terracotta text-white hover:-translate-y-0.5' : 'cursor-not-allowed'}`}
+                    style={canProceed() ? { backgroundColor: theme.primary, boxShadow: `0 2px 8px ${theme.primary25}` } : { backgroundColor: theme.primary50, color: 'rgba(255,255,255,0.7)' }}>
                     {t('common.continue')} <ArrowRight size={16} />
                   </button>
                 </div>
@@ -738,7 +733,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                 {/* Service Summary */}
                 <div className="bg-sand rounded-lg p-4 mb-4 space-y-2">
                   <div className="flex justify-between">
-                    <span className="font-body text-sm text-charcoal">{selectedService?.name} — {selectedDestination?.name}</span>
+                    <span className="font-body text-sm text-charcoal">{selectedService?.name} &mdash; {selectedDestination?.name}</span>
                     <span className="font-body text-sm font-medium text-charcoal">${basePrice.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
@@ -764,7 +759,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                   </div>
                   <div className="flex justify-between">
                     <span className="font-body text-base font-semibold text-charcoal">{t('common.total')}</span>
-                    <span className="font-body text-base font-bold text-terracotta">${total.toFixed(2)} {t('common.usd')}</span>
+                    <span className="font-body text-base font-bold" style={{ color: theme.primary }}>${total.toFixed(2)} {t('common.usd')}</span>
                   </div>
                 </div>
 
@@ -772,7 +767,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                 {optionalServicesList && optionalServicesList.length > 0 && (
                   <div className="mb-5">
                     <h3 className="font-body text-sm font-semibold text-charcoal mb-3 flex items-center gap-2">
-                      <ShoppingCart size={16} className="text-terracotta" />
+                      <ShoppingCart size={16} style={{ color: theme.primary }} />
                       {t('widget.step4.optionalServices') || 'Optional Services'}
                     </h3>
                     <div className="space-y-2">
@@ -788,18 +783,20 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                                 : [...booking.selectedOptionalServices, svc.id];
                               updateBooking({ selectedOptionalServices: newSelection });
                             }}
-                            className={`w-full flex items-center justify-between p-3 rounded-lg border-2 text-left transition-all ${isSelected ? 'border-terracotta bg-[rgba(199,94,58,0.04)]' : 'border-[rgba(138,130,120,0.12)] bg-white hover:border-[rgba(138,130,120,0.25)]'}`}>
+                            className={`w-full flex items-center justify-between p-3 rounded-lg border-2 text-left transition-all ${isSelected ? 'border-terracotta' : 'border-[rgba(138,130,120,0.12)] bg-white hover:border-[rgba(138,130,120,0.25)]'}`}
+                            style={isSelected ? { backgroundColor: theme.primary04 } : {}}>
                             <div className="flex items-center gap-3">
-                              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${isSelected ? 'border-terracotta bg-terracotta' : 'border-warm-gray'}`}>
+                              <div className="w-5 h-5 rounded border-2 flex items-center justify-center transition-all"
+                                style={{ borderColor: isSelected ? theme.primary : '#8A8278', backgroundColor: isSelected ? theme.primary : undefined }}>
                                 {isSelected && <Check size={12} weight="bold" className="text-white" />}
                               </div>
                               <div>
-                                <span className={`font-body text-sm font-medium block ${isSelected ? 'text-terracotta' : 'text-charcoal'}`}>{svc.name}</span>
+                                <span className={`font-body text-sm font-medium block`} style={{ color: isSelected ? theme.primary : undefined }}>{svc.name}</span>
                                 {svc.description && <span className="font-body text-[11px] text-warm-gray">{svc.description}</span>}
                               </div>
                             </div>
                             <div className="text-right">
-                              <span className={`font-body text-sm font-semibold ${isSelected ? 'text-terracotta' : 'text-charcoal'}`}>
+                              <span className={`font-body text-sm font-semibold`} style={{ color: isSelected ? theme.primary : undefined }}>
                                 {svcPrice > 0 ? `$${displayPrice.toFixed(2)}` : t('common.free') || 'Free'}
                               </span>
                               {svc.perPassenger && svcPrice > 0 && (
@@ -811,7 +808,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                       })}
                     </div>
                     {/* Recalculated total with optionals */}
-                    <div className="mt-3 bg-[rgba(199,94,58,0.04)] border border-[rgba(199,94,58,0.15)] rounded-lg p-3">
+                    <div className="mt-3 rounded-lg p-3" style={{ backgroundColor: theme.primary04, border: `1px solid ${theme.primary15}` }}>
                       <div className="flex justify-between">
                         <span className="font-body text-sm text-charcoal">{t('common.subtotal')}</span>
                         <span className="font-body text-sm text-charcoal">${subtotal.toFixed(2)}</span>
@@ -822,14 +819,15 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                       </div>
                       <div className="flex justify-between mt-1 pt-1 border-t border-[rgba(138,130,120,0.1)]">
                         <span className="font-body text-base font-semibold text-charcoal">{t('common.total')}</span>
-                        <span className="font-body text-lg font-bold text-terracotta">${total.toFixed(2)} {t('common.usd')}</span>
+                        <span className="font-body text-lg font-bold" style={{ color: theme.primary }}>${total.toFixed(2)} {t('common.usd')}</span>
                       </div>
                     </div>
                   </div>
                 )}
 
                 <button onClick={handleNext} disabled={!canProceed()}
-                  className={`w-full flex items-center justify-center gap-2 h-12 rounded-full font-body font-semibold text-sm transition-all ${canProceed() ? 'bg-terracotta text-white shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5' : 'bg-terracotta/50 text-white/70 cursor-not-allowed'}`}>
+                  className={`w-full flex items-center justify-center gap-2 h-12 rounded-full font-body font-semibold text-sm transition-all ${canProceed() ? 'bg-terracotta text-white hover:-translate-y-0.5' : 'cursor-not-allowed'}`}
+                  style={canProceed() ? { backgroundColor: theme.primary, boxShadow: `0 2px 8px ${theme.primary25}` } : { backgroundColor: theme.primary50, color: 'rgba(255,255,255,0.7)' }}>
                   {t('widget.step4.continueToPayment') || 'Continue to Payment'} <ArrowRight size={16} />
                 </button>
               </div>
@@ -850,34 +848,34 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                     <div>
                       <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.step4.firstName')}</label>
                       <input type="text" value={booking.passengerName} onChange={e => updateBooking({ passengerName: e.target.value })}
-                        className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all" />
+                        className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal outline-none transition-all focus:border-terracotta" />
                     </div>
                     <div>
                       <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.step4.lastName')}</label>
                       <input type="text" value={booking.passengerLastName} onChange={e => updateBooking({ passengerLastName: e.target.value })}
-                        className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all" />
+                        className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal outline-none transition-all focus:border-terracotta" />
                     </div>
                   </div>
                   <div className="mb-3">
                     <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.step4.email')}</label>
                     <input type="email" value={booking.passengerEmail} onChange={e => updateBooking({ passengerEmail: e.target.value })}
-                      className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all" />
+                      className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal outline-none transition-all focus:border-terracotta" />
                   </div>
                   <div className="mb-3">
                     <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.step4.phone')}</label>
                     <div className="flex gap-2">
-                      <select className="h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-2 font-body text-sm text-charcoal focus:border-terracotta outline-none w-20 flex-shrink-0">
+                      <select className="h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-2 font-body text-sm text-charcoal outline-none w-20 flex-shrink-0 focus:border-terracotta">
                         <option>+52</option><option>+1</option><option>+44</option>
                       </select>
                       <input type="tel" value={booking.passengerPhone} onChange={e => updateBooking({ passengerPhone: e.target.value })}
-                        className="flex-1 h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 focus:border-terracotta outline-none transition-all" />
+                        className="flex-1 h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 outline-none transition-all focus:border-terracotta" />
                     </div>
                   </div>
                   <div>
                     <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.step4.specialNotes')}</label>
                     <textarea value={booking.passengerNotes} onChange={e => updateBooking({ passengerNotes: e.target.value })}
                       placeholder={t('widget.step4.notesPlaceholder')} rows={2}
-                      className="w-full bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 py-2 font-body text-sm text-charcoal placeholder:text-warm-gray/50 focus:border-terracotta outline-none transition-all resize-none" />
+                      className="w-full bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 py-2 font-body text-sm text-charcoal placeholder:text-warm-gray/50 outline-none transition-all resize-none focus:border-terracotta" />
                   </div>
                 </div>
 
@@ -887,25 +885,27 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                     <h3 className="font-body text-sm font-semibold text-charcoal mb-3">{t('widget.step5.paymentOption') || 'Payment Option'}</h3>
                     <div className="grid grid-cols-2 gap-3 mb-3">
                       <button onClick={() => updateBooking({ paymentOption: 'full' })}
-                        className={`p-4 rounded-lg border-2 text-center transition-all ${booking.paymentOption === 'full' ? 'border-terracotta bg-[rgba(199,94,58,0.04)]' : 'border-[rgba(138,130,120,0.15)] bg-white'}`}>
-                        <span className={`font-body text-sm font-semibold block ${booking.paymentOption === 'full' ? 'text-terracotta' : 'text-charcoal'}`}>{t('widget.step5.payFull') || 'Pay Full Amount'}</span>
+                        className={`p-4 rounded-lg border-2 text-center transition-all ${booking.paymentOption === 'full' ? 'border-terracotta' : 'border-[rgba(138,130,120,0.15)] bg-white'}`}
+                        style={booking.paymentOption === 'full' ? { backgroundColor: theme.primary04 } : {}}>
+                        <span className={`font-body text-sm font-semibold block`} style={{ color: booking.paymentOption === 'full' ? theme.primary : undefined }}>{t('widget.step5.payFull') || 'Pay Full Amount'}</span>
                         <span className="font-body text-xs text-warm-gray">${total.toFixed(2)} USD</span>
                       </button>
                       <button onClick={() => updateBooking({ paymentOption: 'deposit' })}
-                        className={`p-4 rounded-lg border-2 text-center transition-all ${booking.paymentOption === 'deposit' ? 'border-terracotta bg-[rgba(199,94,58,0.04)]' : 'border-[rgba(138,130,120,0.15)] bg-white'}`}>
-                        <span className={`font-body text-sm font-semibold block ${booking.paymentOption === 'deposit' ? 'text-terracotta' : 'text-charcoal'}`}>{t('widget.step5.payDeposit') || 'Pay Deposit'}</span>
+                        className={`p-4 rounded-lg border-2 text-center transition-all ${booking.paymentOption === 'deposit' ? 'border-terracotta' : 'border-[rgba(138,130,120,0.15)] bg-white'}`}
+                        style={booking.paymentOption === 'deposit' ? { backgroundColor: theme.primary04 } : {}}>
+                        <span className={`font-body text-sm font-semibold block`} style={{ color: booking.paymentOption === 'deposit' ? theme.primary : undefined }}>{t('widget.step5.payDeposit') || 'Pay Deposit'}</span>
                         <span className="font-body text-xs text-warm-gray">${depositAmount.toFixed(2)} USD ({depositPercentage}%)</span>
                       </button>
                     </div>
                     {booking.paymentOption === 'deposit' && (
-                      <div className="bg-[rgba(199,94,58,0.06)] border border-[rgba(199,94,58,0.15)] rounded-lg p-3">
+                      <div className="rounded-lg p-3" style={{ backgroundColor: theme.primary06, border: `1px solid ${theme.primary15}` }}>
                         <div className="flex justify-between mb-1">
                           <span className="font-body text-xs text-warm-gray">{t('widget.step5.depositAmount') || 'Deposit to pay now'}</span>
                           <span className="font-body text-sm font-semibold text-[#2D6A4F]">${depositAmount.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="font-body text-xs text-warm-gray">{t('widget.step5.balanceDue') || 'Balance due at service'}</span>
-                          <span className="font-body text-sm font-semibold text-terracotta">${balanceDue.toFixed(2)}</span>
+                          <span className="font-body text-sm font-semibold" style={{ color: theme.primary }}>${balanceDue.toFixed(2)}</span>
                         </div>
                       </div>
                     )}
@@ -923,7 +923,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                     ].map(method => (
                       <button key={method.id} onClick={() => updateBooking({ paymentMethod: method.id })}
                         className={`flex-1 flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all ${booking.paymentMethod === method.id ? 'border-terracotta' : 'border-[rgba(138,130,120,0.15)]'}`}>
-                        <span className={booking.paymentMethod === method.id ? 'text-terracotta' : 'text-warm-gray'}>{method.icon}</span>
+                        <span style={{ color: booking.paymentMethod === method.id ? theme.primary : undefined }} className={booking.paymentMethod === method.id ? '' : 'text-warm-gray'}>{method.icon}</span>
                         <span className="font-body text-[11px] font-medium text-charcoal">{method.label}</span>
                         {method.badge && <span className="font-body text-[9px] bg-[rgba(45,106,79,0.1)] text-[#2D6A4F] rounded-full px-1.5 py-0.5">{method.badge}</span>}
                       </button>
@@ -936,19 +936,19 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                         <div className="relative">
                           <CreditCard size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
                           <input type="text" placeholder={t('widget.step4.cardPlaceholder')}
-                            className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-10 pr-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 focus:border-terracotta outline-none transition-all" />
+                            className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-10 pr-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 outline-none transition-all focus:border-terracotta" />
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.step4.expiration')}</label>
                           <input type="text" placeholder={t('widget.step4.expirationPlaceholder')}
-                            className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 focus:border-terracotta outline-none transition-all" />
+                            className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 outline-none transition-all focus:border-terracotta" />
                         </div>
                         <div>
                           <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.step4.cvv')}</label>
                           <input type="text" placeholder={t('widget.step4.cvvPlaceholder')}
-                            className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 focus:border-terracotta outline-none transition-all" />
+                            className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 outline-none transition-all focus:border-terracotta" />
                         </div>
                       </div>
                     </div>
@@ -958,7 +958,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                 {/* Final Summary */}
                 <div className="bg-sand rounded-lg p-4 mb-4">
                   <div className="flex justify-between mb-1">
-                    <span className="font-body text-sm text-charcoal">{selectedService?.name} — {selectedDestination?.name}</span>
+                    <span className="font-body text-sm text-charcoal">{selectedService?.name} &mdash; {selectedDestination?.name}</span>
                     <span className="font-body text-sm font-medium text-charcoal">${basePrice.toFixed(2)}</span>
                   </div>
                   {booking.selectedOptionalServices.length > 0 && optionalServicesList?.filter((s: any) => booking.selectedOptionalServices.includes(s.id)).map((svc: any) => {
@@ -988,12 +988,12 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                         <span className="font-body text-[11px] text-warm-gray block">{t('widget.step5.deposit') || 'Deposit'} ({depositPercentage}%)</span>
                       )}
                     </div>
-                    <span className="font-body text-xl font-bold text-terracotta">${amountToPayNow.toFixed(2)} {t('common.usd')}</span>
+                    <span className="font-body text-xl font-bold" style={{ color: theme.primary }}>${amountToPayNow.toFixed(2)} {t('common.usd')}</span>
                   </div>
                   {booking.paymentOption === 'deposit' && depositEnabled && balanceDue > 0 && (
                     <div className="flex justify-between mt-1">
                       <span className="font-body text-xs text-warm-gray">{t('widget.step5.balanceDue') || 'Balance due at service'}</span>
-                      <span className="font-body text-sm font-semibold text-terracotta">${balanceDue.toFixed(2)}</span>
+                      <span className="font-body text-sm font-semibold" style={{ color: theme.primary }}>${balanceDue.toFixed(2)}</span>
                     </div>
                   )}
                 </div>
@@ -1008,7 +1008,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                   <PayPalButton
                     apiKey={apiKey}
                     amount={amountToPayNow.toFixed(2)}
-                    description={`${selectedService?.name} — ${selectedDestination?.name}`}
+                    description={`${selectedService?.name} &mdash; ${selectedDestination?.name}`}
                     onApproved={(orderId) => {
                       setPaypalOrderId(orderId);
                       setBookingError('');
@@ -1050,7 +1050,8 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                   />
                 ) : (
                   <button onClick={handleNext} disabled={!canProceed() || createBooking.isPending}
-                    className={`w-full h-[52px] rounded-lg font-body font-semibold text-base transition-all ${canProceed() && !bookingError ? 'bg-terracotta text-white shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5' : 'bg-terracotta/50 text-white/70 cursor-not-allowed'}`}>
+                    className={`w-full h-[52px] rounded-lg font-body font-semibold text-base transition-all ${canProceed() && !bookingError ? 'text-white hover:-translate-y-0.5' : 'cursor-not-allowed'}`}
+                    style={canProceed() && !bookingError ? { backgroundColor: theme.primary, boxShadow: `0 2px 8px ${theme.primary25}` } : { backgroundColor: theme.primary50, color: 'rgba(255,255,255,0.7)' }}>
                     {createBooking.isPending ? t('widget.step4.processing') : `${t('widget.step5.payNow') || 'Pay'} $${amountToPayNow.toFixed(2)} USD`}
                   </button>
                 )}

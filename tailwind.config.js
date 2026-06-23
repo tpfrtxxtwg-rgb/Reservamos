@@ -49,8 +49,8 @@ module.exports = {
           ring: "hsl(var(--sidebar-ring))",
         },
         terracotta: {
-          DEFAULT: '#C75E3A',
-          dark: '#A64B2D',
+          DEFAULT: 'var(--terracotta)',
+          dark: 'var(--terracotta-dark)',
         },
         sand: {
           DEFAULT: '#EADDC5',
@@ -79,7 +79,7 @@ module.exports = {
         md: "0 4px 12px rgba(0,0,0,0.08)",
         lg: "0 8px 30px rgba(0,0,0,0.12)",
         xl: "0 16px 48px rgba(0,0,0,0.15)",
-        button: "0 2px 8px rgba(199,94,58,0.25)",
+        button: "0 2px 8px rgba(var(--terracotta-rgb), 0.25)",
       },
       keyframes: {
         "accordion-down": {
