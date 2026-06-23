@@ -412,6 +412,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
         </div>
       )}
     </div>
+    </div>
   );
 
   // ─── Main Booking Widget ───
@@ -1183,6 +1184,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
           </motion.div>
         </AnimatePresence>
       </div>
+      </div>
       {/* Desktop sidebar summary */}
       {isDesktop && (
         <div className="w-[320px] flex-shrink-0 self-start sticky top-4 max-h-[calc(100vh-2rem)]">
@@ -1208,6 +1210,9 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
           </div>
         </div>
       )}
+    </div>
+    </div>
+    </div>
     </div>
   );
 }
