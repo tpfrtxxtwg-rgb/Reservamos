@@ -123,7 +123,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
   );
   const { data: vehiclesList } = trpc.widget.listVehicles.useQuery(
     { clientId: effectiveClientId, destinationId: Number(booking.destinationId) || 0, tripType: booking.tripType || 'one_way' },
-    { enabled: isReady && !!booking.destinationId && currentStep >= 3 }
+    { enabled: isReady && !!booking.destinationId && (isRoundTrip ? currentStep >= 4 : currentStep >= 3) }
   );
   const { data: airportsList } = trpc.widget.listAirports.useQuery(
     { clientId: effectiveClientId },
@@ -207,6 +207,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
   const isTourService = selectedService?.slug === 'private-tour';
   const isHourlyService = selectedService?.slug === 'hourly';
   const isRoundTrip = booking.tripType === 'round_trip';
+  const totalSteps = isRoundTrip ? 6 : 5;
 
   const canProceed = () => {
     switch (currentStep) {
@@ -217,19 +218,22 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
       case 2: {
         if (!booking.destinationId || !booking.date || !booking.time) return false;
         if (isAirportService && (!booking.flightNumber || !booking.airline)) return false;
-        if (isRoundTrip && (!booking.departureDate || !booking.departureTime || !booking.hotelPickupTime)) return false;
-        return true;
+        return true; // departure fields removed from step 2
       }
-      case 3: return !!booking.vehicleId;
-      case 4: return true; // Summary step always proceedable
-      case 5: return booking.passengerName && booking.passengerLastName && booking.passengerEmail;
+      case 3: {
+        if (!isRoundTrip) return !!booking.vehicleId; // vehicle step when one way
+        return !!booking.departureDate && !!booking.departureTime && !!booking.hotelPickupTime;
+      }
+      case 4: return !!booking.vehicleId; // vehicle step when round trip
+      case 5: return true; // summary step always proceedable
+      case 6: return booking.passengerName && booking.passengerLastName && booking.passengerEmail;
       default: return false;
     }
   };
 
   const handleNext = () => {
     setBookingError(''); // Clear previous error
-    // Validate steps 2 and 5 before proceeding
+    // Validate step 2 before proceeding
     if (currentStep === 2) {
       setFieldErrors({});
       const result = validateStep2({
@@ -240,10 +244,10 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
         flightNumber: booking.flightNumber,
         airline: booking.airline,
         isAirportService,
-        isRoundTrip,
-        departureDate: booking.departureDate,
-        departureTime: booking.departureTime,
-        hotelPickupTime: booking.hotelPickupTime,
+        isRoundTrip: false, // departure fields removed from step 2
+        departureDate: '',
+        departureTime: '',
+        hotelPickupTime: '',
       });
       if (!result.valid) {
         const errs: Record<string, string> = {};
@@ -251,7 +255,23 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
         setFieldErrors(errs);
         return;
       }
-    } else if (currentStep === 5) {
+    } else if (currentStep === 3 && isRoundTrip) {
+      // Validate departure step (round trip only)
+      setFieldErrors({});
+      const errs: Record<string, string> = {};
+      if (!booking.departureDate) errs.departureDate = 'widget.validation.required';
+      if (!booking.departureTime) errs.departureTime = 'widget.validation.required';
+      if (!booking.hotelPickupTime) errs.hotelPickupTime = 'widget.validation.required';
+      // Validate departure date is after arrival date
+      if (booking.departureDate && booking.date && booking.departureDate <= booking.date) {
+        errs.departureDate = 'widget.validation.departureBeforeArrival';
+      }
+      if (Object.keys(errs).length > 0) {
+        setFieldErrors(errs);
+        return;
+      }
+    } else if ((currentStep === 5 && !isRoundTrip) || (currentStep === 6 && isRoundTrip)) {
+      // Validate payment step (step 5 for one way, step 6 for round trip)
       setFieldErrors({});
       const result = validateStep5({
         passengerName: booking.passengerName,
@@ -266,7 +286,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
         return;
       }
     }
-    if (currentStep < 5) {
+    if (currentStep < totalSteps) {
       setDirection(1);
       setCurrentStep(s => s + 1);
     } else if (clientConfig?.id && selectedDestination && selectedVehicle && apiKey) {
@@ -305,7 +325,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
   const handleReset = () => { setBooking(initialBooking); setCurrentStep(1); setConfirmed(false); setReservationCode(''); setDestSearch(''); setShowDestSearch(false); setBookingError(''); };
   const handleCopyCode = () => { navigator.clipboard.writeText(reservationCode); setCopied(true); setTimeout(() => setCopied(false), 2000); };
 
-  const progressWidth = currentStep === 5 ? 100 : ((currentStep - 1) / 4) * 100;
+  const progressWidth = currentStep === totalSteps ? 100 : ((currentStep - 1) / (totalSteps - 1)) * 100;
 
   const filteredDestinations = destinationsList?.filter(d =>
     d.name.toLowerCase().includes(destSearch.toLowerCase())
@@ -388,14 +408,12 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
       <div className="px-5 pt-4 pb-2">
         <StepIndicator
           currentStep={currentStep}
+          totalSteps={totalSteps}
           palette={{ primary: theme.primary, primary15: theme.primary15, primary50: theme.primary50 }}
-          steps={[
-            { label: t('widget.stepLabels.service'), icon: <AirplaneLanding size={16} /> },
-            { label: t('widget.stepLabels.details'), icon: <MapPin size={16} /> },
-            { label: t('widget.stepLabels.vehicle'), icon: <Car size={16} /> },
-            { label: t('widget.stepLabels.summary'), icon: <ShoppingCart size={16} /> },
-            { label: t('widget.stepLabels.payment'), icon: <CreditCard size={16} /> },
-          ]}
+          labels={isRoundTrip
+            ? [t('widget.stepLabels.service'), t('widget.stepLabels.arrival') || 'Arrival', t('widget.stepLabels.departure') || 'Departure', t('widget.stepLabels.vehicle'), t('widget.stepLabels.summary'), t('widget.stepLabels.payment')]
+            : [t('widget.stepLabels.service'), t('widget.stepLabels.details'), t('widget.stepLabels.vehicle'), t('widget.stepLabels.summary'), t('widget.stepLabels.payment')]
+          }
         />
       </div>
       <div className="relative min-h-[420px]">
@@ -650,74 +668,6 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                     </div>
                   </div>
 
-                  {/* Departure Information (renamed from Round Trip) */}
-                  {isRoundTrip && (
-                    <div className="border-t border-[rgba(138,130,120,0.12)] pt-4">
-                      <h3 className="font-body text-sm font-semibold text-charcoal mb-3 flex items-center gap-2">
-                        <ArrowsLeftRight size={16} style={{ color: theme.primary }} />{t('widget.flight.departureTitle') || 'Departure Information'}
-                      </h3>
-
-                      {/* Departure Date & Departure Flight Time */}
-                      <div className="grid grid-cols-2 gap-3 mb-3">
-                        <div>
-                          <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.departureDate')}<span className="text-[#B23A2F] ml-0.5">*</span></label>
-                          <div className="relative">
-                            <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
-                            <input type="date" value={booking.departureDate} min={booking.date || new Date().toISOString().split('T')[0]}
-                              onChange={e => updateBooking({ departureDate: e.target.value })}
-                              className={`w-full h-11 bg-[#FAFAF8] border rounded-md pl-9 pr-3 font-body text-sm text-charcoal outline-none transition-all focus:border-terracotta ${fieldErrors.departureDate ? 'border-[rgba(178,58,47,0.5)]' : 'border-[rgba(138,130,120,0.2)]'}`} />
-                            {fieldErrors.departureDate && <p className="font-body text-[11px] text-[#B23A2F] mt-1">{t(fieldErrors.departureDate)}</p>}
-                          </div>
-                        </div>
-                        <div>
-                          <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.departureTime') || 'Departure Flight Time'}<span className="text-[#B23A2F] ml-0.5">*</span></label>
-                          <div className="relative">
-                            <Clock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
-                            <select value={booking.departureTime} onChange={e => updateBooking({ departureTime: e.target.value })}
-                              className={`w-full h-11 bg-[#FAFAF8] border rounded-md pl-9 pr-3 font-body text-sm text-charcoal outline-none transition-all appearance-none focus:border-terracotta ${fieldErrors.departureTime ? 'border-[rgba(178,58,47,0.5)]' : 'border-[rgba(138,130,120,0.2)]'}`}>
-                              <option value="">{t('widget.step2.selectTime')}</option>
-                              {timeSlots.map(o => <option key={o} value={o}>{o}</option>)}
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Departure Airline & Flight Number */}
-                      <div className="grid grid-cols-2 gap-3 mb-3">
-                        <div>
-                          <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.departureAirline') || 'Airline'}</label>
-                          <select value={booking.departureAirline} onChange={e => updateBooking({ departureAirline: e.target.value })}
-                            className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal outline-none transition-all appearance-none focus:border-terracotta">
-                            <option value="">{t('widget.flight.selectAirline') || 'Select airline'}</option>
-                            {airlines.map(a => <option key={a} value={a}>{a}</option>)}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.departureFlightNumber') || 'Flight Number'}</label>
-                          <input type="text" value={booking.departureFlightNumber} onChange={e => updateBooking({ departureFlightNumber: e.target.value })}
-                            placeholder="AA1234" className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 outline-none transition-all focus:border-terracotta" />
-                        </div>
-                      </div>
-
-                      {/* Hotel Pickup Time */}
-                      <div className="mb-2">
-                        <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.hotelPickupTime') || 'Hotel Pickup Time'}<span className="text-[#B23A2F] ml-0.5">*</span></label>
-                        <div className="relative">
-                          <Clock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
-                          <select value={booking.hotelPickupTime} onChange={e => updateBooking({ hotelPickupTime: e.target.value })}
-                            className={`w-full h-11 bg-[#FAFAF8] border rounded-md pl-9 pr-3 font-body text-sm text-charcoal outline-none transition-all appearance-none focus:border-terracotta ${fieldErrors.hotelPickupTime ? 'border-[rgba(178,58,47,0.5)]' : 'border-[rgba(138,130,120,0.2)]'}`}>
-                            <option value="">{t('widget.step2.selectTime')}</option>
-                            {timeSlots.map(o => <option key={o} value={o}>{o}</option>)}
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Recommendation comment */}
-                      <p className="font-body text-[11px] italic mt-1" style={{ color: theme.primary80 }}>
-                        * {t('widget.flight.pickupRecommendation') || 'Se recomienda agendar la reserva 3 horas antes de su vuelo'}
-                      </p>
-                    </div>
-                  )}
                 </div>
                 <button onClick={handleNext} disabled={!canProceed()}
                   className={`w-full flex items-center justify-center gap-2 h-12 rounded-full font-body font-semibold text-sm transition-all ${canProceed() ? 'text-white hover:-translate-y-0.5' : 'cursor-not-allowed'}`}
@@ -727,8 +677,83 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
               </div>
             )}
 
-            {/* Step 3 - Vehicle Selection */}
-            {currentStep === 3 && (
+            {/* Step 3 - Departure Information (Round Trip Only) */}
+            {currentStep === 3 && isRoundTrip && (
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <button onClick={handleBack} className="text-warm-gray hover:text-charcoal transition-colors"><ArrowLeft size={20} /></button>
+                  <h2 className="font-display text-[22px] font-bold text-charcoal">{t('widget.flight.departureTitle') || 'Departure Information'}</h2>
+                </div>
+                <p className="font-body text-[13px] text-warm-gray mb-4">{t('widget.flight.departureSubtitle') || 'Enter your departure flight details'}</p>
+                <div className="space-y-4 mb-6">
+                  {/* Departure Date & Time */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.departureDate')}<span className="text-[#B23A2F] ml-0.5">*</span></label>
+                      <div className="relative">
+                        <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
+                        <input type="date" value={booking.departureDate} min={booking.date || new Date().toISOString().split('T')[0]}
+                          onChange={e => updateBooking({ departureDate: e.target.value })}
+                          className={`w-full h-11 bg-[#FAFAF8] border rounded-md pl-9 pr-3 font-body text-sm text-charcoal outline-none transition-all focus:border-terracotta ${fieldErrors.departureDate ? 'border-[rgba(178,58,47,0.5)]' : 'border-[rgba(138,130,120,0.2)]'}`} />
+                        {fieldErrors.departureDate && <p className="font-body text-[11px] text-[#B23A2F] mt-1">{t(fieldErrors.departureDate)}</p>}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.departureTime') || 'Departure Flight Time'}<span className="text-[#B23A2F] ml-0.5">*</span></label>
+                      <div className="relative">
+                        <Clock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
+                        <select value={booking.departureTime} onChange={e => updateBooking({ departureTime: e.target.value })}
+                          className={`w-full h-11 bg-[#FAFAF8] border rounded-md pl-9 pr-3 font-body text-sm text-charcoal outline-none transition-all appearance-none focus:border-terracotta ${fieldErrors.departureTime ? 'border-[rgba(178,58,47,0.5)]' : 'border-[rgba(138,130,120,0.2)]'}`}>
+                          <option value="">{t('widget.step2.selectTime')}</option>
+                          {timeSlots.map(o => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Departure Airline & Flight Number */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.departureAirline') || 'Airline'}</label>
+                      <select value={booking.departureAirline} onChange={e => updateBooking({ departureAirline: e.target.value })}
+                        className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal outline-none transition-all appearance-none focus:border-terracotta">
+                        <option value="">{t('widget.flight.selectAirline') || 'Select airline'}</option>
+                        {airlines.map(a => <option key={a} value={a}>{a}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.departureFlightNumber') || 'Flight Number'}</label>
+                      <input type="text" value={booking.departureFlightNumber} onChange={e => updateBooking({ departureFlightNumber: e.target.value })}
+                        placeholder="AA1234" className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 outline-none transition-all focus:border-terracotta" />
+                    </div>
+                  </div>
+                  {/* Hotel Pickup Time */}
+                  <div>
+                    <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.hotelPickupTime') || 'Hotel Pickup Time'}<span className="text-[#B23A2F] ml-0.5">*</span></label>
+                    <div className="relative">
+                      <Clock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
+                      <select value={booking.hotelPickupTime} onChange={e => updateBooking({ hotelPickupTime: e.target.value })}
+                        className={`w-full h-11 bg-[#FAFAF8] border rounded-md pl-9 pr-3 font-body text-sm text-charcoal outline-none transition-all appearance-none focus:border-terracotta ${fieldErrors.hotelPickupTime ? 'border-[rgba(178,58,47,0.5)]' : 'border-[rgba(138,130,120,0.2)]'}`}>
+                        <option value="">{t('widget.step2.selectTime')}</option>
+                        {timeSlots.map(o => <option key={o} value={o}>{o}</option>)}
+                      </select>
+                    </div>
+                    {fieldErrors.hotelPickupTime && <p className="font-body text-[11px] text-[#B23A2F] mt-1">{t(fieldErrors.hotelPickupTime)}</p>}
+                  </div>
+                  {/* Recommendation */}
+                  <p className="font-body text-[11px] italic mt-1" style={{ color: theme.primary80 }}>
+                    * {t('widget.flight.pickupRecommendation') || 'We recommend scheduling pickup 3 hours before your flight'}
+                  </p>
+                </div>
+                <button onClick={handleNext}
+                  className={`w-full flex items-center justify-center gap-2 h-12 rounded-full font-body font-semibold text-sm transition-all ${canProceed() ? 'text-white hover:-translate-y-0.5' : 'cursor-not-allowed'}`}
+                  style={canProceed() ? { backgroundColor: theme.primary, boxShadow: `0 2px 8px ${theme.primary25}` } : { backgroundColor: theme.primary50, color: 'rgba(255,255,255,0.7)' }}>
+                  {t('common.continue')} <ArrowRight size={16} />
+                </button>
+              </div>
+            )}
+
+            {/* Step 3 - Vehicle Selection (One Way) / Step 4 - Vehicle Selection (Round Trip) */}
+            {((currentStep === 3 && !isRoundTrip) || (currentStep === 4 && isRoundTrip)) && (
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <button onClick={handleBack} className="text-warm-gray hover:text-charcoal transition-colors"><ArrowLeft size={20} /></button>
@@ -737,7 +762,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                 <div className="bg-sand rounded-lg p-3 mb-4">
                   <div className="flex items-center justify-between">
                     <span className="font-body text-xs font-medium text-charcoal">{selectedDestination?.name}</span>
-                    <button onClick={() => { setDirection(-1); setCurrentStep(2); }} className="font-body text-xs font-medium hover:underline" style={{ color: theme.primary }}>{t('common.edit')}</button>
+                    <button onClick={() => { setDirection(-1); setCurrentStep(isRoundTrip ? 3 : 2); }} className="font-body text-xs font-medium hover:underline" style={{ color: theme.primary }}>{t('common.edit')}</button>
                   </div>
                   <div className="font-body text-[11px] text-warm-gray mt-1">{booking.date} &middot; {booking.time} &middot; {booking.passengers} {t('common.passengers')}</div>
                 </div>
@@ -786,8 +811,8 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
               </div>
             )}
 
-            {/* Step 4 - Summary + Optional Services */}
-            {currentStep === 4 && (
+            {/* Step 4 - Summary + Optional Services (One Way) / Step 5 - Summary (Round Trip) */}
+            {((currentStep === 4 && !isRoundTrip) || (currentStep === 5 && isRoundTrip)) && (
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <button onClick={handleBack} className="text-warm-gray hover:text-charcoal transition-colors"><ArrowLeft size={20} /></button>
@@ -898,8 +923,8 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
               </div>
             )}
 
-            {/* Step 5 - Payment: Passenger Data + Payment Option + Method */}
-            {currentStep === 5 && (
+            {/* Step 5 - Payment (One Way) / Step 6 - Payment (Round Trip) */}
+            {((currentStep === 5 && !isRoundTrip) || (currentStep === 6 && isRoundTrip)) && (
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <button onClick={handleBack} className="text-warm-gray hover:text-charcoal transition-colors"><ArrowLeft size={20} /></button>

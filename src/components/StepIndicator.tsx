@@ -5,38 +5,37 @@ import {
   Car,
   ShoppingCart,
   CreditCard,
+  ArrowsLeftRight,
   Check,
 } from '@phosphor-icons/react';
 import type { ReactNode } from 'react';
 
 export interface StepIndicatorProps {
-  currentStep: number; // 1-5
+  currentStep: number;
+  totalSteps: number;
   palette: {
     primary: string;
     primary15: string;
     primary50: string;
   };
-  steps?: Array<{
-    label: string;
-    icon: ReactNode;
-  }>;
+  labels: string[];
 }
 
-const defaultSteps: Array<{ label: string; icon: ReactNode }> = [
-  { label: 'Route', icon: <AirplaneLanding size={16} weight="bold" /> },
-  { label: 'Location', icon: <MapPin size={16} weight="bold" /> },
-  { label: 'Vehicle', icon: <Car size={16} weight="bold" /> },
-  { label: 'Extras', icon: <ShoppingCart size={16} weight="bold" /> },
-  { label: 'Payment', icon: <CreditCard size={16} weight="bold" /> },
+const stepIcons: ReactNode[] = [
+  <AirplaneLanding size={14} weight="bold" />,
+  <MapPin size={14} weight="bold" />,
+  <ArrowsLeftRight size={14} weight="bold" />,
+  <Car size={14} weight="bold" />,
+  <ShoppingCart size={14} weight="bold" />,
+  <CreditCard size={14} weight="bold" />,
 ];
 
 export default function StepIndicator({
   currentStep,
+  totalSteps,
   palette,
-  steps = defaultSteps,
+  labels,
 }: StepIndicatorProps) {
-  const totalSteps = steps.length;
-
   const getStepState = (index: number): 'completed' | 'current' | 'upcoming' => {
     const stepNum = index + 1;
     if (stepNum < currentStep) return 'completed';
@@ -46,25 +45,28 @@ export default function StepIndicator({
 
   return (
     <div className="w-full">
-      {/* Mobile: step counter text */}
+      {/* Step counter - visible on mobile */}
       <p className="mb-3 text-center text-[11px] font-medium text-[#8A8278] sm:hidden">
         Step {currentStep} of {totalSteps}
       </p>
 
-      <div className="flex w-full items-center justify-between">
-        {steps.map((step, index) => {
+      <div className="flex w-full items-center">
+        {Array.from({ length: totalSteps }, (_, index) => {
           const state = getStepState(index);
           const isLast = index === totalSteps - 1;
+          const label = labels[index] || '';
 
           return (
-            <div key={index} className="flex flex-1 items-center">
+            <div key={index} className="flex items-center flex-1">
               {/* Step circle + label */}
               <div className="flex flex-col items-center gap-1.5">
                 {/* Circle */}
                 <motion.div
-                  className="relative flex items-center justify-center rounded-full sm:h-9 sm:w-9 h-7 w-7"
+                  className="relative flex items-center justify-center rounded-full"
                   initial={false}
                   animate={{
+                    width: state === 'current' ? 38 : 32,
+                    height: state === 'current' ? 38 : 32,
                     backgroundColor:
                       state === 'upcoming' ? 'transparent' : palette.primary,
                     borderColor:
@@ -82,88 +84,58 @@ export default function StepIndicator({
                   {state === 'current' && (
                     <motion.div
                       className="absolute inset-0 rounded-full"
-                      style={{ backgroundColor: palette.primary }}
-                      initial={{ scale: 1, opacity: 0.35 }}
-                      animate={{ scale: 1.6, opacity: 0 }}
-                      transition={{
-                        repeat: Infinity,
-                        duration: 1.6,
-                        ease: 'easeOut',
-                      }}
+                      style={{ border: `2px solid ${palette.primary}` }}
+                      animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
+                      transition={{ duration: 2, repeat: Infinity }}
                     />
                   )}
-
                   {/* Icon */}
                   <AnimatePresence mode="wait">
                     {state === 'completed' ? (
                       <motion.div
                         key="check"
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0, opacity: 0 }}
-                        transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                        transition={{ type: 'spring', stiffness: 500, damping: 25 }}
                       >
-                        <Check
-                          size={16}
-                          weight="bold"
-                          className="text-white sm:size-4 size-3.5"
-                        />
+                        <Check size={14} weight="bold" className="text-white" />
                       </motion.div>
                     ) : (
-                      <motion.div
-                        key="icon"
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0, opacity: 0 }}
-                        transition={{ type: 'spring', stiffness: 500, damping: 20 }}
-                        style={{
-                          color: state === 'current' ? '#FFFFFF' : '#8A8278',
-                        }}
-                        className="relative z-10"
+                      <span
+                        className={state === 'current' ? 'text-white' : 'text-[#8A8278]'}
                       >
-                        {step.icon}
-                      </motion.div>
+                        {stepIcons[index] || stepIcons[stepIcons.length - 1]}
+                      </span>
                     )}
                   </AnimatePresence>
                 </motion.div>
 
-                {/* Label */}
+                {/* Label - hidden on mobile */}
                 <span
-                  className={`hidden text-[11px] leading-tight sm:block whitespace-nowrap ${
-                    state === 'upcoming' ? 'text-[#8A8278]' : 'text-[#2D2A26] font-medium'
+                  className={`hidden sm:block font-body text-[10px] whitespace-nowrap ${
+                    state === 'upcoming' ? 'text-[#8A8278]' : 'text-charcoal font-medium'
                   }`}
                 >
-                  {step.label}
+                  {label}
                 </span>
               </div>
 
-              {/* Connector line */}
+              {/* Connector line (not after last step) */}
               {!isLast && (
-                <div className="relative mx-1 sm:mx-2 flex h-0.5 flex-1 items-center">
-                  {/* Background line (light) */}
+                <div className="flex-1 h-0.5 mx-1 sm:mx-2 relative overflow-hidden rounded-full">
                   <div
-                    className="absolute inset-0 h-full rounded-full"
-                    style={{ backgroundColor: 'rgba(138, 130, 120, 0.12)' }}
+                    className="absolute inset-0 rounded-full"
+                    style={{ backgroundColor: palette.primary15 }}
                   />
-                  {/* Active line */}
                   <motion.div
-                    className="absolute left-0 top-0 h-full rounded-full"
+                    className="absolute inset-y-0 left-0 rounded-full"
+                    style={{ backgroundColor: palette.primary }}
                     initial={false}
                     animate={{
-                      width:
-                        state === 'completed'
-                          ? '100%'
-                          : state === 'current'
-                            ? '100%'
-                            : '0%',
-                      backgroundColor:
-                        state === 'completed'
-                          ? palette.primary
-                          : state === 'current'
-                            ? palette.primary15
-                            : 'transparent',
+                      width: index < currentStep - 1 ? '100%' : '0%',
                     }}
-                    transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+                    transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
                   />
                 </div>
               )}
