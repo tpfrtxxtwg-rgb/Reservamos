@@ -6,13 +6,15 @@ import {
   MapPin, Calendar, Users, Check, ShieldCheck,
   CreditCard, PaypalLogo, Money, ArrowRight, Copy,
   WifiHigh, Drop, Television, Wine, Snowflake, ArrowLeft,
-  ArrowsLeftRight, Buildings,
+  ArrowsLeftRight, Buildings, Car,
   ShoppingCart, Suitcase, Package, AirplaneTilt,
 } from '@phosphor-icons/react';
 import { trpc } from '@/providers/trpc.tsx';
 import type { BookingData } from '@/types';
 import PayPalButton from '@/components/PayPalButton';
 import { useWidgetTheme } from '@/hooks/useWidgetTheme';
+import StepIndicator from '@/components/StepIndicator';
+import { validateStep2, validateStep5 } from '@/lib/widget-validation';
 
 interface BookingWidgetProps {
   apiKey?: string;
@@ -85,6 +87,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
   const [destSearch, setDestSearch] = useState('');
   const [showDestSearch, setShowDestSearch] = useState(false);
   const [bookingError, setBookingError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [paypalOrderId, setPaypalOrderId] = useState('');
 
   // Query client config from apiKey
@@ -155,7 +158,19 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
   const updateBooking = useCallback((updates: Partial<BookingData>) => {
     setBooking(prev => ({ ...prev, ...updates }));
     setBookingError(''); // Clear error when user changes something
+    // Clear field errors for updated fields
+    setFieldErrors(prev => {
+      const cleared = { ...prev };
+      Object.keys(updates).forEach(k => { delete cleared[k]; });
+      return cleared;
+    });
   }, []);
+
+  const clearFieldError = useCallback((field: string) => {
+    setFieldErrors(prev => { const next = { ...prev }; delete next[field]; return next; });
+  }, []);
+
+
 
   const selectedService = servicesList?.find(s => s.id === Number(booking.serviceId));
   const selectedDestination = destinationsList?.find(d => d.id === Number(booking.destinationId));
@@ -214,6 +229,43 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
 
   const handleNext = () => {
     setBookingError(''); // Clear previous error
+    // Validate steps 2 and 5 before proceeding
+    if (currentStep === 2) {
+      setFieldErrors({});
+      const result = validateStep2({
+        origin: booking.origin,
+        date: booking.date,
+        time: booking.time,
+        destinationId: booking.destinationId,
+        flightNumber: booking.flightNumber,
+        airline: booking.airline,
+        isAirportService,
+        isRoundTrip,
+        departureDate: booking.departureDate,
+        departureTime: booking.departureTime,
+        hotelPickupTime: booking.hotelPickupTime,
+      });
+      if (!result.valid) {
+        const errs: Record<string, string> = {};
+        result.errors.forEach(e => { errs[e.field] = e.message; });
+        setFieldErrors(errs);
+        return;
+      }
+    } else if (currentStep === 5) {
+      setFieldErrors({});
+      const result = validateStep5({
+        passengerName: booking.passengerName,
+        passengerLastName: booking.passengerLastName,
+        passengerEmail: booking.passengerEmail,
+        passengerPhone: booking.passengerPhone,
+      });
+      if (!result.valid) {
+        const errs: Record<string, string> = {};
+        result.errors.forEach(e => { errs[e.field] = e.message; });
+        setFieldErrors(errs);
+        return;
+      }
+    }
     if (currentStep < 5) {
       setDirection(1);
       setCurrentStep(s => s + 1);
@@ -332,9 +384,19 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
           <span className="font-body text-[11px] hidden sm:inline">{t('common.securePayment')}</span>
         </div>
       </div>
-      {/* Progress Bar */}
-      <div className="h-[3px]" style={{ backgroundColor: theme.primary15 }}>
-        <motion.div className="h-full bg-terracotta" initial={false} animate={{ width: `${progressWidth}%` }} transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }} />
+      {/* Step Progress Indicator */}
+      <div className="px-5 pt-4 pb-2">
+        <StepIndicator
+          currentStep={currentStep}
+          palette={{ primary: theme.primary, primary15: theme.primary15, primary50: theme.primary50 }}
+          steps={[
+            { label: t('widget.stepLabels.service'), icon: <AirplaneLanding size={16} /> },
+            { label: t('widget.stepLabels.details'), icon: <MapPin size={16} /> },
+            { label: t('widget.stepLabels.vehicle'), icon: <Car size={16} /> },
+            { label: t('widget.stepLabels.summary'), icon: <ShoppingCart size={16} /> },
+            { label: t('widget.stepLabels.payment'), icon: <CreditCard size={16} /> },
+          ]}
+        />
       </div>
       <div className="relative min-h-[420px]">
         <AnimatePresence mode="wait" custom={direction}>
@@ -412,11 +474,11 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
 
                   {/* Pickup Location (Origin Airport) - pre-filled */}
                   <div>
-                    <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 block">{t('widget.step2.pickupLocation') || 'Pickup Location'}</label>
+                    <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 block">{t('widget.step2.pickupLocation') || 'Pickup Location'}<span className="text-[#B23A2F] ml-0.5">*</span></label>
                     <div className="relative">
                       <AirplaneTilt size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
                       <select value={booking.origin} onChange={e => updateBooking({ origin: e.target.value })}
-                        className="w-full h-12 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-10 pr-4 font-body text-sm text-charcoal outline-none transition-all appearance-none focus:border-terracotta"
+                        className={`w-full h-12 bg-[#FAFAF8] border rounded-md pl-10 pr-4 font-body text-sm text-charcoal outline-none transition-all appearance-none focus:border-terracotta ${fieldErrors.origin ? 'border-[rgba(178,58,47,0.5)]' : 'border-[rgba(138,130,120,0.2)]'}`}
                         style={{ '--tw-ring-color': theme.primary10 } as React.CSSProperties}>
                         <option value="">{t('widget.step2.selectAirport') || 'Select airport'}</option>
                         {airportsList && airportsList.length > 0 ? (
@@ -443,20 +505,21 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                   {/* Date & Time */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 block">{t('widget.step2.date')}</label>
+                      <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 block">{t('widget.step2.date')}<span className="text-[#B23A2F] ml-0.5">*</span></label>
                       <div className="relative">
                         <Calendar size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
                         <input type="date" value={booking.date} min={new Date().toISOString().split('T')[0]}
                           onChange={e => updateBooking({ date: e.target.value })}
-                          className="w-full h-12 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-10 pr-4 font-body text-sm text-charcoal outline-none transition-all focus:border-terracotta" />
+                          className={`w-full h-12 bg-[#FAFAF8] border rounded-md pl-10 pr-4 font-body text-sm text-charcoal outline-none transition-all focus:border-terracotta ${fieldErrors.date ? 'border-[rgba(178,58,47,0.5)]' : 'border-[rgba(138,130,120,0.2)]'}`} />
+                        {fieldErrors.date && <p className="font-body text-[11px] text-[#B23A2F] mt-1">{t(fieldErrors.date)}</p>}
                       </div>
                     </div>
                     <div>
-                      <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 block">{t('widget.step2.time')}</label>
+                      <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 block">{t('widget.step2.time')}<span className="text-[#B23A2F] ml-0.5">*</span></label>
                       <div className="relative">
                         <Clock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
                         <select value={booking.time} onChange={e => updateBooking({ time: e.target.value })}
-                          className="w-full h-12 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-10 pr-4 font-body text-sm text-charcoal outline-none transition-all appearance-none focus:border-terracotta">
+                          className={`w-full h-12 bg-[#FAFAF8] border rounded-md pl-10 pr-4 font-body text-sm text-charcoal outline-none transition-all appearance-none focus:border-terracotta ${fieldErrors.time ? 'border-[rgba(178,58,47,0.5)]' : 'border-[rgba(138,130,120,0.2)]'}`}>
                           <option value="">{t('widget.step2.selectTime')}</option>
                           {timeSlots.map(o => <option key={o} value={o}>{o}</option>)}
                         </select>
@@ -472,17 +535,18 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                       </h3>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.airline')}</label>
+                          <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.airline')}<span className="text-[#B23A2F] ml-0.5">*</span></label>
                           <select value={booking.airline} onChange={e => updateBooking({ airline: e.target.value })}
-                            className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal outline-none transition-all appearance-none focus:border-terracotta">
+                            className={`w-full h-11 bg-[#FAFAF8] border rounded-md px-3 font-body text-sm text-charcoal outline-none transition-all appearance-none focus:border-terracotta ${fieldErrors.airline ? 'border-[rgba(178,58,47,0.5)]' : 'border-[rgba(138,130,120,0.2)]'}`}>
                             <option value="">{t('widget.flight.selectAirline') || 'Select airline'}</option>
                             {airlines.map(a => <option key={a} value={a}>{a}</option>)}
                           </select>
                         </div>
                         <div>
-                          <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.flightNumber')}</label>
+                          <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.flightNumber')}<span className="text-[#B23A2F] ml-0.5">*</span></label>
                           <input type="text" value={booking.flightNumber} onChange={e => updateBooking({ flightNumber: e.target.value })}
-                            placeholder="AA1234" className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 outline-none transition-all focus:border-terracotta" />
+                            placeholder="AA1234" className={`w-full h-11 bg-[#FAFAF8] border rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 outline-none transition-all focus:border-terracotta ${fieldErrors.flightNumber ? 'border-[rgba(178,58,47,0.5)]' : 'border-[rgba(138,130,120,0.2)]'}`} />
+                          {fieldErrors.flightNumber && <p className="font-body text-[11px] text-[#B23A2F] mt-1">{t(fieldErrors.flightNumber)}</p>}
                         </div>
                       </div>
                     </div>
@@ -490,7 +554,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
 
                   {/* Hotel Destination - Collapsible Search */}
                   <div>
-                    <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 block">{t('widget.step2.destination') || 'Hotel / Destination'}</label>
+                    <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 block">{t('widget.step2.destination') || 'Hotel / Destination'}<span className="text-[#B23A2F] ml-0.5">*</span></label>
 
                     {/* Selected destination badge */}
                     {booking.destinationId && selectedDestination && (
@@ -596,20 +660,21 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                       {/* Departure Date & Departure Flight Time */}
                       <div className="grid grid-cols-2 gap-3 mb-3">
                         <div>
-                          <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.departureDate')}</label>
+                          <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.departureDate')}<span className="text-[#B23A2F] ml-0.5">*</span></label>
                           <div className="relative">
                             <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
                             <input type="date" value={booking.departureDate} min={booking.date || new Date().toISOString().split('T')[0]}
                               onChange={e => updateBooking({ departureDate: e.target.value })}
-                              className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-9 pr-3 font-body text-sm text-charcoal outline-none transition-all focus:border-terracotta" />
+                              className={`w-full h-11 bg-[#FAFAF8] border rounded-md pl-9 pr-3 font-body text-sm text-charcoal outline-none transition-all focus:border-terracotta ${fieldErrors.departureDate ? 'border-[rgba(178,58,47,0.5)]' : 'border-[rgba(138,130,120,0.2)]'}`} />
+                            {fieldErrors.departureDate && <p className="font-body text-[11px] text-[#B23A2F] mt-1">{t(fieldErrors.departureDate)}</p>}
                           </div>
                         </div>
                         <div>
-                          <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.departureTime') || 'Departure Flight Time'}</label>
+                          <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.departureTime') || 'Departure Flight Time'}<span className="text-[#B23A2F] ml-0.5">*</span></label>
                           <div className="relative">
                             <Clock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
                             <select value={booking.departureTime} onChange={e => updateBooking({ departureTime: e.target.value })}
-                              className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-9 pr-3 font-body text-sm text-charcoal outline-none transition-all appearance-none focus:border-terracotta">
+                              className={`w-full h-11 bg-[#FAFAF8] border rounded-md pl-9 pr-3 font-body text-sm text-charcoal outline-none transition-all appearance-none focus:border-terracotta ${fieldErrors.departureTime ? 'border-[rgba(178,58,47,0.5)]' : 'border-[rgba(138,130,120,0.2)]'}`}>
                               <option value="">{t('widget.step2.selectTime')}</option>
                               {timeSlots.map(o => <option key={o} value={o}>{o}</option>)}
                             </select>
@@ -636,11 +701,11 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
 
                       {/* Hotel Pickup Time */}
                       <div className="mb-2">
-                        <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.hotelPickupTime') || 'Hotel Pickup Time'}</label>
+                        <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.flight.hotelPickupTime') || 'Hotel Pickup Time'}<span className="text-[#B23A2F] ml-0.5">*</span></label>
                         <div className="relative">
                           <Clock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray" />
                           <select value={booking.hotelPickupTime} onChange={e => updateBooking({ hotelPickupTime: e.target.value })}
-                            className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-9 pr-3 font-body text-sm text-charcoal outline-none transition-all appearance-none focus:border-terracotta">
+                            className={`w-full h-11 bg-[#FAFAF8] border rounded-md pl-9 pr-3 font-body text-sm text-charcoal outline-none transition-all appearance-none focus:border-terracotta ${fieldErrors.hotelPickupTime ? 'border-[rgba(178,58,47,0.5)]' : 'border-[rgba(138,130,120,0.2)]'}`}>
                             <option value="">{t('widget.step2.selectTime')}</option>
                             {timeSlots.map(o => <option key={o} value={o}>{o}</option>)}
                           </select>
@@ -846,20 +911,23 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                   <h3 className="font-body text-sm font-semibold text-charcoal mb-3">{t('widget.step4.passengerData')}</h3>
                   <div className="grid grid-cols-2 gap-3 mb-3">
                     <div>
-                      <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.step4.firstName')}</label>
+                      <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.step4.firstName')}<span className="text-[#B23A2F] ml-0.5">*</span></label>
                       <input type="text" value={booking.passengerName} onChange={e => updateBooking({ passengerName: e.target.value })}
-                        className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal outline-none transition-all focus:border-terracotta" />
+                        className={`w-full h-11 bg-[#FAFAF8] border rounded-md px-3 font-body text-sm text-charcoal outline-none transition-all focus:border-terracotta ${fieldErrors.passengerName ? 'border-[rgba(178,58,47,0.5)]' : 'border-[rgba(138,130,120,0.2)]'}`} />
+                      {fieldErrors.passengerName && <p className="font-body text-[11px] text-[#B23A2F] mt-1">{t(fieldErrors.passengerName)}</p>}
                     </div>
                     <div>
-                      <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.step4.lastName')}</label>
+                      <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.step4.lastName')}<span className="text-[#B23A2F] ml-0.5">*</span></label>
                       <input type="text" value={booking.passengerLastName} onChange={e => updateBooking({ passengerLastName: e.target.value })}
-                        className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal outline-none transition-all focus:border-terracotta" />
+                        className={`w-full h-11 bg-[#FAFAF8] border rounded-md px-3 font-body text-sm text-charcoal outline-none transition-all focus:border-terracotta ${fieldErrors.passengerLastName ? 'border-[rgba(178,58,47,0.5)]' : 'border-[rgba(138,130,120,0.2)]'}`} />
+                      {fieldErrors.passengerLastName && <p className="font-body text-[11px] text-[#B23A2F] mt-1">{t(fieldErrors.passengerLastName)}</p>}
                     </div>
                   </div>
                   <div className="mb-3">
-                    <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.step4.email')}</label>
+                    <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.step4.email')}<span className="text-[#B23A2F] ml-0.5">*</span></label>
                     <input type="email" value={booking.passengerEmail} onChange={e => updateBooking({ passengerEmail: e.target.value })}
-                      className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal outline-none transition-all focus:border-terracotta" />
+                      className={`w-full h-11 bg-[#FAFAF8] border rounded-md px-3 font-body text-sm text-charcoal outline-none transition-all focus:border-terracotta ${fieldErrors.passengerEmail ? 'border-[rgba(178,58,47,0.5)]' : 'border-[rgba(138,130,120,0.2)]'}`} />
+                    {fieldErrors.passengerEmail && <p className="font-body text-[11px] text-[#B23A2F] mt-1">{t(fieldErrors.passengerEmail)}</p>}
                   </div>
                   <div className="mb-3">
                     <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.step4.phone')}</label>
@@ -868,8 +936,9 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                         <option>+52</option><option>+1</option><option>+44</option>
                       </select>
                       <input type="tel" value={booking.passengerPhone} onChange={e => updateBooking({ passengerPhone: e.target.value })}
-                        className="flex-1 h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 outline-none transition-all focus:border-terracotta" />
+                        className={`flex-1 h-11 bg-[#FAFAF8] border rounded-md px-3 font-body text-sm text-charcoal placeholder:text-warm-gray/50 outline-none transition-all focus:border-terracotta ${fieldErrors.passengerPhone ? 'border-[rgba(178,58,47,0.5)]' : 'border-[rgba(138,130,120,0.2)]'}`} />
                     </div>
+                    {fieldErrors.passengerPhone && <p className="font-body text-[11px] text-[#B23A2F] mt-1">{t(fieldErrors.passengerPhone)}</p>}
                   </div>
                   <div>
                     <label className="font-body text-[11px] text-warm-gray mb-1 block">{t('widget.step4.specialNotes')}</label>
