@@ -42,7 +42,12 @@
     "flightNumber": "Número do Voo",
     "airline": "Companhia Aérea",
     "departureDate": "Data de Partida",
-    "departureTime": "Hora de Partida"
+    "departureTime": "Hora de Partida",
+    "add": "Adicionar",
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "all": "Todos",
+    "logout": "Sair"
   },
   "header": {
     "product": "Produto",
@@ -171,6 +176,31 @@
       "passengers": "passageiros",
       "continueToPayment": "Continuar para Pagamento"
     },
+    "summary": {
+      "title": "Sua Reserva",
+      "empty": "Complete os passos para ver o resumo da sua reserva.",
+      "freeCancellation": "Cancelamento gratuito"
+    },
+    "validation": {
+      "required": "Este campo é obrigatório",
+      "invalidEmail": "Digite um endereço de e-mail válido",
+      "invalidPhone": "Digite um número de telefone válido (mín. 7 dígitos)",
+      "pastDate": "A data não pode ser no passado",
+      "departureBeforeArrival": "A data de partida deve ser posterior à chegada",
+      "invalidFlightNumber": "Digite um número de voo válido",
+      "stepIncomplete": "Por favor, preencha todos os campos obrigatórios"
+    },
+    "step": "Passo",
+    "of": "de",
+    "stepLabels": {
+      "service": "Serviço",
+      "details": "Detalhes",
+      "arrival": "Chegada",
+      "departure": "Partida",
+      "vehicle": "Veículo",
+      "summary": "Resumo",
+      "payment": "Pagamento"
+    },
     "flight": {
       "title": "Informação do Voo",
       "flightInfo": "Informação do Voo",
@@ -185,6 +215,7 @@
       "arrivalTime": "Hora de Chegada",
       "roundTripDetails": "Detalhes da Volta",
       "departureTitle": "Informações de Partida",
+      "departureSubtitle": "Digite os detalhes do seu voo de partida",
       "hotelPickupTime": "Hora de Pickup no Hotel",
       "pickupRecommendation": "Recomendamos agendar o pickup 3 horas antes do seu voo"
     },
@@ -358,7 +389,45 @@
     "couponCreated": "Cupom criado com sucesso",
     "noCoupons": "Ainda não há cupons. Crie seu primeiro código de desconto.",
     "couponPreview": "Pré-visualização",
-    "couponDescPlaceholder": "ex. Promoção de lançamento 2025"
+    "couponDescPlaceholder": "ex. Promoção de lançamento 2025",
+    "confirmDelete": "Excluir esta zona?",
+    "noZones": "Nenhuma zona criada",
+    "dateRange": "Intervalo de Datas",
+    "byZoneVehicle": "Reservas por Zona e Veículo",
+    "byServiceType": "Por Tipo de Serviço (Simples / Ida e Volta)",
+    "zone": "Zona",
+    "services": "Serviços",
+    "companyProfileDesc": "Gerencie as informações e marca da sua empresa",
+    "companyName": "Nome da Empresa",
+    "adminEmail": "Email do Admin",
+    "website": "Website",
+    "phone": "Telefone",
+    "description": "Descrição",
+    "logoUrl": "URL do Logo",
+    "companyInfo": "Informações da Empresa",
+    "accountSecurity": "Segurança da Conta",
+    "accountSecurityDesc": "Atualize suas credenciais de acesso",
+    "currentLoginEmail": "Email de Login Atual",
+    "changeEmail": "Alterar Email",
+    "changePassword": "Alterar Senha",
+    "newLoginEmail": "Novo Email de Login",
+    "currentPassword": "Senha Atual",
+    "updateEmail": "Atualizar Email",
+    "emailRequired": "O email é obrigatório",
+    "currentPasswordRequired": "A senha atual é obrigatória",
+    "emailUpdated": "Email atualizado com sucesso",
+    "newPassword": "Nova Senha",
+    "confirmNewPassword": "Confirmar Nova Senha",
+    "passwordMinLength": "A senha deve ter pelo menos 8 caracteres",
+    "passwordRequired": "A senha é obrigatória",
+    "passwordsDoNotMatch": "As senhas não coincidem",
+    "updatePassword": "Atualizar Senha",
+    "passwordUpdated": "Senha atualizada com sucesso",
+    "discount": "Desconto",
+    "uses": "Usos",
+    "status": "Status",
+    "validUntil": "Válido Até",
+    "previewWidget": "Pré-visualizar Widget"
   },
   "login": {
     "title": "Entrar",
@@ -397,5 +466,19 @@
     "en": "English",
     "es": "Español",
     "pt": "Português"
+  },
+  "widgetPreview": {
+    "title": "Pré-visualização do Widget",
+    "preview": "Pré-visualização",
+    "embedCode": "Código de Inserção",
+    "howItLooks": "Como Parece",
+    "description": "Seu widget de reservas está pronto para ser integrado ao seu site.",
+    "bookingEngine": "Motor de Reservas",
+    "addToWebsite": "Adicionar ao Seu Site",
+    "embedInstructions": "Copie e cole este código no HTML do seu site:",
+    "method1": "Método 1: Código de Inserção (Recomendado)",
+    "method2": "Método 2: Link Direto",
+    "directLink": "Link Direto",
+    "directLinkDesc": "Compartilhe este link com seus clientes para reservas diretas:"
   }
 }

@@ -42,7 +42,12 @@
     "flightNumber": "Número de Vuelo",
     "airline": "Aerolínea",
     "departureDate": "Fecha de Salida",
-    "departureTime": "Hora de Salida"
+    "departureTime": "Hora de Salida",
+    "add": "Agregar",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "all": "Todos",
+    "logout": "Cerrar Sesión"
   },
   "header": {
     "product": "Producto",
@@ -171,6 +176,31 @@
       "passengers": "pasajeros",
       "continueToPayment": "Continuar al Pago"
     },
+    "summary": {
+      "title": "Tu Reserva",
+      "empty": "Completa los pasos para ver el resumen de tu reserva.",
+      "freeCancellation": "Cancelación gratuita"
+    },
+    "validation": {
+      "required": "Este campo es obligatorio",
+      "invalidEmail": "Ingresa un correo electrónico válido",
+      "invalidPhone": "Ingresa un número de teléfono válido (mín. 7 dígitos)",
+      "pastDate": "La fecha no puede ser anterior a hoy",
+      "departureBeforeArrival": "La fecha de salida debe ser posterior a la llegada",
+      "invalidFlightNumber": "Ingresa un número de vuelo válido",
+      "stepIncomplete": "Por favor completa todos los campos obligatorios"
+    },
+    "step": "Paso",
+    "of": "de",
+    "stepLabels": {
+      "service": "Servicio",
+      "details": "Detalles",
+      "arrival": "Llegada",
+      "departure": "Salida",
+      "vehicle": "Vehículo",
+      "summary": "Resumen",
+      "payment": "Pago"
+    },
     "flight": {
       "title": "Información de Vuelo",
       "flightInfo": "Información de Vuelo",
@@ -185,6 +215,7 @@
       "arrivalTime": "Hora de Llegada",
       "roundTripDetails": "Detalles de Viaje Redondo",
       "departureTitle": "Información de Salida",
+      "departureSubtitle": "Ingresa los detalles de tu vuelo de salida",
       "hotelPickupTime": "Hora de Recogida en el Hotel",
       "pickupRecommendation": "Se recomienda programar la recogida 3 horas antes de su vuelo"
     },
@@ -358,7 +389,45 @@
     "couponCreated": "Cupón creado exitosamente",
     "noCoupons": "Aún no hay cupones. Crea tu primer código de descuento.",
     "couponPreview": "Vista previa",
-    "couponDescPlaceholder": "ej. Promoción de lanzamiento 2025"
+    "couponDescPlaceholder": "ej. Promoción de lanzamiento 2025",
+    "confirmDelete": "¿Eliminar esta zona?",
+    "noZones": "No hay zonas creadas",
+    "dateRange": "Rango de Fechas",
+    "byZoneVehicle": "Reservas por Zona y Vehículo",
+    "byServiceType": "Por Tipo de Servicio (Sencillo / Redondo)",
+    "zone": "Zona",
+    "services": "Servicios",
+    "companyProfileDesc": "Gestiona la información y marca de tu empresa",
+    "companyName": "Nombre de la Empresa",
+    "adminEmail": "Correo del Admin",
+    "website": "Sitio Web",
+    "phone": "Teléfono",
+    "description": "Descripción",
+    "logoUrl": "URL del Logo",
+    "companyInfo": "Información de la Empresa",
+    "accountSecurity": "Seguridad de la Cuenta",
+    "accountSecurityDesc": "Actualiza tus credenciales de acceso",
+    "currentLoginEmail": "Correo de Login Actual",
+    "changeEmail": "Cambiar Correo",
+    "changePassword": "Cambiar Contraseña",
+    "newLoginEmail": "Nuevo Correo de Login",
+    "currentPassword": "Contraseña Actual",
+    "updateEmail": "Actualizar Correo",
+    "emailRequired": "El correo es obligatorio",
+    "currentPasswordRequired": "La contraseña actual es obligatoria",
+    "emailUpdated": "Correo actualizado exitosamente",
+    "newPassword": "Nueva Contraseña",
+    "confirmNewPassword": "Confirmar Nueva Contraseña",
+    "passwordMinLength": "La contraseña debe tener al menos 8 caracteres",
+    "passwordRequired": "La contraseña es obligatoria",
+    "passwordsDoNotMatch": "Las contraseñas no coinciden",
+    "updatePassword": "Actualizar Contraseña",
+    "passwordUpdated": "Contraseña actualizada exitosamente",
+    "discount": "Descuento",
+    "uses": "Usos",
+    "status": "Estado",
+    "validUntil": "Válido Hasta",
+    "previewWidget": "Vista Previa del Widget"
   },
   "login": {
     "title": "Iniciar Sesión",
@@ -397,5 +466,19 @@
     "en": "English",
     "es": "Español",
     "pt": "Português"
+  },
+  "widgetPreview": {
+    "title": "Vista Previa del Widget",
+    "preview": "Vista Previa",
+    "embedCode": "Código de Inserción",
+    "howItLooks": "Cómo se Ve",
+    "description": "Tu widget de reservas está listo para integrarse en tu sitio web.",
+    "bookingEngine": "Motor de Reservas",
+    "addToWebsite": "Agregar a tu Sitio Web",
+    "embedInstructions": "Copia y pega este código en el HTML de tu sitio web:",
+    "method1": "Método 1: Código de Inserción (Recomendado)",
+    "method2": "Método 2: Enlace Directo",
+    "directLink": "Enlace Directo",
+    "directLinkDesc": "Comparte este enlace con tus clientes para reservas directas:"
   }
 }

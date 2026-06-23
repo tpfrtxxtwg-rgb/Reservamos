@@ -13,6 +13,8 @@ import { trpc } from '@/providers/trpc.tsx';
 import type { BookingData } from '@/types';
 import PayPalButton from '@/components/PayPalButton';
 import { useWidgetTheme } from '@/hooks/useWidgetTheme';
+import { useIsDesktop } from '@/hooks/useMediaQuery';
+import BookingSummary from '@/components/BookingSummary';
 import StepIndicator from '@/components/StepIndicator';
 import { validateStep2, validateStep5 } from '@/lib/widget-validation';
 
@@ -98,6 +100,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
 
   // Dynamic theme from primaryColor
   const theme = useWidgetTheme(clientConfig?.primaryColor);
+  const isDesktop = useIsDesktop();
 
   const effectiveClientId = clientConfig?.id || 0;
   const isReady = effectiveClientId > 0;
@@ -325,15 +328,14 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
   const handleReset = () => { setBooking(initialBooking); setCurrentStep(1); setConfirmed(false); setReservationCode(''); setDestSearch(''); setShowDestSearch(false); setBookingError(''); };
   const handleCopyCode = () => { navigator.clipboard.writeText(reservationCode); setCopied(true); setTimeout(() => setCopied(false), 2000); };
 
-  const progressWidth = currentStep === totalSteps ? 100 : ((currentStep - 1) / (totalSteps - 1)) * 100;
-
   const filteredDestinations = destinationsList?.filter(d =>
     d.name.toLowerCase().includes(destSearch.toLowerCase())
   ) || [];
 
   // ─── Confirmation Screen ───
   if (confirmed) return (
-    <div className="w-full max-w-[420px] bg-white rounded-2xl border border-[rgba(138,130,120,0.12)] shadow-lg overflow-hidden" style={cssVariables}>
+    <div className={`w-full ${isDesktop ? 'max-w-[960px] flex gap-4 items-start' : 'max-w-[420px]'}`} style={cssVariables}>
+      <div className={`bg-white rounded-2xl border border-[rgba(138,130,120,0.12)] shadow-lg overflow-hidden ${isDesktop ? 'flex-1 min-w-0' : 'w-full'}`}>
       {/* Company Branding Header */}
       <div className="h-14 flex items-center justify-between px-5" style={{ backgroundColor: theme.primary }}>
         <div className="flex items-center min-w-0 flex-1">
@@ -384,12 +386,39 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
           </button>
         </div>
       </div>
+      </div>
+      {isDesktop && (
+        <div className="w-[320px] flex-shrink-0 self-start sticky top-4">
+          <div className="bg-white rounded-2xl border border-[rgba(138,130,120,0.12)] shadow-lg overflow-hidden">
+            <BookingSummary
+              booking={booking}
+              selectedService={selectedService}
+              selectedDestination={selectedDestination}
+              selectedVehicle={selectedVehicle}
+              optionalServicesList={optionalServicesList}
+              palette={theme}
+              subtotal={subtotal}
+              tax={tax}
+              total={total}
+              amountToPayNow={amountToPayNow}
+              depositAmount={depositAmount}
+              balanceDue={balanceDue}
+              depositEnabled={depositEnabled}
+              depositPercentage={depositPercentage}
+              taxRate={taxRate}
+              isRoundTrip={isRoundTrip}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 
   // ─── Main Booking Widget ───
   return (
-    <div className="w-full max-w-[420px] bg-white rounded-2xl border border-[rgba(138,130,120,0.12)] shadow-lg overflow-hidden" style={cssVariables}>
+    <div className={`w-full ${isDesktop ? 'max-w-[960px] flex gap-4 items-start' : 'max-w-[420px]'}`} style={cssVariables}>
+      {/* Main form panel */}
+      <div className={`bg-white rounded-2xl border border-[rgba(138,130,120,0.12)] shadow-lg overflow-hidden ${isDesktop ? 'flex-1 min-w-0' : 'w-full'}`}>
       {/* Company Branding Header */}
       <div className="h-14 flex items-center justify-between px-5" style={{ backgroundColor: theme.primary }}>
         <div className="flex items-center min-w-0 flex-1">
@@ -575,11 +604,11 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                     <label className="font-body text-xs font-medium text-warm-gray uppercase tracking-wide mb-1.5 block">{t('widget.step2.destination') || 'Hotel / Destination'}<span className="text-[#B23A2F] ml-0.5">*</span></label>
 
                     {/* Selected destination badge */}
-                    {booking.destinationId && selectedDestination && (
+                    {booking.destinationId && (
                       <div className="mb-2 flex items-center justify-between rounded-md px-3 py-2.5" style={{ backgroundColor: theme.primary06, border: `1px solid ${theme.primary15}` }}>
                         <div className="flex items-center gap-2">
                           <Check size={14} style={{ color: theme.primary }} />
-                          <span className="font-body text-sm font-medium text-charcoal">{selectedDestination.name}</span>
+                          <span className="font-body text-sm font-medium text-charcoal">{selectedDestination?.name || t('common.loading')}</span>
                         </div>
                         <button onClick={() => { updateBooking({ destinationId: null }); setDestSearch(''); setShowDestSearch(true); }} className="text-warm-gray hover:text-[#B23A2F] transition-colors"><ArrowLeft size={14} className="rotate-45" /></button>
                       </div>
@@ -1154,6 +1183,31 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
           </motion.div>
         </AnimatePresence>
       </div>
+      {/* Desktop sidebar summary */}
+      {isDesktop && (
+        <div className="w-[320px] flex-shrink-0 self-start sticky top-4 max-h-[calc(100vh-2rem)]">
+          <div className="bg-white rounded-2xl border border-[rgba(138,130,120,0.12)] shadow-lg overflow-hidden h-full flex flex-col">
+            <BookingSummary
+              booking={booking}
+              selectedService={selectedService}
+              selectedDestination={selectedDestination}
+              selectedVehicle={selectedVehicle}
+              optionalServicesList={optionalServicesList}
+              palette={theme}
+              subtotal={subtotal}
+              tax={tax}
+              total={total}
+              amountToPayNow={amountToPayNow}
+              depositAmount={depositAmount}
+              balanceDue={balanceDue}
+              depositEnabled={depositEnabled}
+              depositPercentage={depositPercentage}
+              taxRate={taxRate}
+              isRoundTrip={isRoundTrip}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

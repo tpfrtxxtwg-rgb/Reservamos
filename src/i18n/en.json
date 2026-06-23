@@ -43,7 +43,12 @@
     "flightNumber": "Flight Number",
     "airline": "Airline",
     "departureDate": "Departure Date",
-    "departureTime": "Departure Time"
+    "departureTime": "Departure Time",
+    "add": "Add",
+    "active": "Active",
+    "inactive": "Inactive",
+    "all": "All",
+    "logout": "Logout"
   },
   "header": {
     "product": "Product",
@@ -210,6 +215,31 @@
       "amountPaid": "Amount Paid",
       "payNow": "Pay Now"
     },
+    "summary": {
+      "title": "Your Booking",
+      "empty": "Complete the steps to see your booking summary.",
+      "freeCancellation": "Free cancellation"
+    },
+    "validation": {
+      "required": "This field is required",
+      "invalidEmail": "Please enter a valid email address",
+      "invalidPhone": "Please enter a valid phone number (min. 7 digits)",
+      "pastDate": "Date cannot be in the past",
+      "departureBeforeArrival": "Departure date must be after arrival date",
+      "invalidFlightNumber": "Please enter a valid flight number",
+      "stepIncomplete": "Please complete all required fields"
+    },
+    "step": "Step",
+    "of": "of",
+    "stepLabels": {
+      "service": "Service",
+      "details": "Details",
+      "arrival": "Arrival",
+      "departure": "Departure",
+      "vehicle": "Vehicle",
+      "summary": "Summary",
+      "payment": "Payment"
+    },
     "flight": {
       "title": "Flight Information",
       "flightInfo": "Flight Information",
@@ -224,6 +254,7 @@
       "arrivalTime": "Arrival Time",
       "roundTripDetails": "Round Trip Details",
       "departureTitle": "Departure Information",
+      "departureSubtitle": "Enter your departure flight details",
       "hotelPickupTime": "Hotel Pickup Time",
       "pickupRecommendation": "We recommend scheduling pickup 3 hours before your flight"
     },
@@ -359,7 +390,45 @@
     "couponCreated": "Coupon created successfully",
     "noCoupons": "No coupons yet. Create your first discount code.",
     "couponPreview": "Preview",
-    "couponDescPlaceholder": "e.g. Launch promotion 2025"
+    "couponDescPlaceholder": "e.g. Launch promotion 2025",
+    "confirmDelete": "Delete this zone?",
+    "noZones": "No zones created yet",
+    "dateRange": "Date Range",
+    "byZoneVehicle": "Bookings by Zone & Vehicle",
+    "byServiceType": "By Service Type (One Way / Round Trip)",
+    "zone": "Zone",
+    "services": "Services",
+    "companyProfileDesc": "Manage your company information and branding",
+    "companyName": "Company Name",
+    "adminEmail": "Admin Email",
+    "website": "Website",
+    "phone": "Phone",
+    "description": "Description",
+    "logoUrl": "Logo URL",
+    "companyInfo": "Company Information",
+    "accountSecurity": "Account Security",
+    "accountSecurityDesc": "Update your login credentials",
+    "currentLoginEmail": "Current Login Email",
+    "changeEmail": "Change Email",
+    "changePassword": "Change Password",
+    "newLoginEmail": "New Login Email",
+    "currentPassword": "Current Password",
+    "updateEmail": "Update Email",
+    "emailRequired": "Email is required",
+    "currentPasswordRequired": "Current password is required",
+    "emailUpdated": "Email updated successfully",
+    "newPassword": "New Password",
+    "confirmNewPassword": "Confirm New Password",
+    "passwordMinLength": "Password must be at least 8 characters",
+    "passwordRequired": "Password is required",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "updatePassword": "Update Password",
+    "passwordUpdated": "Password updated successfully",
+    "discount": "Discount",
+    "uses": "Uses",
+    "status": "Status",
+    "validUntil": "Valid Until",
+    "previewWidget": "Preview Widget"
   },
   "login": {
     "title": "Sign In",
@@ -398,5 +467,19 @@
     "en": "English",
     "es": "Español",
     "pt": "Português"
+  },
+  "widgetPreview": {
+    "title": "Widget Preview",
+    "preview": "Preview",
+    "embedCode": "Embed Code",
+    "howItLooks": "How It Looks",
+    "description": "Your booking widget is ready to be embedded on your website.",
+    "bookingEngine": "Booking Engine",
+    "addToWebsite": "Add to Your Website",
+    "embedInstructions": "Copy and paste this code into your website HTML:",
+    "method1": "Method 1: Embed Code (Recommended)",
+    "method2": "Method 2: Direct Link",
+    "directLink": "Direct Link",
+    "directLinkDesc": "Share this link with your customers for direct bookings:"
   }
 }
