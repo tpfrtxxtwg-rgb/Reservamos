@@ -14,7 +14,7 @@ import type { BookingData } from '@/types';
 import PayPalButton from '@/components/PayPalButton';
 import { useWidgetTheme } from '@/hooks/useWidgetTheme';
 import StepIndicator from '@/components/StepIndicator';
-import { useIsDesktop } from '@/hooks/useMediaQuery';
+import { useIsDesktop, useIsLargeScreen } from '@/hooks/useMediaQuery';
 import { validateStep2, validateStep5 } from '@/lib/widget-validation';
 import BookingSummary from '@/components/BookingSummary';
 
@@ -94,6 +94,8 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
 
   // Responsive detection
   const isDesktop = useIsDesktop();
+  const isLargeScreen = useIsLargeScreen();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Query client config from apiKey
   const { data: clientConfig } = trpc.widget.config.useQuery(
@@ -317,8 +319,8 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
   ) || [];
 
   if (confirmed) return (
-    <div className={`w-full ${isDesktop ? 'max-w-[960px] flex gap-4 items-start' : 'max-w-[420px]'}`} style={cssVariables}>
-      <div className={`bg-white rounded-2xl border border-[rgba(138,130,120,0.12)] shadow-lg overflow-hidden ${isDesktop ? 'flex-1 min-w-0' : 'w-full'}`}>
+    <div className={`w-full ${isLargeScreen ? 'max-w-[800px] flex gap-4 items-start' : 'max-w-[420px]'}`} style={cssVariables}>
+      <div className={`bg-white rounded-2xl border border-[rgba(138,130,120,0.12)] shadow-lg overflow-hidden ${isLargeScreen ? 'min-w-[460px] flex-1' : 'w-full'}`}>
         <div className="h-14 flex items-center justify-between px-5" style={{ backgroundColor: theme.primary }}>
           <span className="font-body text-white font-semibold text-base">{t('widget.title')}</span>
           <div className="flex items-center gap-1.5 text-white/80">
@@ -362,8 +364,8 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
           </div>
         </div>
       </div>
-      {isDesktop && (
-        <div className="w-[320px] flex-shrink-0 self-start sticky top-4">
+      {isLargeScreen && (
+        <div className="w-[280px] flex-shrink-0 self-start sticky top-4">
           <div className="bg-white rounded-2xl border border-[rgba(138,130,120,0.12)] shadow-lg overflow-hidden">
             <div className="p-5">
               <h3 className="font-display text-base font-semibold text-charcoal mb-3">{t('widget.summary.title')}</h3>
@@ -378,16 +380,62 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
   );
 
   return (
-    <div className={`w-full ${isDesktop ? 'max-w-[960px] flex gap-4 items-start' : 'max-w-[420px]'}`} style={cssVariables}>
+    <div className={`w-full ${isLargeScreen ? 'max-w-[800px] flex gap-4 items-start' : 'max-w-[420px]'}`} style={cssVariables}>
       {/* Main widget */}
-      <div className={`bg-white rounded-2xl border border-[rgba(138,130,120,0.12)] shadow-lg overflow-hidden ${isDesktop ? 'flex-1 min-w-0' : 'w-full'}`}>
+      <div className={`bg-white rounded-2xl border border-[rgba(138,130,120,0.12)] shadow-lg overflow-hidden relative ${isLargeScreen ? 'min-w-[460px] flex-1' : 'w-full'}`}>
         <div className="h-14 flex items-center justify-between px-5" style={{ backgroundColor: theme.primary }}>
           <span className="font-body text-white font-semibold text-base">{t('widget.title')}</span>
-          <div className="flex items-center gap-1.5 text-white/80">
-            <ShieldCheck size={14} weight="fill" />
-            <span className="font-body text-[11px]">{t('common.securePayment')}</span>
+          <div className="flex items-center gap-3">
+            {isDesktop && !isLargeScreen && (
+              <button
+                onClick={() => setSidebarOpen(o => !o)}
+                className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors"
+              >
+                <ShoppingCart size={16} />
+                <span className="font-body text-[11px]">{t('widget.summary.title')}</span>
+              </button>
+            )}
+            <div className="flex items-center gap-1.5 text-white/80">
+              <ShieldCheck size={14} weight="fill" />
+              <span className="font-body text-[11px]">{t('common.securePayment')}</span>
+            </div>
           </div>
         </div>
+        {/* Slide-out sidebar for medium screens */}
+        {isDesktop && !isLargeScreen && sidebarOpen && (
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'tween', duration: 0.3 }}
+            className="absolute top-14 right-0 bottom-0 w-[300px] z-50 bg-white border-l border-[rgba(138,130,120,0.12)] shadow-xl overflow-y-auto"
+          >
+            <div className="flex items-center justify-between p-4 border-b border-[rgba(138,130,120,0.1)]">
+              <h3 className="font-display text-sm font-semibold text-charcoal">{t('widget.summary.title')}</h3>
+              <button onClick={() => setSidebarOpen(false)} className="text-warm-gray hover:text-charcoal">
+                <ArrowLeft size={18} />
+              </button>
+            </div>
+            <BookingSummary
+              booking={booking}
+              selectedService={selectedService}
+              selectedDestination={selectedDestination}
+              selectedVehicle={selectedVehicle}
+              optionalServicesList={optionalServicesList}
+              palette={theme}
+              subtotal={subtotal}
+              tax={tax}
+              total={total}
+              amountToPayNow={amountToPayNow}
+              depositAmount={depositAmount}
+              balanceDue={balanceDue}
+              depositEnabled={depositEnabled}
+              depositPercentage={depositPercentage}
+              taxRate={taxRate}
+              isRoundTrip={isRoundTrip}
+            />
+          </motion.div>
+        )}
         {/* Step Indicator */}
         <div className="px-4 py-3 border-b border-[rgba(138,130,120,0.08)]">
           <StepIndicator
@@ -1168,8 +1216,8 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
       </div>
 
       {/* Desktop Sidebar with BookingSummary */}
-      {isDesktop && (
-        <div className="w-[320px] flex-shrink-0 self-start sticky top-4">
+      {isLargeScreen && (
+        <div className="w-[280px] flex-shrink-0 self-start sticky top-4">
           <div className="bg-white rounded-2xl border border-[rgba(138,130,120,0.12)] shadow-lg overflow-hidden">
             <BookingSummary
               booking={booking}
