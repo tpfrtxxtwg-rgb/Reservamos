@@ -362,7 +362,6 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
         </div>
       </div>
     </div>
-    </div>
   );
 
   return (
@@ -1154,9 +1153,6 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
           </AnimatePresence>
         </div>
       </div>
-    </div>
-    </div>
-    </div>
     </div>
   );
 }
