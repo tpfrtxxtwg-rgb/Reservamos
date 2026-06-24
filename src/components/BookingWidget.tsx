@@ -362,6 +362,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
         </div>
       </div>
     </div>
+    </div>
   );
 
   return (
@@ -371,9 +372,8 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
         <div className="h-14 flex items-center justify-between px-5" style={{ backgroundColor: theme.primary }}>
           <span className="font-body text-white font-semibold text-base">{t('widget.title')}</span>
           <div className="flex items-center gap-1.5 text-white/80">
-              <ShieldCheck size={14} weight="fill" />
-              <span className="font-body text-[11px]">{t('common.securePayment')}</span>
-            </div>
+            <ShieldCheck size={14} weight="fill" />
+            <span className="font-body text-[11px]">{t('common.securePayment')}</span>
           </div>
         </div>
         {/* Step Indicator */}
@@ -1154,7 +1154,9 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
           </AnimatePresence>
         </div>
       </div>
-
+    </div>
+    </div>
+    </div>
     </div>
   );
 }
