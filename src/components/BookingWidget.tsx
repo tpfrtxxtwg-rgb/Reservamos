@@ -14,7 +14,6 @@ import type { BookingData } from '@/types';
 import PayPalButton from '@/components/PayPalButton';
 import { useWidgetTheme } from '@/hooks/useWidgetTheme';
 import StepIndicator from '@/components/StepIndicator';
-import { useIsDesktop } from '@/hooks/useMediaQuery';
 import { validateStep2, validateStep5 } from '@/lib/widget-validation';
 
 interface BookingWidgetProps {
@@ -90,9 +89,6 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
   const [bookingError, setBookingError] = useState('');
   const [paypalOrderId, setPaypalOrderId] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-
-  // Responsive detection
-  const isDesktop = useIsDesktop();
 
   // Query client config from apiKey
   const { data: clientConfig } = trpc.widget.config.useQuery(
@@ -361,6 +357,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 
@@ -1153,6 +1150,9 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
           </AnimatePresence>
         </div>
       </div>
+    </div>
+    </div>
+    </div>
     </div>
   );
 }

@@ -54,8 +54,8 @@ export default function EmbedWidget() {
   }, [searchParams]);
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8] flex items-start justify-center p-4">
-      <div className="w-full max-w-[420px]">
+    <div className="min-h-screen bg-[#FAFAF8] p-4">
+      <div className="w-full max-w-[640px] mx-auto">
         {apiKey ? (
           <BookingWidget apiKey={apiKey} />
         ) : (

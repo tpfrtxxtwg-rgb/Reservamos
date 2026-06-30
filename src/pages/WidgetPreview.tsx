@@ -41,9 +41,9 @@ export default function WidgetPreview() {
 <iframe 
   src="${origin}/widget/embed?key=${apiKey}" 
   width="100%" 
-  height="800" 
+  height="850" 
   frameborder="0"
-  style="border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.08);"
+  style="border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); max-width: 640px;"
 ></iframe>
 <!-- End ReserVamos Widget -->`;
 
