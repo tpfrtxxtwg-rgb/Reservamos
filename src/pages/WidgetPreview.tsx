@@ -43,7 +43,7 @@ export default function WidgetPreview() {
   width="100%" 
   height="850" 
   frameborder="0"
-  style="border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); max-width: 640px;"
+  style="border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.08);"
 ></iframe>
 <!-- End ReserVamos Widget -->`;
 
