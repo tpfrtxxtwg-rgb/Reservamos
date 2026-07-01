@@ -1,10 +1,9 @@
 import { z } from "zod";
 import { eq, and } from "drizzle-orm";
 import { createRouter, publicQuery } from "./middleware";
-import { getDb, getRawDb } from "./queries/connection";
+import { getDb } from "./queries/connection";
 import { clients, services, vehicles, destinations, vehicleZonePrices, bookings, optionalServices, serviceAirports, serviceTours } from "@db/schema";
 import { sendBookingConfirmationEmail } from "./email-router";
-import { validateClientSubscription } from "./lib/subscription-check";
 
 function generateCode() {
   const ts = Date.now().toString(36).toUpperCase();
@@ -12,53 +11,17 @@ function generateCode() {
   return `RSV-${ts.slice(-4)}-${rnd}`;
 }
 
-/** Validates client exists and has active subscription */
-async function validateWidgetClient(apiKey: string) {
-  console.log(`[validateWidgetClient] apiKey=${apiKey.substring(0, 15)}...`);
-  const db = getDb();
-  const client = await db.query.clients.findFirst({
-    where: eq(clients.apiKey, apiKey),
-  });
-  if (!client) {
-    console.log(`[validateWidgetClient] Client not found for apiKey`);
-    throw new Error("Invalid or inactive client");
-  }
-  if (client.status !== "active") {
-    console.log(`[validateWidgetClient] Client status=${client.status}, not active`);
-    throw new Error("Invalid or inactive client");
-  }
-  console.log(`[validateWidgetClient] Client found: id=${client.id}, name=${client.name}`);
-
-  // Check subscription
-  const subCheck = await validateClientSubscription(client.id);
-
-  // Allow legacy clients (created before subscription system) that have services configured
-  if (!subCheck.valid && subCheck.status === "none") {
-    const servicesCount = await db.query.services.findMany({
-      where: eq(services.clientId, client.id),
-    });
-    if (servicesCount.length > 0) {
-      console.log(`[validateWidgetClient] LEGACY client with ${servicesCount.length} services - allowing access`);
-      return client;
-    }
-  }
-
-  if (!subCheck.valid) {
-    console.log(`[validateWidgetClient] Subscription invalid: ${subCheck.status} - ${subCheck.reason}`);
-    throw new Error(`Subscription ${subCheck.status}: ${subCheck.reason}`);
-  }
-
-  console.log(`[validateWidgetClient] OK - clientId=${client.id}`);
-  return client;
-}
-
 export const widgetRouter = createRouter({
   config: publicQuery
     .input(z.object({ apiKey: z.string().min(1) }))
     .query(async ({ input }) => {
-      console.log(`[Widget.config] apiKey received: ${input.apiKey.substring(0, 15)}...`);
-      const client = await validateWidgetClient(input.apiKey);
-      console.log(`[Widget.config] Returning config for clientId=${client.id}`);
+      const db = getDb();
+      const client = await db.query.clients.findFirst({
+        where: eq(clients.apiKey, input.apiKey),
+      });
+      if (!client || client.status !== "active") {
+        throw new Error("Invalid or inactive client");
+      }
       return {
         id: client.id,
         name: client.name,
@@ -66,7 +29,7 @@ export const widgetRouter = createRouter({
         primaryColor: client.primaryColor,
         taxRate: client.taxRate,
         depositEnabled: client.depositEnabled,
-        depositPercentage: client.depositPercentage,
+        depositFixedAmount: client.depositFixedAmount,
         logoUrl: client.logoUrl,
       };
     }),
@@ -74,38 +37,11 @@ export const widgetRouter = createRouter({
   listServices: publicQuery
     .input(z.object({ clientId: z.number().positive() }))
     .query(async ({ input }) => {
-      console.log(`[Widget.listServices] clientId=${input.clientId}`);
       const db = getDb();
-      const result = await db.query.services.findMany({
+      return db.query.services.findMany({
         where: and(eq(services.clientId, input.clientId), eq(services.active, true)),
         orderBy: services.sortOrder,
       });
-      console.log(`[Widget.listServices] Found ${result.length} services`);
-      return result;
-    }),
-
-  // TEMP: Diagnostic endpoint
-  debugServices: publicQuery
-    .input(z.object({ clientId: z.number().positive() }))
-    .query(async ({ input }) => {
-      const rawDb = getRawDb();
-      const [servicesRows] = await rawDb.execute(
-        "SELECT id, name, type, active, clientId FROM services WHERE clientId = ?",
-        [input.clientId]
-      );
-      const [airportsRows] = await rawDb.execute(
-        "SELECT id, name, clientId FROM service_airports WHERE clientId = ?",
-        [input.clientId]
-      );
-      const [toursRows] = await rawDb.execute(
-        "SELECT id, name, clientId FROM service_tours WHERE clientId = ?",
-        [input.clientId]
-      );
-      return {
-        services: servicesRows,
-        serviceAirports: airportsRows,
-        serviceTours: toursRows,
-      };
     }),
 
   listDestinations: publicQuery
@@ -233,7 +169,10 @@ export const widgetRouter = createRouter({
     .mutation(async ({ input }) => {
       const db = getDb();
 
-      const client = await validateWidgetClient(input.apiKey);
+      const client = await db.query.clients.findFirst({
+        where: eq(clients.apiKey, input.apiKey),
+      });
+      if (!client || client.status !== "active") throw new Error("Invalid client");
 
       const destination = await db.query.destinations.findFirst({
         where: eq(destinations.id, input.destinationId),
@@ -276,7 +215,7 @@ export const widgetRouter = createRouter({
 
       // Payment calculation
       const depositEnabled = client.depositEnabled;
-      const depositPercentage = parseFloat(String(client.depositPercentage)) / 100;
+      const depositFixedAmount = parseFloat(String(client.depositFixedAmount));
       const paymentOption = input.paymentOption;
       
       let amountPaid = total;
@@ -284,7 +223,7 @@ export const widgetRouter = createRouter({
       let paymentStatus: "paid" | "deposit" | "pending" | "balance_due" = "paid";
 
       if (depositEnabled && paymentOption === "deposit") {
-        amountPaid = Math.round(total * depositPercentage * 100) / 100;
+        amountPaid = Math.min(depositFixedAmount, total);
         balanceDue = Math.round((total - amountPaid) * 100) / 100;
         paymentStatus = balanceDue > 0 ? "deposit" : "paid";
       }

@@ -22,7 +22,7 @@ export default function AdminSettings({ clientId }: Props) {
   });
 
   const [depositEnabled, setDepositEnabled] = useState(false);
-  const [depositPercentage, setDepositPercentage] = useState('30.00');
+  const [depositFixedAmount, setDepositFixedAmount] = useState('50.00');
   const [taxRate, setTaxRate] = useState('16.00');
   const [primaryColor, setPrimaryColor] = useState('#C75E3A');
   const [saved, setSaved] = useState(false);
@@ -41,7 +41,7 @@ export default function AdminSettings({ clientId }: Props) {
   useEffect(() => {
     if (settings) {
       setDepositEnabled(settings.depositEnabled ?? false);
-      setDepositPercentage(String(settings.depositPercentage ?? '30.00'));
+      setDepositFixedAmount(String(settings.depositFixedAmount ?? '50.00'));
       setTaxRate(String(settings.taxRate ?? '16.00'));
       setPrimaryColor(settings.primaryColor ?? '#C75E3A');
     }
@@ -50,7 +50,7 @@ export default function AdminSettings({ clientId }: Props) {
   const handleSave = () => {
     updateSettings.mutate({
       depositEnabled,
-      depositPercentage,
+      depositFixedAmount,
       taxRate,
       primaryColor,
     });
@@ -127,7 +127,7 @@ export default function AdminSettings({ clientId }: Props) {
           </p>
         </div>
 
-        {/* Deposit Percentage */}
+        {/* Deposit Fixed Amount */}
         {depositEnabled && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
@@ -135,23 +135,22 @@ export default function AdminSettings({ clientId }: Props) {
             className="mb-2"
           >
             <label className="font-body text-sm font-medium text-charcoal mb-2 block">
-              {t('admin.depositPercentage') || 'Deposit Percentage'}
+              {t('admin.depositFixedAmount') || 'Deposit Amount (USD)'}
             </label>
             <div className="flex items-center gap-3">
-              <div className="relative flex-1 max-w-[140px]">
+              <div className="relative flex-1 max-w-[160px]">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 font-body text-sm text-warm-gray">$</span>
                 <input
                   type="number"
                   min="1"
-                  max="99"
                   step="1"
-                  value={depositPercentage}
-                  onChange={(e) => setDepositPercentage(e.target.value)}
-                  className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 pr-8 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all"
+                  value={depositFixedAmount}
+                  onChange={(e) => setDepositFixedAmount(e.target.value)}
+                  className="w-full h-11 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md pl-7 pr-3 font-body text-sm text-charcoal focus:border-terracotta outline-none transition-all"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 font-body text-sm text-warm-gray">%</span>
               </div>
               <span className="font-body text-sm text-warm-gray">
-                {t('admin.depositPercentageDesc') || 'Of the total booking amount'}
+                {t('admin.depositFixedAmountDesc') || 'Fixed amount customer pays as deposit'}
               </span>
             </div>
             {/* Preview */}
@@ -161,11 +160,11 @@ export default function AdminSettings({ clientId }: Props) {
               </div>
               <div className="flex justify-between">
                 <span className="font-body text-xs text-charcoal">{t('admin.customerPays') || 'Customer pays now'}</span>
-                <span className="font-body text-sm font-semibold text-[#2D6A4F]">${(100 * parseFloat(depositPercentage || '0') / 100).toFixed(2)}</span>
+                <span className="font-body text-sm font-semibold text-[#2D6A4F]">${Math.min(parseFloat(depositFixedAmount || '0'), 100).toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-body text-xs text-charcoal">{t('admin.balanceDue') || 'Balance due at service'}</span>
-                <span className="font-body text-sm font-semibold text-terracotta">${(100 - 100 * parseFloat(depositPercentage || '0') / 100).toFixed(2)}</span>
+                <span className="font-body text-sm font-semibold text-terracotta">${Math.max(0, 100 - parseFloat(depositFixedAmount || '0')).toFixed(2)}</span>
               </div>
             </div>
           </motion.div>

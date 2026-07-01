@@ -21,7 +21,7 @@ export const clientSettingsRouter = createRouter({
       primaryColor: client.primaryColor,
       taxRate: client.taxRate,
       depositEnabled: client.depositEnabled,
-      depositPercentage: client.depositPercentage,
+      depositFixedAmount: client.depositFixedAmount,
       plan: client.plan,
       status: client.status,
     };
@@ -35,7 +35,7 @@ export const clientSettingsRouter = createRouter({
       primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
       taxRate: z.string().regex(/^\d+(\.\d{2})?$/).optional(),
       depositEnabled: z.boolean().optional(),
-      depositPercentage: z.string().regex(/^\d+(\.\d{2})?$/).optional(),
+      depositFixedAmount: z.string().regex(/^\d+(\.\d{2})?$/).optional(),
       status: z.enum(["active", "inactive", "suspended"]).optional(),
     }))
     .mutation(async ({ input, ctx }) => {

@@ -22,7 +22,7 @@ interface BookingSummaryProps {
   depositAmount: number;
   balanceDue: number;
   depositEnabled: boolean;
-  depositPercentage: number;
+  depositFixedAmount: number;
   taxRate: number;
   isRoundTrip: boolean;
 }
@@ -53,7 +53,7 @@ export default function BookingSummary({
   depositAmount,
   balanceDue,
   depositEnabled,
-  depositPercentage,
+  depositFixedAmount,
   taxRate,
   isRoundTrip,
 }: BookingSummaryProps) {

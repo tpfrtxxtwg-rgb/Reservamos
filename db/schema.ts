@@ -43,7 +43,7 @@ export const clients = mysqlTable("clients", {
   taxRate: decimal("taxRate", { precision: 5, scale: 2 }).default("16.00").notNull(),
   // Deposit configuration
   depositEnabled: boolean("depositEnabled").default(false).notNull(),
-  depositPercentage: decimal("depositPercentage", { precision: 5, scale: 2 }).default("30.00").notNull(),
+  depositFixedAmount: decimal("depositFixedAmount", { precision: 10, scale: 2 }).default("50.00").notNull(),
   logoUrl: text("logoUrl"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => new Date()),

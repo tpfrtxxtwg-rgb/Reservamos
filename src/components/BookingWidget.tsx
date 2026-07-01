@@ -173,7 +173,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
 
   // Deposit config
   const depositEnabled = clientConfig?.depositEnabled ?? false;
-  const depositPercentage = clientConfig?.depositPercentage ? parseFloat(String(clientConfig.depositPercentage)) : 30;
+  const depositFixedAmount = clientConfig?.depositFixedAmount ? parseFloat(String(clientConfig.depositFixedAmount)) : 50;
 
   const basePrice = selectedVehicle ? parseFloat(String(selectedVehicle.price)) : 0;
 
@@ -190,7 +190,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
   const total = Math.round((subtotal + tax) * 100) / 100;
 
   // Deposit calculations
-  const depositAmount = depositEnabled ? Math.round(total * (depositPercentage / 100) * 100) / 100 : 0;
+  const depositAmount = depositEnabled ? Math.min(depositFixedAmount, total) : 0;
   const amountToPayNow = booking.paymentOption === 'deposit' && depositEnabled ? depositAmount : total;
   const balanceDue = booking.paymentOption === 'deposit' && depositEnabled ? Math.round((total - depositAmount) * 100) / 100 : 0;
 
@@ -357,6 +357,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 
@@ -983,7 +984,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                         <button onClick={() => updateBooking({ paymentOption: 'deposit' })}
                           className={`p-4 rounded-lg border-2 text-center transition-all ${booking.paymentOption === 'deposit' ? 'border-terracotta bg-[rgba(199,94,58,0.04)]' : 'border-[rgba(138,130,120,0.15)] bg-white'}`}>
                           <span className={`font-body text-sm font-semibold block ${booking.paymentOption === 'deposit' ? 'text-terracotta' : 'text-charcoal'}`}>{t('widget.step5.payDeposit') || 'Pay Deposit'}</span>
-                          <span className="font-body text-xs text-warm-gray">${depositAmount.toFixed(2)} USD ({depositPercentage}%)</span>
+                          <span className="font-body text-xs text-warm-gray">${depositFixedAmount.toFixed(2)} USD {t('widget.step5.fixedDeposit') || 'fixed'}</span>
                         </button>
                       </div>
                       {booking.paymentOption === 'deposit' && (
@@ -1074,7 +1075,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                       <div>
                         <span className="font-body text-base font-semibold text-charcoal">{t('widget.step5.amountToPay') || 'Amount to Pay'}</span>
                         {booking.paymentOption === 'deposit' && depositEnabled && (
-                          <span className="font-body text-[11px] text-warm-gray block">{t('widget.step5.deposit') || 'Deposit'} ({depositPercentage}%)</span>
+                          <span className="font-body text-[11px] text-warm-gray block">{t('widget.step5.deposit') || 'Deposit'} (${depositFixedAmount.toFixed(2)} USD)</span>
                         )}
                       </div>
                       <span className="font-body text-xl font-bold text-terracotta">${amountToPayNow.toFixed(2)} {t('common.usd')}</span>
@@ -1149,6 +1150,9 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
           </AnimatePresence>
         </div>
       </div>
+    </div>
+    </div>
+    </div>
     </div>
   );
 }
