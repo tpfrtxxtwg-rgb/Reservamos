@@ -22,6 +22,9 @@ export const widgetRouter = createRouter({
       if (!client || client.status !== "active") {
         throw new Error("Invalid or inactive client");
       }
+      // Support both old (depositPercentage) and new (depositFixedAmount) column names
+      // during the migration transition. Falls back to $50 default.
+      const rawDepositFixed = (client as any).depositFixedAmount ?? (client as any).depositPercentage;
       return {
         id: client.id,
         name: client.name,
@@ -29,7 +32,7 @@ export const widgetRouter = createRouter({
         primaryColor: client.primaryColor,
         taxRate: client.taxRate,
         depositEnabled: client.depositEnabled,
-        depositFixedAmount: client.depositFixedAmount,
+        depositFixedAmount: rawDepositFixed ?? "50.00",
         logoUrl: client.logoUrl,
       };
     }),

@@ -12,6 +12,8 @@ export const clientSettingsRouter = createRouter({
       where: eq(clients.id, clientId),
     });
     if (!client) throw new Error("Client not found");
+    // Support both old (depositPercentage) and new (depositFixedAmount) columns
+    const rawDepositFixed = (client as any).depositFixedAmount ?? (client as any).depositPercentage;
     return {
       id: client.id,
       name: client.name,
@@ -21,7 +23,7 @@ export const clientSettingsRouter = createRouter({
       primaryColor: client.primaryColor,
       taxRate: client.taxRate,
       depositEnabled: client.depositEnabled,
-      depositFixedAmount: client.depositFixedAmount,
+      depositFixedAmount: rawDepositFixed ?? "50.00",
       plan: client.plan,
       status: client.status,
     };
@@ -41,7 +43,12 @@ export const clientSettingsRouter = createRouter({
     .mutation(async ({ input, ctx }) => {
       const db = getDb();
       const clientId = ctx.clientUser.clientId;
-      await db.update(clients).set(input).where(eq(clients.id, clientId));
+      // During migration: save depositFixedAmount to both columns for compatibility
+      const updateData: any = { ...input };
+      if (input.depositFixedAmount !== undefined) {
+        updateData.depositPercentage = input.depositFixedAmount;
+      }
+      await db.update(clients).set(updateData).where(eq(clients.id, clientId));
       return db.query.clients.findFirst({ where: eq(clients.id, clientId) });
     }),
 });
