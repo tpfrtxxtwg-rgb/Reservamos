@@ -26,8 +26,8 @@ function getOAuthUrl() {
 }
 
 export default function Login() {
-  const navigate = useNavigate();
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { refetch } = useClientAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -39,7 +39,7 @@ export default function Login() {
       navigate("/admin", { replace: true });
     },
     onError: (err) => {
-      setError(err.message || t("login.errorInvalid"));
+      setError(err.message || t("login.invalidCredentials"));
     },
   });
 
@@ -47,7 +47,7 @@ export default function Login() {
     e.preventDefault();
     setError("");
     if (!email || !password) {
-      setError(t("login.errorRequired"));
+      setError(t("login.pleaseEnter"));
       return;
     }
     loginMutation.mutate({ email, password });
@@ -58,14 +58,14 @@ export default function Login() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="font-display text-3xl text-deep-navy mb-2">ReserVamos</h1>
-          <p className="font-body text-sm text-warm-gray">{t("hero.subtitle")}</p>
+          <p className="font-body text-sm text-warm-gray">{t("login.subtitle")}</p>
         </div>
 
         <Card className="border border-[rgba(0,0,0,0.06)] shadow-sm">
           <CardHeader className="text-center pb-2">
-            <CardTitle className="font-display text-xl text-deep-navy">{t("login.title")}</CardTitle>
+            <CardTitle className="font-display text-xl text-deep-navy">{t("login.signIn")}</CardTitle>
             <p className="font-body text-xs text-warm-gray mt-1">
-              {t("login.subtitle")}
+              {t("login.description")}
             </p>
           </CardHeader>
           <CardContent>
@@ -103,7 +103,7 @@ export default function Login() {
                 className="w-full h-10 bg-[#C75E3A] hover:bg-[#a84d2f] text-white"
                 disabled={loginMutation.isPending}
               >
-                {loginMutation.isPending ? t("login.submitting") : t("login.submit")}
+                {loginMutation.isPending ? t("login.signingIn") : t("login.signIn")}
                 <SignIn size={16} className="ml-1.5" />
               </Button>
             </form>
@@ -124,7 +124,7 @@ export default function Login() {
                 window.location.href = getOAuthUrl();
               }}
             >
-              {t("login.oauthButton")}
+              {t("login.signInWithKimi")}
             </Button>
 
             <p className="text-center text-xs text-warm-gray mt-4">
@@ -133,7 +133,7 @@ export default function Login() {
                 onClick={() => navigate("/register")}
                 className="text-[#C75E3A] font-semibold hover:underline"
               >
-                {t("login.registerLink")}
+                {t("login.register")}
               </button>
             </p>
           </CardContent>
