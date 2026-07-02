@@ -173,7 +173,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
 
   // Deposit config
   const depositEnabled = clientConfig?.depositEnabled ?? false;
-  const depositFixedAmount = clientConfig?.depositFixedAmount ? parseFloat(String(clientConfig.depositFixedAmount)) : 50;
+  const depositFixedAmount = clientConfig?.depositPercentage ? parseFloat(String(clientConfig.depositPercentage)) : 50;
 
   const basePrice = selectedVehicle ? parseFloat(String(selectedVehicle.price)) : 0;
 
@@ -357,6 +357,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 
@@ -1149,6 +1150,9 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
           </AnimatePresence>
         </div>
       </div>
+    </div>
+    </div>
+    </div>
     </div>
   );
 }

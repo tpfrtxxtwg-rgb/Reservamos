@@ -36,10 +36,6 @@ app.all("/api/*", (c) => c.json({ error: "Not Found" }, 404));
 export default app;
 
 if (env.isProduction) {
-  // Run database migrations before starting server
-  const { runMigrations } = await import("./run-migrations");
-  await runMigrations();
-
   const { serve } = await import("@hono/node-server");
   const { serveStaticFiles } = await import("./lib/vite");
   serveStaticFiles(app);

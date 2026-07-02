@@ -41,11 +41,9 @@ export const clients = mysqlTable("clients", {
   theme: mysqlEnum("theme", ["light", "dark"]).default("light").notNull(),
   primaryColor: varchar("primaryColor", { length: 7 }).default("#C75E3A"),
   taxRate: decimal("taxRate", { precision: 5, scale: 2 }).default("16.00").notNull(),
-  // Deposit configuration
+  // Deposit configuration — stores a fixed USD amount (not a percentage)
   depositEnabled: boolean("depositEnabled").default(false).notNull(),
-  depositFixedAmount: decimal("depositFixedAmount", { precision: 10, scale: 2 }).default("50.00").notNull(),
-  // Deprecated: kept for migration compatibility, will be removed in future
-  depositPercentage: decimal("depositPercentage", { precision: 5, scale: 2 }).default("30.00").notNull(),
+  depositPercentage: decimal("depositPercentage", { precision: 10, scale: 2 }).default("50.00").notNull(),
   logoUrl: text("logoUrl"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => new Date()),

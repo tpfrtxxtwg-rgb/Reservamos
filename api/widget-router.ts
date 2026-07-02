@@ -16,27 +16,21 @@ export const widgetRouter = createRouter({
     .input(z.object({ apiKey: z.string().min(1) }))
     .query(async ({ input }) => {
       const db = getDb();
-      // Use raw SQL to avoid Drizzle schema validation issues during migration
-      const result = await db.execute(
-        `SELECT id, name, theme, primary_color, tax_rate, deposit_enabled, deposit_fixed_amount, deposit_percentage, logo_url, status FROM clients WHERE api_key = ?`,
-        [input.apiKey]
-      );
-      const rows = result as any[];
-      if (!rows || rows.length === 0 || rows[0].status !== "active") {
+      const client = await db.query.clients.findFirst({
+        where: eq(clients.apiKey, input.apiKey),
+      });
+      if (!client || client.status !== "active") {
         throw new Error("Invalid or inactive client");
       }
-      const row = rows[0];
-      // Support both old (depositPercentage) and new (depositFixedAmount) column names
-      const rawDepositFixed = row.deposit_fixed_amount ?? row.deposit_percentage;
       return {
-        id: row.id,
-        name: row.name,
-        theme: row.theme,
-        primaryColor: row.primary_color,
-        taxRate: row.tax_rate,
-        depositEnabled: row.deposit_enabled,
-        depositFixedAmount: rawDepositFixed ?? "50.00",
-        logoUrl: row.logo_url,
+        id: client.id,
+        name: client.name,
+        theme: client.theme,
+        primaryColor: client.primaryColor,
+        taxRate: client.taxRate,
+        depositEnabled: client.depositEnabled,
+        depositPercentage: client.depositPercentage,
+        logoUrl: client.logoUrl,
       };
     }),
 
@@ -219,9 +213,9 @@ export const widgetRouter = createRouter({
       const tax = Math.round(subtotal * taxRate * 100) / 100;
       const total = Math.round((subtotal + tax) * 100) / 100;
 
-      // Payment calculation
+      // Payment calculation — depositPercentage stores a fixed USD amount
       const depositEnabled = client.depositEnabled;
-      const depositFixedAmount = parseFloat(String(client.depositFixedAmount));
+      const depositFixedAmount = parseFloat(String(client.depositPercentage));
       const paymentOption = input.paymentOption;
       
       let amountPaid = total;
