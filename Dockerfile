@@ -3,7 +3,7 @@ FROM node:22-slim AS builder
 WORKDIR /app
 
 # CHANGE THIS TIMESTAMP FOR EVERY DEPLOY to invalidate cache
-RUN echo "deploy-2025-06-29-05-00-00" > /tmp/cache-bust
+RUN echo "deploy-2025-06-29-06-00-00" > /tmp/cache-bust
 
 COPY package.json ./
 RUN npm install 2>&1 | tail -5
@@ -54,4 +54,4 @@ ENV PORT=3000
 
 EXPOSE 3000
 
-CMD sh -c "echo '=== DB MIGRATE ===' && (npx drizzle-kit push --force 2>&1 || echo 'DB migrate skipped/failed, continuing...') && echo '=== STARTING SERVER ===' && node dist/boot.js"
+CMD ["node", "dist/boot.js"]
