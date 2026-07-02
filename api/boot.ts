@@ -35,35 +35,11 @@ app.all("/api/*", (c) => c.json({ error: "Not Found" }, 404));
 
 export default app;
 
-// Auto-migration: depositPercentage → depositFixedAmount (non-interactive)
-async function runMigrations() {
-  try {
-    const { getDb } = await import("./queries/connection");
-    const db = getDb();
-    console.log("[migrate] Checking deposit columns...");
-    const result = await db.execute(
-      `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'clients' AND COLUMN_NAME = 'depositFixedAmount'`
-    );
-    const hasColumn = Array.isArray(result) && result.length > 0;
-    if (!hasColumn) {
-      console.log("[migrate] Adding depositFixedAmount column...");
-      await db.execute(
-        `ALTER TABLE clients ADD COLUMN depositFixedAmount DECIMAL(10,2) NOT NULL DEFAULT '50.00'`
-      );
-      await db.execute(
-        `UPDATE clients SET depositFixedAmount = depositPercentage WHERE depositPercentage IS NOT NULL`
-      );
-      console.log("[migrate] Column created and data copied ✓");
-    } else {
-      console.log("[migrate] Column already exists ✓");
-    }
-  } catch (err: any) {
-    console.error("[migrate] Error:", err.message);
-  }
-}
-
 if (env.isProduction) {
+  // Run database migrations before starting server
+  const { runMigrations } = await import("./run-migrations");
   await runMigrations();
+
   const { serve } = await import("@hono/node-server");
   const { serveStaticFiles } = await import("./lib/vite");
   serveStaticFiles(app);
