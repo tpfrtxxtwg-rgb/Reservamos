@@ -16,24 +16,27 @@ export const widgetRouter = createRouter({
     .input(z.object({ apiKey: z.string().min(1) }))
     .query(async ({ input }) => {
       const db = getDb();
-      const client = await db.query.clients.findFirst({
-        where: eq(clients.apiKey, input.apiKey),
-      });
-      if (!client || client.status !== "active") {
+      // Use raw SQL to avoid Drizzle schema validation issues during migration
+      const result = await db.execute(
+        `SELECT id, name, theme, primary_color, tax_rate, deposit_enabled, deposit_fixed_amount, deposit_percentage, logo_url, status FROM clients WHERE api_key = ?`,
+        [input.apiKey]
+      );
+      const rows = result as any[];
+      if (!rows || rows.length === 0 || rows[0].status !== "active") {
         throw new Error("Invalid or inactive client");
       }
+      const row = rows[0];
       // Support both old (depositPercentage) and new (depositFixedAmount) column names
-      // during the migration transition. Falls back to $50 default.
-      const rawDepositFixed = (client as any).depositFixedAmount ?? (client as any).depositPercentage;
+      const rawDepositFixed = row.deposit_fixed_amount ?? row.deposit_percentage;
       return {
-        id: client.id,
-        name: client.name,
-        theme: client.theme,
-        primaryColor: client.primaryColor,
-        taxRate: client.taxRate,
-        depositEnabled: client.depositEnabled,
+        id: row.id,
+        name: row.name,
+        theme: row.theme,
+        primaryColor: row.primary_color,
+        taxRate: row.tax_rate,
+        depositEnabled: row.deposit_enabled,
         depositFixedAmount: rawDepositFixed ?? "50.00",
-        logoUrl: client.logoUrl,
+        logoUrl: row.logo_url,
       };
     }),
 

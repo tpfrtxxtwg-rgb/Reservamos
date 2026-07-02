@@ -8,24 +8,28 @@ export const clientSettingsRouter = createRouter({
   get: clientAuthedQuery.query(async ({ ctx }) => {
     const db = getDb();
     const clientId = ctx.clientUser.clientId;
-    const client = await db.query.clients.findFirst({
-      where: eq(clients.id, clientId),
-    });
-    if (!client) throw new Error("Client not found");
+    // Use raw SQL to avoid Drizzle schema validation issues during migration
+    const result = await db.execute(
+      `SELECT id, name, email, api_key, theme, primary_color, tax_rate, deposit_enabled, deposit_fixed_amount, deposit_percentage, plan, status FROM clients WHERE id = ?`,
+      [clientId]
+    );
+    const rows = result as any[];
+    if (!rows || rows.length === 0) throw new Error("Client not found");
+    const row = rows[0];
     // Support both old (depositPercentage) and new (depositFixedAmount) columns
-    const rawDepositFixed = (client as any).depositFixedAmount ?? (client as any).depositPercentage;
+    const rawDepositFixed = row.deposit_fixed_amount ?? row.deposit_percentage;
     return {
-      id: client.id,
-      name: client.name,
-      email: client.email,
-      apiKey: client.apiKey,
-      theme: client.theme,
-      primaryColor: client.primaryColor,
-      taxRate: client.taxRate,
-      depositEnabled: client.depositEnabled,
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      apiKey: row.api_key,
+      theme: row.theme,
+      primaryColor: row.primary_color,
+      taxRate: row.tax_rate,
+      depositEnabled: row.deposit_enabled,
       depositFixedAmount: rawDepositFixed ?? "50.00",
-      plan: client.plan,
-      status: client.status,
+      plan: row.plan,
+      status: row.status,
     };
   }),
 
