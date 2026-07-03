@@ -213,9 +213,9 @@ export const widgetRouter = createRouter({
       const tax = Math.round(subtotal * taxRate * 100) / 100;
       const total = Math.round((subtotal + tax) * 100) / 100;
 
-      // Payment calculation — depositPercentage stores a fixed USD amount
+      // Payment calculation
       const depositEnabled = client.depositEnabled;
-      const depositFixedAmount = parseFloat(String(client.depositPercentage));
+      const depositPercentage = parseFloat(String(client.depositPercentage)) / 100;
       const paymentOption = input.paymentOption;
       
       let amountPaid = total;
@@ -223,7 +223,7 @@ export const widgetRouter = createRouter({
       let paymentStatus: "paid" | "deposit" | "pending" | "balance_due" = "paid";
 
       if (depositEnabled && paymentOption === "deposit") {
-        amountPaid = Math.min(depositFixedAmount, total);
+        amountPaid = Math.round(total * depositPercentage * 100) / 100;
         balanceDue = Math.round((total - amountPaid) * 100) / 100;
         paymentStatus = balanceDue > 0 ? "deposit" : "paid";
       }
