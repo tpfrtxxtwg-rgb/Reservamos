@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { eq, and } from "drizzle-orm";
 import { createRouter, publicQuery } from "./middleware";
-import { getDb } from "./queries/connection";
+import { getDb, getRawDb } from "./queries/connection";
 import { clients, services, vehicles, destinations, vehicleZonePrices, bookings, optionalServices, serviceAirports, serviceTours } from "@db/schema";
 import { sendBookingConfirmationEmail } from "./email-router";
 
@@ -22,6 +22,23 @@ export const widgetRouter = createRouter({
       if (!client || client.status !== "active") {
         throw new Error("Invalid or inactive client");
       }
+
+      // Read acceptedMethods from client_payment_settings (NOT clients table)
+      const rawDb = getRawDb();
+      let acceptedMethods = "all";
+      try {
+        const [rows] = await rawDb.execute(
+          `SELECT accepted_methods FROM client_payment_settings WHERE clientId = ? LIMIT 1`,
+          [client.id]
+        );
+        const result = (rows as any[])[0];
+        if (result) {
+          acceptedMethods = result.accepted_methods ?? "all";
+        }
+      } catch (err) {
+        console.error("[WidgetConfig] Error reading payment settings:", err);
+      }
+
       return {
         id: client.id,
         name: client.name,
@@ -30,6 +47,7 @@ export const widgetRouter = createRouter({
         taxRate: client.taxRate,
         depositEnabled: client.depositEnabled,
         depositPercentage: client.depositPercentage,
+        acceptedMethods,
         logoUrl: client.logoUrl,
       };
     }),
