@@ -32,14 +32,18 @@ export const widgetRouter = createRouter({
           [client.id]
         );
         const result = (rows as any[])[0];
+        console.log("[WidgetConfig] clientId=", client.id, "paymentSettingsRow=", JSON.stringify(result));
         if (result) {
           acceptedMethods = result.accepted_methods ?? "all";
+          console.log("[WidgetConfig] Found row, acceptedMethods=", acceptedMethods);
+        } else {
+          console.log("[WidgetConfig] No row found in client_payment_settings for clientId=", client.id);
         }
       } catch (err) {
         console.error("[WidgetConfig] Error reading payment settings:", err);
       }
 
-      return {
+      const response = {
         id: client.id,
         name: client.name,
         theme: client.theme,
@@ -50,6 +54,8 @@ export const widgetRouter = createRouter({
         acceptedMethods,
         logoUrl: client.logoUrl,
       };
+      console.log("[WidgetConfig] Final response acceptedMethods=", acceptedMethods);
+      return response;
     }),
 
   listServices: publicQuery
