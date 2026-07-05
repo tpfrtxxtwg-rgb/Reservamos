@@ -176,12 +176,6 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
   const depositFixedAmount = clientConfig?.depositPercentage ? parseFloat(String(clientConfig.depositPercentage)) : 50;
   const acceptedMethods = clientConfig?.acceptedMethods || 'all';
 
-  // DEBUG: log acceptedMethods to console
-  useEffect(() => {
-    console.log('[Widget] acceptedMethods from API:', acceptedMethods);
-    console.log('[Widget] clientConfig:', clientConfig);
-  }, [acceptedMethods, clientConfig]);
-
   // Filter payment methods based on admin configuration
   const allowedMethods = (() => {
     switch (acceptedMethods) {
@@ -196,12 +190,6 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
   const showCard = allowedMethods.includes('card');
   const showPaypal = allowedMethods.includes('paypal');
   const showCash = allowedMethods.includes('cash');
-
-  // DEBUG: log filtering decisions
-  useEffect(() => {
-    console.log('[Widget] allowedMethods:', allowedMethods);
-    console.log('[Widget] showCard:', showCard, 'showPaypal:', showPaypal, 'showCash:', showCash);
-  }, [allowedMethods, showCard, showPaypal, showCash]);
 
   // Auto-select payment method if only one is available
   useEffect(() => {
@@ -392,6 +380,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 
@@ -1039,10 +1028,6 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                   {/* Payment Method */}
                   <div className="mb-5">
                     <h3 className="font-body text-sm font-semibold text-charcoal mb-3">{t('widget.step4.paymentMethod')}</h3>
-                    {/* DEBUG: show acceptedMethods value */}
-                    <div className="mb-2 px-2 py-1 bg-yellow-100 rounded text-[10px] font-mono text-yellow-800">
-                      DEBUG: acceptedMethods=&quot;{acceptedMethods}&quot; | showCard={String(showCard)} showPaypal={String(showPaypal)} showCash={String(showCash)}
-                    </div>
                     <div className="flex gap-2 mb-4">
                       {[
                         ...(showCard ? [{ id: 'card' as const, label: t('widget.step4.creditCard'), icon: <CreditCard size={18} />, badge: t('widget.step4.badgeRecommended') }] : []),
@@ -1188,6 +1173,9 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
           </AnimatePresence>
         </div>
       </div>
+    </div>
+    </div>
+    </div>
     </div>
   );
 }
