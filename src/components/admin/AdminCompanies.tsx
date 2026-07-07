@@ -17,13 +17,34 @@ import { useClientAuth } from '@/providers/ClientAuthProvider';
 
 type StatusFilter = 'all' | 'trial' | 'active' | 'expired' | 'cancelled' | 'none';
 
-const statusConfig: Record<string, { label: string; color: string; bg: string; icon: any }> = {
-  trial: { label: 'Trial', color: '#C75E3A', bg: 'rgba(199,94,58,0.08)', icon: Timer },
-  active: { label: 'Active', color: '#2D6A4F', bg: 'rgba(45,106,79,0.08)', icon: CheckCircle },
-  expired: { label: 'Expired', color: '#B23A2F', bg: 'rgba(178,58,47,0.08)', icon: XCircle },
-  cancelled: { label: 'Cancelled', color: '#8A8278', bg: 'rgba(138,130,120,0.08)', icon: XCircle },
-  none: { label: 'No Plan', color: '#8A8278', bg: 'rgba(138,130,120,0.08)', icon: Clock },
+const statusIcons: Record<string, any> = {
+  trial: Timer,
+  active: CheckCircle,
+  expired: XCircle,
+  cancelled: XCircle,
+  none: Clock,
 };
+
+const statusColors: Record<string, { color: string; bg: string }> = {
+  trial: { color: '#C75E3A', bg: 'rgba(199,94,58,0.08)' },
+  active: { color: '#2D6A4F', bg: 'rgba(45,106,79,0.08)' },
+  expired: { color: '#B23A2F', bg: 'rgba(178,58,47,0.08)' },
+  cancelled: { color: '#8A8278', bg: 'rgba(138,130,120,0.08)' },
+  none: { color: '#8A8278', bg: 'rgba(138,130,120,0.08)' },
+};
+
+function getStatusConfig(t: any, status: string) {
+  const colors = statusColors[status] || statusColors.none;
+  const Icon = statusIcons[status] || statusIcons.none;
+  const labels: Record<string, string> = {
+    trial: t('admin.statusTrial') || 'Trial',
+    active: t('admin.statusActive') || 'Active',
+    expired: t('admin.statusExpired') || 'Expired',
+    cancelled: t('admin.statusCancelled') || 'Cancelled',
+    none: t('admin.statusNoPlan') || 'No Plan',
+  };
+  return { label: labels[status] || labels.none, ...colors, icon: Icon };
+}
 
 export default function AdminCompanies() {
   const { t } = useTranslation();
@@ -33,7 +54,7 @@ export default function AdminCompanies() {
   const [selectedCompany, setSelectedCompany] = useState<number | null>(null);
 
   const { data: companies, isLoading } = trpc.companies.list.useQuery();
-  const { data: payments, isLoading: paymentsLoading, isError: paymentsError } = trpc.companies.payments.useQuery(
+  const { data: payments } = trpc.companies.payments.useQuery(
     { clientId: selectedCompany! },
     { enabled: !!selectedCompany }
   );
@@ -65,8 +86,8 @@ export default function AdminCompanies() {
           <div className="w-16 h-16 rounded-full bg-[rgba(178,58,47,0.1)] flex items-center justify-center mx-auto mb-4">
             <ShieldWarning size={28} className="text-[#B23A2F]" />
           </div>
-          <h3 className="font-display text-lg font-semibold text-charcoal mb-1">Access Denied</h3>
-          <p className="font-body text-sm text-warm-gray">This section is only available for system administrators.</p>
+          <h3 className="font-display text-lg font-semibold text-charcoal mb-1">{t('admin.accessDenied') || 'Access Denied'}</h3>
+          <p className="font-body text-sm text-warm-gray">{t('admin.accessDeniedDesc') || 'This section is only available for system administrators.'}</p>
         </div>
       </div>
     );
@@ -89,7 +110,7 @@ export default function AdminCompanies() {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         {(['trial', 'active', 'expired', 'cancelled'] as const).map((status) => {
-          const cfg = statusConfig[status];
+          const cfg = getStatusConfig(t, status);
           const Icon = cfg.icon;
           return (
             <button
@@ -146,7 +167,7 @@ export default function AdminCompanies() {
               </thead>
               <tbody>
                 {filtered.map((c: any) => {
-                  const cfg = statusConfig[c.subscriptionStatus] || statusConfig.none;
+                  const cfg = getStatusConfig(t, c.subscriptionStatus);
                   return (
                     <tr key={c.id} className="border-b border-[rgba(138,130,120,0.06)] hover:bg-[rgba(138,130,120,0.02)] transition-colors">
                       <td className="px-4 py-3">
@@ -171,7 +192,7 @@ export default function AdminCompanies() {
                         {c.trialEnd ? (
                           <div>
                             <p className="font-body text-sm text-charcoal">
-                              {c.trialDaysLeft > 0 ? `${c.trialDaysLeft} days left` : 'Ended'}
+                              {c.trialDaysLeft > 0 ? t('admin.daysLeft', { count: c.trialDaysLeft }) || `${c.trialDaysLeft} days left` : (t('admin.ended') || 'Ended')}
                             </p>
                             <p className="font-body text-[11px] text-warm-gray">
                               {new Date(c.trialEnd).toLocaleDateString()}
@@ -183,7 +204,7 @@ export default function AdminCompanies() {
                         {c.planEnd ? (
                           <div>
                             <p className="font-body text-sm text-charcoal">
-                              {c.planDaysLeft > 0 ? `${c.planDaysLeft} days left` : 'Ended'}
+                              {c.planDaysLeft > 0 ? t('admin.daysLeft', { count: c.planDaysLeft }) || `${c.planDaysLeft} days left` : (t('admin.ended') || 'Ended')}
                             </p>
                             <p className="font-body text-[11px] text-warm-gray">
                               {new Date(c.planEnd).toLocaleDateString()}
@@ -205,7 +226,7 @@ export default function AdminCompanies() {
                         <button
                           onClick={() => setSelectedCompany(selectedCompany === c.id ? null : c.id)}
                           className="text-warm-gray hover:text-terracotta transition-colors p-1"
-                          title="View payments"
+                          title={t('admin.viewPayments') || 'View payments'}
                         >
                           <CreditCard size={16} />
                         </button>
@@ -219,7 +240,7 @@ export default function AdminCompanies() {
         </div>
       )}
 
-      {selectedCompany && (
+      {selectedCompany && payments && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
           className="mt-6 bg-white rounded-lg shadow-sm border border-[rgba(138,130,120,0.08)] p-5">
           <div className="flex items-center justify-between mb-4">
@@ -228,22 +249,14 @@ export default function AdminCompanies() {
               <XCircle size={18} />
             </button>
           </div>
-          {paymentsLoading ? (
-            <div className="flex items-center justify-center py-4">
-              <span className="font-body text-sm text-warm-gray">{t('common.loading') || 'Loading...'}</span>
-            </div>
-          ) : paymentsError ? (
-            <div className="flex items-center justify-center py-4">
-              <span className="font-body text-sm text-[#B23A2F]">{t('common.error') || 'Error loading payments'}</span>
-            </div>
-          ) : !payments || payments.length === 0 ? (
+          {!payments || payments.length === 0 ? (
             <p className="font-body text-sm text-warm-gray">{t('admin.noPayments') || 'No payments recorded.'}</p>
           ) : (
             <div className="space-y-2">
               {payments.map((p: any) => (
                 <div key={p.id} className="flex items-center justify-between p-3 bg-[#FAFAF8] rounded-lg">
                   <div>
-                    <p className="font-body text-sm text-charcoal">{p.description || 'Annual plan payment'}</p>
+                    <p className="font-body text-sm text-charcoal">{p.description || (t('admin.annualPlanPayment') || 'Annual plan payment')}</p>
                     <p className="font-body text-[11px] text-warm-gray">
                       {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}
                     </p>
