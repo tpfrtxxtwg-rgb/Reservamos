@@ -524,7 +524,13 @@
     "zone": "Zone",
     "zoneName": "Zone Name",
     "zones": "Zones",
-    "zonesDesc": "Manage pricing zones for your service area"
+    "zonesDesc": "Manage pricing zones for your service area",
+    "statusTrial": "Trial",
+    "statusActive": "Active",
+    "statusExpired": "Expired",
+    "statusCancelled": "Cancelled",
+    "statusNoPlan": "No Plan",
+    "viewPayments": "View payments"
   },
   "lang": {
     "en": "English",

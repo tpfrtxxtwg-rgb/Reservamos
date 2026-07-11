@@ -304,7 +304,7 @@
     "airportName": "Nombre del Aeropuerto",
     "airportNamePlaceholder": "ej. Cancún Internacional",
     "amount": "Monto",
-    "annualPlanPayment": "Pago de plan anual",
+    "annualPlanPayment": "Pago del plan anual",
     "appearance": "Apariencia",
     "availableAirports": "Aeropuertos Disponibles",
     "availableTours": "Tours Disponibles",
@@ -524,7 +524,13 @@
     "zone": "Zona",
     "zoneName": "Nombre de Zona",
     "zones": "Zonas",
-    "zonesDesc": "Administra las zonas de precios de tu área de servicio"
+    "zonesDesc": "Administra las zonas de precios de tu área de servicio",
+    "statusTrial": "Prueba",
+    "statusActive": "Activo",
+    "statusExpired": "Expirado",
+    "statusCancelled": "Cancelado",
+    "statusNoPlan": "Sin Plan",
+    "viewPayments": "Ver pagos"
   },
   "lang": {
     "en": "English",

@@ -524,7 +524,13 @@
     "zone": "Zona",
     "zoneName": "Nome da Zona",
     "zones": "Zonas",
-    "zonesDesc": "Gerencie as zonas de preços da sua área de serviço"
+    "zonesDesc": "Gerencie as zonas de preços da sua área de serviço",
+    "statusTrial": "Teste",
+    "statusActive": "Ativo",
+    "statusExpired": "Expirado",
+    "statusCancelled": "Cancelado",
+    "statusNoPlan": "Sem Plano",
+    "viewPayments": "Ver pagamentos"
   },
   "lang": {
     "en": "English",
