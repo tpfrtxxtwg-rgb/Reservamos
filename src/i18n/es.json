@@ -530,7 +530,10 @@
     "statusExpired": "Expirado",
     "statusCancelled": "Cancelado",
     "statusNoPlan": "Sin Plan",
-    "viewPayments": "Ver pagos"
+    "viewPayments": "Ver pagos",
+    "confirmActivate": "¿Activar esta suscripción? El pago fue recibido.",
+    "forceActivate": "Forzar activación (pago recibido)",
+    "syncStripe": "Sincronizar con Stripe"
   },
   "lang": {
     "en": "English",

@@ -11,6 +11,7 @@ import {
   XCircle,
   Clock,
   ShieldWarning,
+  ArrowsClockwise,
 } from '@phosphor-icons/react';
 import { trpc } from '@/providers/trpc';
 import { useClientAuth } from '@/providers/ClientAuthProvider';
@@ -60,6 +61,12 @@ export default function AdminCompanies() {
   );
   const utils = trpc.useUtils();
   const toggleStatus = trpc.companies.toggleStatus.useMutation({
+    onSuccess: () => utils.companies.list.invalidate(),
+  });
+  const forceActivate = trpc.stripeSubscription.forceActivate.useMutation({
+    onSuccess: () => utils.companies.list.invalidate(),
+  });
+  const syncStripe = trpc.stripeSubscription.syncWithStripe.useMutation({
     onSuccess: () => utils.companies.list.invalidate(),
   });
 
@@ -223,13 +230,50 @@ export default function AdminCompanies() {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <button
-                          onClick={() => setSelectedCompany(selectedCompany === c.id ? null : c.id)}
-                          className="text-warm-gray hover:text-terracotta transition-colors p-1"
-                          title={t('admin.viewPayments') || 'View payments'}
-                        >
-                          <CreditCard size={16} />
-                        </button>
+                        <div className="flex items-center justify-end gap-1">
+                          {/* Sync with Stripe */}
+                          <button
+                            onClick={async () => {
+                              try {
+                                const result = await syncStripe.mutateAsync({ clientId: c.id });
+                                alert(`Stripe sync: ${result.previousStatus} → ${result.newStatus} (Stripe: ${result.stripeStatus})`);
+                                utils.companies.list.invalidate();
+                              } catch (e: any) {
+                                alert('Sync failed: ' + (e.message || 'Unknown error'));
+                              }
+                            }}
+                            className="text-warm-gray hover:text-[#635BFF] transition-colors p-1"
+                            title="Sync with Stripe"
+                          >
+                            <ArrowsClockwise size={16} />
+                          </button>
+                          {/* Force Activate (only for expired/cancelled) */}
+                          {(c.subscriptionStatus === 'expired' || c.subscriptionStatus === 'cancelled') && (
+                            <button
+                              onClick={async () => {
+                                if (!confirm(t('admin.confirmActivate') || 'Activate this subscription? The payment was received.')) return;
+                                try {
+                                  await forceActivate.mutateAsync({ clientId: c.id });
+                                  utils.companies.list.invalidate();
+                                } catch (e: any) {
+                                  alert('Activation failed: ' + (e.message || 'Unknown error'));
+                                }
+                              }}
+                              className="text-warm-gray hover:text-[#2D6A4F] transition-colors p-1"
+                              title={t('admin.forceActivate') || 'Force activate (payment received)'}
+                            >
+                              <CheckCircle size={16} />
+                            </button>
+                          )}
+                          {/* View payments */}
+                          <button
+                            onClick={() => setSelectedCompany(selectedCompany === c.id ? null : c.id)}
+                            className="text-warm-gray hover:text-terracotta transition-colors p-1"
+                            title={t('admin.viewPayments') || 'View payments'}
+                          >
+                            <CreditCard size={16} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
