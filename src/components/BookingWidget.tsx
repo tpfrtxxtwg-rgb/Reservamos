@@ -174,6 +174,29 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
   // Deposit config
   const depositEnabled = clientConfig?.depositEnabled ?? false;
   const depositFixedAmount = clientConfig?.depositPercentage ? parseFloat(String(clientConfig.depositPercentage)) : 50;
+  const acceptedMethods = clientConfig?.acceptedMethods || 'all';
+
+  // Filter payment methods based on admin configuration
+  const allowedMethods = (() => {
+    switch (acceptedMethods) {
+      case 'cash': return ['cash'];
+      case 'card': return ['card'];
+      case 'paypal': return ['paypal'];
+      case 'card_paypal': return ['card', 'paypal'];
+      case 'all':
+      default: return ['card', 'paypal', 'cash'];
+    }
+  })();
+  const showCard = allowedMethods.includes('card');
+  const showPaypal = allowedMethods.includes('paypal');
+  const showCash = allowedMethods.includes('cash');
+
+  // Auto-select payment method if only one is available
+  useEffect(() => {
+    if (allowedMethods.length === 1) {
+      updateBooking({ paymentMethod: allowedMethods[0] as 'card' | 'paypal' | 'cash' });
+    }
+  }, [acceptedMethods]);
 
   const basePrice = selectedVehicle ? parseFloat(String(selectedVehicle.price)) : 0;
 
@@ -1006,9 +1029,9 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                     <h3 className="font-body text-sm font-semibold text-charcoal mb-3">{t('widget.step4.paymentMethod')}</h3>
                     <div className="flex gap-2 mb-4">
                       {[
-                        { id: 'card' as const, label: t('widget.step4.creditCard'), icon: <CreditCard size={18} />, badge: t('widget.step4.badgeRecommended') },
-                        { id: 'paypal' as const, label: t('widget.step4.paypal'), icon: <PaypalLogo size={18} />, badge: null },
-                        { id: 'cash' as const, label: t('widget.step4.cash'), icon: <Money size={18} />, badge: null },
+                        ...(showCard ? [{ id: 'card' as const, label: t('widget.step4.creditCard'), icon: <CreditCard size={18} />, badge: t('widget.step4.badgeRecommended') }] : []),
+                        ...(showPaypal ? [{ id: 'paypal' as const, label: t('widget.step4.paypal'), icon: <PaypalLogo size={18} />, badge: null }] : []),
+                        ...(showCash ? [{ id: 'cash' as const, label: t('widget.step4.cash'), icon: <Money size={18} />, badge: null }] : []),
                       ].map(method => (
                         <button key={method.id} onClick={() => updateBooking({ paymentMethod: method.id })}
                           className={`flex-1 flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all ${booking.paymentMethod === method.id ? 'border-terracotta' : 'border-[rgba(138,130,120,0.15)]'}`}>

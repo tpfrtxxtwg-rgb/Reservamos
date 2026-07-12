@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { eq, and } from "drizzle-orm";
 import { createRouter, publicQuery } from "./middleware";
-import { getDb } from "./queries/connection";
+import { getDb, getRawDb } from "./queries/connection";
 import { clients, services, vehicles, destinations, vehicleZonePrices, bookings, optionalServices, serviceAirports, serviceTours } from "@db/schema";
 import { sendBookingConfirmationEmail } from "./email-router";
 
@@ -22,7 +22,28 @@ export const widgetRouter = createRouter({
       if (!client || client.status !== "active") {
         throw new Error("Invalid or inactive client");
       }
-      return {
+
+      // Read acceptedMethods from client_payment_settings (NOT clients table)
+      const rawDb = getRawDb();
+      let acceptedMethods = "all";
+      try {
+        const [rows] = await rawDb.execute(
+          `SELECT accepted_methods FROM client_payment_settings WHERE clientId = ? LIMIT 1`,
+          [client.id]
+        );
+        const result = (rows as any[])[0];
+        console.log("[WidgetConfig] clientId=", client.id, "paymentSettingsRow=", JSON.stringify(result));
+        if (result) {
+          acceptedMethods = result.accepted_methods ?? "all";
+          console.log("[WidgetConfig] Found row, acceptedMethods=", acceptedMethods);
+        } else {
+          console.log("[WidgetConfig] No row found in client_payment_settings for clientId=", client.id);
+        }
+      } catch (err) {
+        console.error("[WidgetConfig] Error reading payment settings:", err);
+      }
+
+      const response = {
         id: client.id,
         name: client.name,
         theme: client.theme,
@@ -30,8 +51,11 @@ export const widgetRouter = createRouter({
         taxRate: client.taxRate,
         depositEnabled: client.depositEnabled,
         depositPercentage: client.depositPercentage,
+        acceptedMethods,
         logoUrl: client.logoUrl,
       };
+      console.log("[WidgetConfig] Final response acceptedMethods=", acceptedMethods);
+      return response;
     }),
 
   listServices: publicQuery
@@ -213,9 +237,9 @@ export const widgetRouter = createRouter({
       const tax = Math.round(subtotal * taxRate * 100) / 100;
       const total = Math.round((subtotal + tax) * 100) / 100;
 
-      // Payment calculation — depositPercentage stores a fixed USD amount
+      // Payment calculation
       const depositEnabled = client.depositEnabled;
-      const depositFixedAmount = parseFloat(String(client.depositPercentage));
+      const depositPercentage = parseFloat(String(client.depositPercentage)) / 100;
       const paymentOption = input.paymentOption;
       
       let amountPaid = total;
@@ -223,7 +247,7 @@ export const widgetRouter = createRouter({
       let paymentStatus: "paid" | "deposit" | "pending" | "balance_due" = "paid";
 
       if (depositEnabled && paymentOption === "deposit") {
-        amountPaid = Math.min(depositFixedAmount, total);
+        amountPaid = Math.round(total * depositPercentage * 100) / 100;
         balanceDue = Math.round((total - amountPaid) * 100) / 100;
         paymentStatus = balanceDue > 0 ? "deposit" : "paid";
       }

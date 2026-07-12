@@ -1,14 +1,11 @@
 import { z } from "zod";
 import Stripe from "stripe";
 import bcrypt from "bcryptjs";
-import { createRouter, publicQuery } from "./middleware";
+import { createRouter, publicQuery, superAdminQuery } from "./middleware";
 import { getRawDb } from "./queries/connection";
-import { sendWelcomeEmail } from "./lib/welcome-email";
+import { sendWelcomeEmail } from "./email-router";
 
-// Annual price in cents. Currency defaults to MXN for Mexican Stripe accounts.
-// Set STRIPE_CURRENCY=USD in Railway if your Stripe account supports USD.
-const STRIPE_CURRENCY = (process.env.STRIPE_CURRENCY || "mxn").toLowerCase();
-const ANNUAL_PRICE_CENTS = STRIPE_CURRENCY === "usd" ? 60000 : 600000; // $600 USD or $6,000 MXN
+const ANNUAL_PRICE_CENTS = 60000;
 const TRIAL_DAYS = 7;
 
 function getStripe(): Stripe {
@@ -21,68 +18,6 @@ function getWebhookSecret(): string {
   return process.env.STRIPE_WEBHOOK_SECRET || "";
 }
 
-/**
- * Process a Stripe webhook event.
- * Extracted so it can be called from both the tRPC endpoint and the Hono HTTP route.
- */
-export async function processStripeWebhook(
-  signature: string,
-  payload: string
-): Promise<{ received: boolean; type: string }> {
-  const secret = getWebhookSecret();
-  if (!secret) throw new Error("Webhook secret not configured. Set STRIPE_WEBHOOK_SECRET env var.");
-
-  const s = getStripe();
-  let event: Stripe.Event;
-  try {
-    event = s.webhooks.constructEvent(payload, signature, secret);
-  } catch (err: any) {
-    throw new Error(`Webhook verification failed: ${err.message}`);
-  }
-
-  console.log(`[StripeWebhook] Received event: ${event.type}, id: ${event.id}`);
-  const rawDb = getRawDb();
-
-  switch (event.type) {
-    case "invoice.payment_succeeded": {
-      const invoice = event.data.object as any;
-      const subId = invoice.subscription as string;
-      console.log(`[StripeWebhook] Payment succeeded for subscription: ${subId}`);
-      await rawDb.execute(
-        "UPDATE client_subscriptions SET status='active', plan_start=NOW(), plan_end=DATE_ADD(NOW(), INTERVAL 1 YEAR) WHERE stripe_subscription_id=?",
-        [subId]
-      );
-      console.log(`[StripeWebhook] Subscription ${subId} marked as active`);
-      break;
-    }
-    case "invoice.payment_failed": {
-      const invoice = event.data.object as any;
-      const subId = invoice.subscription as string;
-      console.log(`[StripeWebhook] Payment failed for subscription: ${subId}`);
-      await rawDb.execute(
-        "UPDATE client_subscriptions SET status='expired' WHERE stripe_subscription_id=?",
-        [subId]
-      );
-      console.log(`[StripeWebhook] Subscription ${subId} marked as expired`);
-      break;
-    }
-    case "customer.subscription.deleted": {
-      const subscription = event.data.object as Stripe.Subscription;
-      console.log(`[StripeWebhook] Subscription deleted: ${subscription.id}`);
-      await rawDb.execute(
-        "UPDATE client_subscriptions SET status='cancelled' WHERE stripe_subscription_id=?",
-        [subscription.id]
-      );
-      console.log(`[StripeWebhook] Subscription ${subscription.id} marked as cancelled`);
-      break;
-    }
-    default:
-      console.log(`[StripeWebhook] Unhandled event type: ${event.type}`);
-  }
-
-  return { received: true, type: event.type };
-}
-
 export const stripeSubscriptionRouter = createRouter({
   checkConfig: publicQuery.query(() => {
     const pk = process.env.VITE_STRIPE_PUBLISHABLE_KEY || process.env.STRIPE_PUBLISHABLE_KEY || "";
@@ -91,17 +26,6 @@ export const stripeSubscriptionRouter = createRouter({
       publishableKey: pk,
     };
   }),
-
-  checkEmail: publicQuery
-    .input(z.object({ email: z.string().email() }))
-    .query(async ({ input }) => {
-      const rawDb = getRawDb();
-      const [existingUsers] = await rawDb.execute(
-        "SELECT client_id FROM client_users WHERE email = ? LIMIT 1",
-        [input.email]
-      );
-      return { available: (existingUsers as any[]).length === 0 };
-    }),
 
   createSetupIntent: publicQuery
     .input(z.object({ email: z.string().email(), name: z.string().min(1) }))
@@ -124,20 +48,10 @@ export const stripeSubscriptionRouter = createRouter({
       companyEmail: z.string().email(),
       companyPassword: z.string().min(6),
       couponCode: z.string().optional(),
-      lang: z.string().optional().default("en"),
     }))
     .mutation(async ({ input }) => {
       const s = getStripe();
       const rawDb = getRawDb();
-
-      // Check if email is already registered
-      const [existingUsers] = await rawDb.execute(
-        "SELECT client_id FROM client_users WHERE email = ? LIMIT 1",
-        [input.companyEmail]
-      );
-      if ((existingUsers as any[]).length > 0) {
-        throw new Error("This email is already registered. Please log in or use a different email address.");
-      }
 
       let discountPercent = 0;
       if (input.couponCode) {
@@ -172,7 +86,7 @@ export const stripeSubscriptionRouter = createRouter({
       const price = await s.prices.create({
         product: product.id,
         unit_amount: finalAmountCents,
-        currency: STRIPE_CURRENCY,
+        currency: "usd",
         recurring: { interval: "year" },
       });
 
@@ -198,6 +112,7 @@ export const stripeSubscriptionRouter = createRouter({
         `INSERT INTO client_users (client_id, email, password_hash, name, role, active, created_at, updated_at)
          VALUES (?, ?, ?, ?, 'owner', true, NOW(), NOW())
          ON DUPLICATE KEY UPDATE
+           client_id = VALUES(client_id),
            password_hash = VALUES(password_hash),
            name = VALUES(name),
            role = 'owner',
@@ -226,14 +141,14 @@ export const stripeSubscriptionRouter = createRouter({
         await rawDb.execute("UPDATE coupons SET uses_count = uses_count + 1 WHERE code = ?", [input.couponCode.toUpperCase()]);
       }
 
-      // Send welcome email (non-blocking, don't fail registration if email fails)
-      sendWelcomeEmail({
-        companyName: input.companyName,
-        email: input.companyEmail,
-        apiKey,
-        trialEnd: trialEndDate.toISOString(),
-        lang: input.lang || "en",
-      }).catch((e) => console.error("[createSubscription] Welcome email failed:", e));
+      // Send welcome email asynchronously (don't block the response)
+      sendWelcomeEmail(clientId, input.companyEmail, input.companyName, trialEndDate.toISOString())
+        .then((result) => {
+          console.log(`[Register] Welcome email result:`, result);
+        })
+        .catch((err: any) => {
+          console.error("[Register] Welcome email failed:", err?.message || err);
+        });
 
       return {
         clientId, apiKey,
@@ -260,40 +175,130 @@ export const stripeSubscriptionRouter = createRouter({
       return { status: sub.status, trialDaysLeft, trialEnd: sub.trial_end, planEnd: sub.plan_end };
     }),
 
+  // Admin: Force activate a subscription when payment was received but webhook failed
+  forceActivate: superAdminQuery
+    .input(z.object({ clientId: z.number().int().positive() }))
+    .mutation(async ({ input }) => {
+      const rawDb = getRawDb();
+      const [rows] = await rawDb.execute(
+        `SELECT stripe_subscription_id, status, final_amount FROM client_subscriptions WHERE clientId = ? LIMIT 1`,
+        [input.clientId]
+      );
+      const sub = (rows as any[])[0];
+      if (!sub) throw new Error("Subscription not found");
+
+      // Update to active with 1-year plan
+      await rawDb.execute(
+        `UPDATE client_subscriptions SET status='active', plan_start=NOW(), plan_end=DATE_ADD(NOW(), INTERVAL 1 YEAR) WHERE clientId=?`,
+        [input.clientId]
+      );
+
+      // Also record a payment
+      try {
+        await rawDb.execute(
+          `INSERT INTO subscription_payments (clientId, amount, currency, status, description, paid_at, created_at)
+           VALUES (?, ?, 'USD', 'succeeded', 'Annual plan - manual activation', NOW(), NOW())`,
+          [input.clientId, sub.final_amount || 600.00]
+        );
+      } catch (e: any) {
+        console.error("[forceActivate] Payment record insert failed:", e.message);
+      }
+
+      return { success: true, previousStatus: sub.status, newStatus: 'active' };
+    }),
+
+  // Admin: Record a payment for an active subscription (when payment was received but not recorded)
+  recordPayment: superAdminQuery
+    .input(z.object({ clientId: z.number().int().positive() }))
+    .mutation(async ({ input }) => {
+      const rawDb = getRawDb();
+      const [rows] = await rawDb.execute(
+        `SELECT final_amount, status FROM client_subscriptions WHERE clientId = ? LIMIT 1`,
+        [input.clientId]
+      );
+      const sub = (rows as any[])[0];
+      if (!sub) throw new Error("Subscription not found");
+
+      await rawDb.execute(
+        `INSERT INTO subscription_payments (clientId, amount, currency, status, description, paid_at, created_at)
+         VALUES (?, ?, 'USD', 'succeeded', 'Annual plan payment', NOW(), NOW())`,
+        [input.clientId, sub.final_amount || 600.00]
+      );
+
+      return { success: true, amount: sub.final_amount || 600.00 };
+    }),
+
+  // Admin: Sync subscription status with Stripe
+  syncWithStripe: superAdminQuery
+    .input(z.object({ clientId: z.number().int().positive() }))
+    .mutation(async ({ input }) => {
+      const rawDb = getRawDb();
+      const s = getStripe();
+
+      const [rows] = await rawDb.execute(
+        `SELECT stripe_subscription_id, status FROM client_subscriptions WHERE clientId = ? LIMIT 1`,
+        [input.clientId]
+      );
+      const sub = (rows as any[])[0];
+      if (!sub?.stripe_subscription_id) throw new Error("No Stripe subscription found");
+
+      const stripeSub = await s.subscriptions.retrieve(sub.stripe_subscription_id);
+      const stripeStatus = stripeSub.status;
+
+      let newStatus = sub.status;
+      if (stripeStatus === 'active' || stripeStatus === 'trialing') {
+        newStatus = 'active';
+      } else if (stripeStatus === 'canceled' || stripeStatus === 'cancelled') {
+        newStatus = 'cancelled';
+      } else if (stripeStatus === 'past_due' || stripeStatus === 'unpaid') {
+        newStatus = 'expired';
+      }
+
+      if (newStatus !== sub.status) {
+        await rawDb.execute(
+          "UPDATE client_subscriptions SET status = ? WHERE clientId = ?",
+          [newStatus, input.clientId]
+        );
+      }
+
+      return { success: true, stripeStatus, previousStatus: sub.status, newStatus };
+    }),
+
   webhook: publicQuery
     .input(z.object({ signature: z.string(), payload: z.string() }))
     .mutation(async ({ input }) => {
-      return processStripeWebhook(input.signature, input.payload);
+      const secret = getWebhookSecret();
+      if (!secret) throw new Error("Webhook secret not configured");
+      const s = getStripe();
+      let event: Stripe.Event;
+      try {
+        event = s.webhooks.constructEvent(input.payload, input.signature, secret);
+      } catch (err: any) {
+        throw new Error(`Webhook verification failed: ${err.message}`);
+      }
+      const rawDb = getRawDb();
+      switch (event.type) {
+        case "invoice.payment_succeeded": {
+          const invoice = event.data.object as any;
+          const subId = invoice.subscription as string;
+          await rawDb.execute(
+            "UPDATE client_subscriptions SET status='active', plan_start=NOW(), plan_end=DATE_ADD(NOW(), INTERVAL 1 YEAR) WHERE stripe_subscription_id=?",
+            [subId]
+          );
+          break;
+        }
+        case "invoice.payment_failed": {
+          const invoice = event.data.object as any;
+          const subId = invoice.subscription as string;
+          await rawDb.execute("UPDATE client_subscriptions SET status='expired' WHERE stripe_subscription_id=?", [subId]);
+          break;
+        }
+        case "customer.subscription.deleted": {
+          const subscription = event.data.object as Stripe.Subscription;
+          await rawDb.execute("UPDATE client_subscriptions SET status='cancelled' WHERE stripe_subscription_id=?", [subscription.id]);
+          break;
+        }
+      }
+      return { received: true, type: event.type };
     }),
-
-  // Get current subscription status for the authenticated client
-  myStatus: publicQuery.query(async ({ ctx }) => {
-    const clientUser = ctx.clientUser;
-    if (!clientUser) return { status: "none" as const, trialDaysLeft: 0 };
-
-    const rawDb = getRawDb();
-    const [rows] = await rawDb.execute(
-      `SELECT status, trial_start, trial_end, plan_start, plan_end,
-        annual_price, coupon_code, discount_applied, final_amount
-       FROM client_subscriptions WHERE clientId = ? LIMIT 1`,
-      [clientUser.clientId]
-    );
-    const sub = (rows as any[])[0];
-    if (!sub) return { status: "none" as const, trialDaysLeft: 0 };
-
-    const trialEnd = sub.trial_end ? new Date(sub.trial_end) : null;
-    const trialDaysLeft = trialEnd
-      ? Math.max(0, Math.ceil((trialEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
-      : 0;
-
-    return {
-      status: sub.status,
-      trialDaysLeft,
-      trialEnd: sub.trial_end,
-      planEnd: sub.plan_end,
-      annualPrice: parseFloat(sub.annual_price) || 600,
-      finalAmount: parseFloat(sub.final_amount) || 600,
-      discountApplied: sub.discount_applied || 0,
-    };
-  }),
 });

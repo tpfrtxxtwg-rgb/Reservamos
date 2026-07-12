@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { createRouter, superAdminQuery, clientAuthedQuery } from "./middleware";
+import { createRouter, superAdminQuery } from "./middleware";
 import { getRawDb } from "./queries/connection";
 
 export const companiesRouter = createRouter({
   // Admin: List all companies with subscription info
-  list: clientAuthedQuery.query(async () => {
+  list: superAdminQuery.query(async () => {
     const rawDb = getRawDb();
     try {
       const [rows] = await rawDb.execute(
@@ -58,20 +58,20 @@ export const companiesRouter = createRouter({
     }
   }),
 
-  // Admin: Get payment history for a company (super admin only)
+  // Admin: Get payment history for a company
   payments: superAdminQuery
     .input(z.object({ clientId: z.number().int().positive() }))
     .query(async ({ input }) => {
       const rawDb = getRawDb();
       const [rows] = await rawDb.execute(
-        `SELECT id, amount, currency, status, description, paid_at, created_at
+        `SELECT id, amount, currency, status, description, paid_at as paidAt, created_at as createdAt
          FROM subscription_payments WHERE clientId = ? ORDER BY created_at DESC`,
         [input.clientId]
       );
       return rows as any[];
     }),
 
-  // Admin: Toggle company status (active/inactive) (super admin only)
+  // Admin: Toggle company status (active/inactive)
   toggleStatus: superAdminQuery
     .input(z.object({ clientId: z.number().int().positive() }))
     .mutation(async ({ input }) => {

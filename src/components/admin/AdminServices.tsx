@@ -78,17 +78,17 @@ export default function AdminServices() {
   const resetTourForm = () => { setTourName(''); setTourPrice(''); setTourDesc(''); setTourDuration(''); setTourHighlights(''); };
 
   // Tab config
-  const tabs: { id: ServiceType; label: string; icon: React.ReactNode; desc: string }[] = [
-    { id: 'airport', label: 'Airport Transfers', icon: <Airplane size={18} />, desc: 'Manage available airports for pickup/dropoff' },
-    { id: 'tour', label: 'Private Tours', icon: <MapTrifold size={18} />, desc: 'Manage your tour offerings' },
-    { id: 'hourly', label: 'By the Hour', icon: <Clock size={18} />, desc: 'Hourly service configuration' },
+  const tabs: { id: ServiceType; labelKey: string; icon: React.ReactNode; descKey: string }[] = [
+    { id: 'airport', labelKey: 'admin.airportTransfers', icon: <Airplane size={18} />, descKey: 'admin.airportTransfersDesc' },
+    { id: 'tour', labelKey: 'admin.privateTours', icon: <MapTrifold size={18} />, descKey: 'admin.privateToursDesc' },
+    { id: 'hourly', labelKey: 'admin.byTheHour', icon: <Clock size={18} />, descKey: 'admin.byTheHourDesc' },
   ];
 
   return (
     <div>
       <div className="mb-6">
         <h2 className="font-display text-xl font-semibold text-charcoal">{t('admin.services') || 'Services'}</h2>
-        <p className="font-body text-sm text-warm-gray mt-1">Configure your service types and their options</p>
+        <p className="font-body text-sm text-warm-gray mt-1">{t('admin.configureServiceTypes') || 'Configure your service types and their options'}</p>
       </div>
 
       {/* Type Tabs */}
@@ -100,7 +100,7 @@ export default function AdminServices() {
                 ? 'bg-[#C75E3A] text-white shadow-sm'
                 : 'bg-white text-warm-gray hover:text-charcoal border border-[rgba(138,130,120,0.12)]'
             }`}>
-            {tab.icon} {tab.label}
+            {tab.icon} {t(tab.labelKey) || tab.id}
           </button>
         ))}
       </div>
@@ -110,13 +110,13 @@ export default function AdminServices() {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="font-body text-base font-semibold text-charcoal">Available Airports</h3>
-              <p className="font-body text-xs text-warm-gray">These airports will appear in the booking widget for customers to select</p>
+              <h3 className="font-body text-base font-semibold text-charcoal">{t('admin.availableAirports') || 'Available Airports'}</h3>
+              <p className="font-body text-xs text-warm-gray">{t('admin.airportDesc') || 'These airports will appear in the booking widget for customers to select'}</p>
             </div>
             {!showAddAirport && (
               <button onClick={() => setShowAddAirport(true)}
                 className="flex items-center gap-2 px-4 py-2.5 bg-[#C75E3A] text-white rounded-lg font-body text-sm hover:bg-[#a84d2f] transition-colors">
-                <Plus size={18} /> Add Airport
+                <Plus size={18} /> {t('admin.addAirport') || 'Add Airport'}
               </button>
             )}
           </div>
@@ -124,29 +124,29 @@ export default function AdminServices() {
           {showAddAirport && (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
               className="bg-white rounded-lg shadow-sm border border-[rgba(138,130,120,0.12)] p-5 mb-6">
-              <h4 className="font-body text-sm font-semibold text-charcoal mb-4">New Airport</h4>
+              <h4 className="font-body text-sm font-semibold text-charcoal mb-4">{t('admin.newAirport') || 'New Airport'}</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div>
-                  <label className="font-body text-xs font-medium text-warm-gray uppercase mb-1.5 block">Airport Name</label>
+                  <label className="font-body text-xs font-medium text-warm-gray uppercase mb-1.5 block">{t('admin.airportName') || 'Airport Name'}</label>
                   <input value={aptName} onChange={e => setAptName(e.target.value)}
-                    placeholder="e.g. Cancun International" className="w-full h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm" />
+                    placeholder={t('admin.airportNamePlaceholder') || 'e.g. Cancun International'} className="w-full h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm" />
                 </div>
                 <div>
-                  <label className="font-body text-xs font-medium text-warm-gray uppercase mb-1.5 block">IATA Code</label>
+                  <label className="font-body text-xs font-medium text-warm-gray uppercase mb-1.5 block">{t('admin.iataCode') || 'IATA Code'}</label>
                   <input value={aptCode} onChange={e => setAptCode(e.target.value.toUpperCase())}
-                    placeholder="e.g. CUN" maxLength={10} className="w-full h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm" />
+                    placeholder={t('admin.iataCodePlaceholder') || 'e.g. CUN'} maxLength={10} className="w-full h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm" />
                 </div>
                 <div>
-                  <label className="font-body text-xs font-medium text-warm-gray uppercase mb-1.5 block">City</label>
+                  <label className="font-body text-xs font-medium text-warm-gray uppercase mb-1.5 block">{t('admin.city') || 'City'}</label>
                   <input value={aptCity} onChange={e => setAptCity(e.target.value)}
-                    placeholder="e.g. Cancun" className="w-full h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm" />
+                    placeholder={t('admin.cityPlaceholder') || 'e.g. Cancun'} className="w-full h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm" />
                 </div>
               </div>
               <div className="flex justify-end gap-2">
-                <button onClick={() => { setShowAddAirport(false); resetAptForm(); }} className="px-4 py-2 text-warm-gray font-body text-sm">Cancel</button>
+                <button onClick={() => { setShowAddAirport(false); resetAptForm(); }} className="px-4 py-2 text-warm-gray font-body text-sm">{t('common.cancel') || 'Cancel'}</button>
                 <button onClick={() => { if (!aptName.trim() || !aptCode.trim()) return; createApt.mutate({ name: aptName, code: aptCode, city: aptCity || undefined }); }}
                   disabled={createApt.isPending} className="flex items-center gap-1 px-5 py-2 bg-[#C75E3A] text-white rounded-md font-body text-sm disabled:opacity-50">
-                  <Check size={16} /> Save
+                  <Check size={16} /> {t('common.save') || 'Save'}
                 </button>
               </div>
             </motion.div>
@@ -157,11 +157,11 @@ export default function AdminServices() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-[rgba(138,130,120,0.1)]">
-                  <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase">Airport</th>
-                  <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase">Code</th>
-                  <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase">City</th>
-                  <th className="text-center px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase">Status</th>
-                  <th className="text-right px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase">Actions</th>
+                  <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase">{t('admin.airport') || 'Airport'}</th>
+                  <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase">{t('admin.code') || 'Code'}</th>
+                  <th className="text-left px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase">{t('admin.city') || 'City'}</th>
+                  <th className="text-center px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase">{t('admin.status') || 'Status'}</th>
+                  <th className="text-right px-6 py-3 font-body text-xs font-medium text-warm-gray uppercase">{t('common.actions') || 'Actions'}</th>
                 </tr>
               </thead>
               <tbody>
@@ -180,7 +180,7 @@ export default function AdminServices() {
                     <td className="px-6 py-4 text-center">
                       <button onClick={() => updateApt.mutate({ id: apt.id, active: !apt.active })}
                         className={`px-2.5 py-1 rounded-full font-body text-xs font-medium ${apt.active ? 'bg-[rgba(45,106,79,0.1)] text-[#2D6A4F]' : 'bg-[rgba(178,58,47,0.1)] text-[#B23A2F]'}`}>
-                        {apt.active ? 'Active' : 'Inactive'}
+                        {apt.active ? (t('common.active') || 'Active') : (t('common.inactive') || 'Inactive')}
                       </button>
                     </td>
                     <td className="px-6 py-4">
@@ -195,7 +195,7 @@ export default function AdminServices() {
             {(!airportsList || airportsList.length === 0) && (
               <div className="text-center py-12">
                 <AirplaneLanding size={32} className="text-warm-gray/30 mx-auto mb-3" />
-                <p className="font-body text-sm text-warm-gray">No airports yet. Add your first airport above.</p>
+                <p className="font-body text-sm text-warm-gray">{t('admin.noAirports') || 'No airports yet. Add your first airport above.'}</p>
               </div>
             )}
           </div>
@@ -207,13 +207,13 @@ export default function AdminServices() {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="font-body text-base font-semibold text-charcoal">Available Tours</h3>
-              <p className="font-body text-xs text-warm-gray">These tours will appear for customers when they select Private Tour service</p>
+              <h3 className="font-body text-base font-semibold text-charcoal">{t('admin.availableTours') || 'Available Tours'}</h3>
+              <p className="font-body text-xs text-warm-gray">{t('admin.toursDesc') || 'These tours will appear for customers when they select Private Tour service'}</p>
             </div>
             {!showAddTour && (
               <button onClick={() => setShowAddTour(true)}
                 className="flex items-center gap-2 px-4 py-2.5 bg-[#C75E3A] text-white rounded-lg font-body text-sm hover:bg-[#a84d2f] transition-colors">
-                <Plus size={18} /> Add Tour
+                <Plus size={18} /> {t('admin.addTour') || 'Add Tour'}
               </button>
             )}
           </div>
@@ -221,39 +221,39 @@ export default function AdminServices() {
           {showAddTour && (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
               className="bg-white rounded-lg shadow-sm border border-[rgba(138,130,120,0.12)] p-5 mb-6">
-              <h4 className="font-body text-sm font-semibold text-charcoal mb-4">New Tour</h4>
+              <h4 className="font-body text-sm font-semibold text-charcoal mb-4">{t('admin.newTour') || 'New Tour'}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="font-body text-xs font-medium text-warm-gray uppercase mb-1.5 block">Tour Name</label>
+                  <label className="font-body text-xs font-medium text-warm-gray uppercase mb-1.5 block">{t('admin.tourName') || 'Tour Name'}</label>
                   <input value={tourName} onChange={e => setTourName(e.target.value)}
-                    placeholder="e.g. Tulum Ruins & Cenote" className="w-full h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm" />
+                    placeholder={t('admin.tourNamePlaceholder') || 'e.g. Tulum Ruins & Cenote'} className="w-full h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm" />
                 </div>
                 <div>
-                  <label className="font-body text-xs font-medium text-warm-gray uppercase mb-1.5 block">Price (USD)</label>
+                  <label className="font-body text-xs font-medium text-warm-gray uppercase mb-1.5 block">{t('admin.price') || 'Price (USD)'}</label>
                   <input value={tourPrice} onChange={e => setTourPrice(e.target.value)}
-                    placeholder="e.g. 120.00" className="w-full h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm" />
+                    placeholder={t('admin.pricePlaceholder') || 'e.g. 120.00'} className="w-full h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm" />
                 </div>
                 <div>
-                  <label className="font-body text-xs font-medium text-warm-gray uppercase mb-1.5 block">Duration</label>
+                  <label className="font-body text-xs font-medium text-warm-gray uppercase mb-1.5 block">{t('admin.duration') || 'Duration'}</label>
                   <input value={tourDuration} onChange={e => setTourDuration(e.target.value)}
-                    placeholder="e.g. 6 hours" className="w-full h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm" />
+                    placeholder={t('admin.durationPlaceholder') || 'e.g. 6 hours'} className="w-full h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm" />
                 </div>
                 <div>
-                  <label className="font-body text-xs font-medium text-warm-gray uppercase mb-1.5 block">Description</label>
+                  <label className="font-body text-xs font-medium text-warm-gray uppercase mb-1.5 block">{t('admin.description') || 'Description'}</label>
                   <input value={tourDesc} onChange={e => setTourDesc(e.target.value)}
-                    placeholder="e.g. Visit the ancient Mayan ruins" className="w-full h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm" />
+                    placeholder={t('admin.descriptionPlaceholder') || 'e.g. Visit the ancient Mayan ruins'} className="w-full h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm" />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="font-body text-xs font-medium text-warm-gray uppercase mb-1.5 block">Highlights</label>
+                  <label className="font-body text-xs font-medium text-warm-gray uppercase mb-1.5 block">{t('admin.highlights') || 'Highlights'}</label>
                   <input value={tourHighlights} onChange={e => setTourHighlights(e.target.value)}
-                    placeholder="e.g. Mayan ruins, Cenote swim, Beach time (comma separated)" className="w-full h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm" />
+                    placeholder={t('admin.highlightsPlaceholder') || 'e.g. Mayan ruins, Cenote swim, Beach time (comma separated)'} className="w-full h-10 bg-[#FAFAF8] border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm" />
                 </div>
               </div>
               <div className="flex justify-end gap-2">
-                <button onClick={() => { setShowAddTour(false); resetTourForm(); }} className="px-4 py-2 text-warm-gray font-body text-sm">Cancel</button>
+                <button onClick={() => { setShowAddTour(false); resetTourForm(); }} className="px-4 py-2 text-warm-gray font-body text-sm">{t('common.cancel') || 'Cancel'}</button>
                 <button onClick={() => { if (!tourName.trim()) return; createTour.mutate({ name: tourName, price: tourPrice || '0.00', description: tourDesc || undefined, duration: tourDuration || undefined, highlights: tourHighlights || undefined }); }}
                   disabled={createTour.isPending} className="flex items-center gap-1 px-5 py-2 bg-[#C75E3A] text-white rounded-md font-body text-sm disabled:opacity-50">
-                  <Check size={16} /> Save
+                  <Check size={16} /> {t('common.save') || 'Save'}
                 </button>
               </div>
             </motion.div>
@@ -289,7 +289,7 @@ export default function AdminServices() {
                   <div className="mt-3 flex items-center gap-2">
                     <button onClick={() => updateTour.mutate({ id: tour.id, active: !tour.active })}
                       className={`flex items-center gap-1 px-2.5 py-1 rounded-full font-body text-xs font-medium ${tour.active ? 'bg-[rgba(45,106,79,0.1)] text-[#2D6A4F]' : 'bg-[rgba(178,58,47,0.1)] text-[#B23A2F]'}`}>
-                      {tour.active ? <CheckCircle size={12} /> : <X size={12} />} {tour.active ? 'Active' : 'Inactive'}
+                      {tour.active ? <CheckCircle size={12} /> : <X size={12} />} {tour.active ? (t('common.active') || 'Active') : (t('common.inactive') || 'Inactive')}
                     </button>
                   </div>
                 </div>
@@ -298,7 +298,7 @@ export default function AdminServices() {
           ) : (
             <div className="bg-white rounded-lg shadow-sm border border-[rgba(138,130,120,0.08)] p-12 text-center">
               <MapTrifold size={32} className="text-warm-gray/30 mx-auto mb-3" />
-              <p className="font-body text-sm text-warm-gray">No tours yet. Add your first tour above.</p>
+              <p className="font-body text-sm text-warm-gray">{t('admin.noTours') || 'No tours yet. Add your first tour above.'}</p>
             </div>
           )}
         </motion.div>
@@ -313,8 +313,8 @@ export default function AdminServices() {
                 <Clock size={24} />
               </div>
               <div>
-                <h3 className="font-body text-base font-semibold text-charcoal">Hourly Service</h3>
-                <p className="font-body text-sm text-warm-gray">Vehicle and driver at customer's disposal</p>
+                <h3 className="font-body text-base font-semibold text-charcoal">{t('admin.hourlyService') || 'Hourly Service'}</h3>
+                <p className="font-body text-sm text-warm-gray">{t('admin.hourlyServiceDesc') || "Vehicle and driver at customer's disposal"}</p>
               </div>
             </div>
 
@@ -322,26 +322,26 @@ export default function AdminServices() {
               <>
                 <div className="flex items-center gap-3 mb-4 p-3 bg-[rgba(45,106,79,0.06)] rounded-lg">
                   <CheckCircle size={20} className="text-[#2D6A4F]" weight="fill" />
-                  <span className="font-body text-sm font-medium text-[#2D6A4F]">This service is currently active and visible to customers</span>
+                  <span className="font-body text-sm font-medium text-[#2D6A4F]">{t('admin.hourlyServiceActive') || 'This service is currently active and visible to customers'}</span>
                 </div>
                 <button onClick={() => updateSvc.mutate({ id: hourlyService.id, active: false })}
                   className="px-5 py-2.5 bg-[#B23A2F] text-white rounded-lg font-body text-sm hover:bg-[#8f2d25] transition-colors">
-                  Deactivate Hourly Service
+                  {t('admin.deactivateHourly') || 'Deactivate Hourly Service'}
                 </button>
               </>
             ) : (
               <>
                 <div className="flex items-center gap-3 mb-4 p-3 bg-[rgba(178,58,47,0.06)] rounded-lg">
                   <X size={20} className="text-[#B23A2F]" />
-                  <span className="font-body text-sm font-medium text-[#B23A2F]">This service is currently inactive</span>
+                  <span className="font-body text-sm font-medium text-[#B23A2F]">{t('admin.hourlyServiceInactive') || 'This service is currently inactive'}</span>
                 </div>
                 <p className="font-body text-xs text-warm-gray mb-4">
-                  When activated, customers will see &quot;By the Hour&quot; as a booking option. Pricing is based on your vehicle hourly rates.
+                  {t('admin.hourlyServiceInfo') || 'When activated, customers will see "By the Hour" as a booking option. Pricing is based on your vehicle hourly rates.'}
                 </p>
                 <button onClick={() => {
-                  createSvc.mutate({ name: 'By the Hour', slug: 'hourly', icon: 'Clock', description: 'Vehicle and driver at your disposal' });
+                  createSvc.mutate({ name: t('admin.byTheHour') || 'By the Hour', slug: 'hourly', icon: 'Clock', description: t('admin.hourlyServiceDesc') || 'Vehicle and driver at your disposal' });
                 }} className="px-5 py-2.5 bg-[#2D6A4F] text-white rounded-lg font-body text-sm hover:bg-[#235442] transition-colors">
-                  Activate Hourly Service
+                  {t('admin.activateHourly') || 'Activate Hourly Service'}
                 </button>
               </>
             )}
