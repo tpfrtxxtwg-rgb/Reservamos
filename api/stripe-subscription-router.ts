@@ -184,11 +184,15 @@ export const stripeSubscriptionRouter = createRouter({
       );
 
       // Also record a payment
-      await rawDb.execute(
-        `INSERT INTO subscription_payments (clientId, amount, currency, status, description, paidAt, createdAt)
-         VALUES (?, ?, 'USD', 'succeeded', 'Annual plan - manual activation', NOW(), NOW())`,
-        [input.clientId, sub.final_amount || 600.00]
-      );
+      try {
+        await rawDb.execute(
+          `INSERT INTO subscription_payments (clientId, amount, currency, status, description, paid_at, created_at)
+           VALUES (?, ?, 'USD', 'succeeded', 'Annual plan - manual activation', NOW(), NOW())`,
+          [input.clientId, sub.final_amount || 600.00]
+        );
+      } catch (e: any) {
+        console.error("[forceActivate] Payment record insert failed:", e.message);
+      }
 
       return { success: true, previousStatus: sub.status, newStatus: 'active' };
     }),
