@@ -66,7 +66,7 @@
     "statsUptime": "Uptime"
   },
   "demoSection": {
-    "label": "Vívelo en Vivo",
+    "label": "Pruébalo en Vivo",
     "title": "Tu Cliente Reserva en Segundos",
     "description": "El widget se adapta al diseño de cualquier sitio web. El viajero completa su reserva en menos de 2 minutos."
   },
@@ -100,7 +100,7 @@
   },
   "pricing": {
     "label": "Precios",
-    "title": "Booking Engine Plan",
+    "title": "Plan Reserve",
     "subtitle": "Para todos los operadores de transporte privado",
     "month": "mes",
     "getStarted": "Comenzar",
