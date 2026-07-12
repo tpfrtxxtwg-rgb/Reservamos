@@ -124,7 +124,7 @@ export const stripeSubscriptionRouter = createRouter({
 
       await rawDb.execute(
         `INSERT INTO client_subscriptions
-         (client_id, trial_start, trial_end, status, annual_price, coupon_code, discount_applied, final_amount,
+         (clientId, trial_start, trial_end, status, annual_price, coupon_code, discount_applied, final_amount,
           stripe_customer_id, stripe_subscription_id, stripe_payment_method_id)
          VALUES (?, ?, ?, 'trial', 600.00, ?, ?, ?, ?, ?, ?)`,
         [
@@ -156,7 +156,7 @@ export const stripeSubscriptionRouter = createRouter({
       const [rows] = await rawDb.execute(
         `SELECT status, trial_start, trial_end, plan_start, plan_end,
           annual_price, coupon_code, discount_applied, final_amount
-         FROM client_subscriptions WHERE client_id = ? LIMIT 1`, [input.clientId]
+         FROM client_subscriptions WHERE clientId = ? LIMIT 1`, [input.clientId]
       );
       const sub = (rows as any[])[0];
       if (!sub) return { status: "none", trialDaysLeft: 0 };
@@ -171,7 +171,7 @@ export const stripeSubscriptionRouter = createRouter({
     .mutation(async ({ input }) => {
       const rawDb = getRawDb();
       const [rows] = await rawDb.execute(
-        `SELECT stripe_subscription_id, status FROM client_subscriptions WHERE client_id = ? LIMIT 1`,
+        `SELECT stripe_subscription_id, status, final_amount FROM client_subscriptions WHERE clientId = ? LIMIT 1`,
         [input.clientId]
       );
       const sub = (rows as any[])[0];
@@ -179,7 +179,7 @@ export const stripeSubscriptionRouter = createRouter({
 
       // Update to active with 1-year plan
       await rawDb.execute(
-        `UPDATE client_subscriptions SET status='active', plan_start=NOW(), plan_end=DATE_ADD(NOW(), INTERVAL 1 YEAR) WHERE client_id=?`,
+        `UPDATE client_subscriptions SET status='active', plan_start=NOW(), plan_end=DATE_ADD(NOW(), INTERVAL 1 YEAR) WHERE clientId=?`,
         [input.clientId]
       );
 
@@ -201,7 +201,7 @@ export const stripeSubscriptionRouter = createRouter({
       const s = getStripe();
 
       const [rows] = await rawDb.execute(
-        `SELECT stripe_subscription_id, status FROM client_subscriptions WHERE client_id = ? LIMIT 1`,
+        `SELECT stripe_subscription_id, status FROM client_subscriptions WHERE clientId = ? LIMIT 1`,
         [input.clientId]
       );
       const sub = (rows as any[])[0];
@@ -221,7 +221,7 @@ export const stripeSubscriptionRouter = createRouter({
 
       if (newStatus !== sub.status) {
         await rawDb.execute(
-          "UPDATE client_subscriptions SET status = ? WHERE client_id = ?",
+          "UPDATE client_subscriptions SET status = ? WHERE clientId = ?",
           [newStatus, input.clientId]
         );
       }
