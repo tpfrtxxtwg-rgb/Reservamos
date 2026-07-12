@@ -496,6 +496,128 @@ function buildAdminTextEmail(
   return text;
 }
 
+// ─── Welcome Email for New Registrations ─────────────────────────
+export async function sendWelcomeEmail(clientId: number, companyEmail: string, companyName: string, trialEnd?: string) {
+  console.log(`[Email/Welcome] Sending welcome email to ${companyEmail} (clientId=${clientId})`);
+  try {
+    // Priority 1: System-level SendGrid config (from Railway env vars)
+    let apiKey = process.env.SENDGRID_API_KEY || process.env.SYSTEM_EMAIL_API_KEY || "";
+    let fromEmail = process.env.SENDGRID_FROM_EMAIL || process.env.SYSTEM_EMAIL_FROM || "";
+
+    // Priority 2: Fall back to client's email settings
+    if (!apiKey) {
+      const rawPool = getRawDb();
+      const [settingsRows] = await rawPool.execute(
+        `SELECT smtp_host, smtp_user, smtp_from FROM client_email_settings WHERE clientId = ? LIMIT 1`,
+        [clientId]
+      );
+      const settings = (settingsRows as any[])[0];
+      if (settings?.smtp_user) {
+        apiKey = settings.smtp_user;
+        fromEmail = settings.smtp_from || `"ReserVamos" <noreply@reservamos.app>`;
+      }
+    }
+
+    // Default from email if still empty
+    if (!fromEmail) {
+      fromEmail = `"ReserVamos" <noreply@reservamos.app>`;
+    }
+
+    if (!apiKey) {
+      console.log("[Email/Welcome] No SendGrid API key configured. Set SENDGRID_API_KEY env var or configure email settings.");
+      return { sent: false, reason: "SendGrid API key not configured" };
+    }
+
+    const trialEndDate = trialEnd ? new Date(trialEnd).toLocaleDateString("en-US", {
+      weekday: "long", year: "numeric", month: "long", day: "numeric"
+    }) : "";
+
+    const html = `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>body{margin:0;padding:0;background:#FAFAF8;font-family:'DM Sans',Arial,sans-serif;}
+.container{max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-top:24px;margin-bottom:24px;}
+.header{background:#C75E3A;padding:32px 24px;text-align:center;}
+.header h1{color:#fff;font-size:22px;margin:0;font-weight:700;}
+.body{padding:32px 24px;color:#3D3833;}
+.body h2{font-size:18px;margin-top:0;color:#C75E3A;}
+.body p{font-size:14px;line-height:1.6;color:#3D3833;}
+.footer{background:#F5EFE6;padding:16px 24px;text-align:center;font-size:12px;color:#8A8278;}
+.btn{display:inline-block;padding:12px 24px;background:#C75E3A;color:#fff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:600;margin-top:8px;}
+.highlight{background:rgba(199,94,58,0.08);border-left:3px solid #C75E3A;padding:12px 16px;margin:16px 0;border-radius:0 8px 8px 0;}
+</style></head>
+<body>
+<div class="container">
+  <div class="header"><h1>Welcome to ReserVamos!</h1></div>
+  <div class="body">
+    <h2>Hello ${companyName},</h2>
+    <p>Your ReserVamos account has been successfully created. You can now start managing reservations for your transportation company.</p>
+    ${trialEndDate ? `<div class="highlight"><strong>Free trial active until ${trialEndDate}</strong></div>` : ""}
+    <p><strong>Next steps:</strong></p>
+    <ul>
+      <li>Log in to your <a href="https://reservamos.app/login">admin dashboard</a></li>
+      <li>Configure your vehicles and pricing zones</li>
+      <li>Add your hotels/destinations</li>
+      <li>Embed the booking widget on your website</li>
+    </ul>
+    <p style="text-align:center;margin-top:24px;">
+      <a href="https://reservamos.app/login" class="btn">Go to Dashboard</a>
+    </p>
+    <p style="font-size:12px;color:#8A8278;margin-top:24px;">If you need help, contact us at support@reservamos.app</p>
+  </div>
+  <div class="footer">ReserVamos &bull; Booking Engine for Transportation Companies</div>
+</div>
+</body></html>`;
+
+    const text = `Welcome to ReserVamos!
+
+Hello ${companyName},
+
+Your ReserVamos account has been successfully created.
+${trialEndDate ? `Free trial active until ${trialEndDate}` : ""}
+
+Next steps:
+1. Log in to your admin dashboard: https://reservamos.app/login
+2. Configure your vehicles and pricing zones
+3. Add your hotels/destinations
+4. Embed the booking widget on your website
+
+If you need help, contact us at support@reservamos.app
+
+ReserVamos - Booking Engine for Transportation Companies`;
+
+    const body = {
+      personalizations: [{ to: [{ email: companyEmail }] }],
+      from: { email: fromEmail },
+      subject: "Welcome to ReserVamos! Your account is ready",
+      content: [
+        { type: "text/plain", value: text },
+        { type: "text/html", value: html },
+      ],
+    };
+
+    const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error(`[Email/Welcome] SendGrid HTTP ${response.status}:`, errorBody);
+      return { sent: false, reason: `SendGrid HTTP ${response.status}: ${errorBody}` };
+    }
+
+    console.log(`[Email/Welcome] Welcome email sent successfully to ${companyEmail}`);
+    return { sent: true, to: companyEmail };
+  } catch (error: any) {
+    console.error("[Email/Welcome] CRITICAL ERROR:", error.message);
+    return { sent: false, reason: error.message };
+  }
+}
+
 // Main email sending function (exported for use by widget-router)
 export async function sendBookingConfirmationEmail(bookingId: number) {
   console.log(`[Email] Starting sendBookingConfirmationEmail for bookingId=${bookingId}`);

@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import bcrypt from "bcryptjs";
 import { createRouter, publicQuery, superAdminQuery } from "./middleware";
 import { getRawDb } from "./queries/connection";
+import { sendWelcomeEmail } from "./email-router";
 
 const ANNUAL_PRICE_CENTS = 60000;
 const TRIAL_DAYS = 7;
@@ -139,6 +140,15 @@ export const stripeSubscriptionRouter = createRouter({
       if (input.couponCode && discountPercent > 0) {
         await rawDb.execute("UPDATE coupons SET uses_count = uses_count + 1 WHERE code = ?", [input.couponCode.toUpperCase()]);
       }
+
+      // Send welcome email asynchronously (don't block the response)
+      sendWelcomeEmail(clientId, input.companyEmail, input.companyName, trialEndDate.toISOString())
+        .then((result) => {
+          console.log(`[Register] Welcome email result:`, result);
+        })
+        .catch((err: any) => {
+          console.error("[Register] Welcome email failed:", err?.message || err);
+        });
 
       return {
         clientId, apiKey,
