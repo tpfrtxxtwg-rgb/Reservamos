@@ -533,7 +533,9 @@
     "viewPayments": "Ver pagos",
     "confirmActivate": "¿Activar esta suscripción? El pago fue recibido.",
     "forceActivate": "Forzar activación (pago recibido)",
-    "syncStripe": "Sincronizar con Stripe"
+    "syncStripe": "Sincronizar con Stripe",
+    "recordPayment": "Registrar pago",
+    "confirmRecordPayment": "¿Registrar un pago para esta suscripción activa?"
   },
   "lang": {
     "en": "English",

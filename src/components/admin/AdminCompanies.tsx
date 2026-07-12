@@ -12,6 +12,7 @@ import {
   Clock,
   ShieldWarning,
   ArrowsClockwise,
+  CurrencyDollar,
 } from '@phosphor-icons/react';
 import { trpc } from '@/providers/trpc';
 import { useClientAuth } from '@/providers/ClientAuthProvider';
@@ -67,6 +68,9 @@ export default function AdminCompanies() {
     onSuccess: () => utils.companies.list.invalidate(),
   });
   const syncStripe = trpc.stripeSubscription.syncWithStripe.useMutation({
+    onSuccess: () => utils.companies.list.invalidate(),
+  });
+  const recordPayment = trpc.stripeSubscription.recordPayment.useMutation({
     onSuccess: () => utils.companies.list.invalidate(),
   });
 
@@ -263,6 +267,25 @@ export default function AdminCompanies() {
                               title={t('admin.forceActivate') || 'Force activate (payment received)'}
                             >
                               <CheckCircle size={16} />
+                            </button>
+                          )}
+                          {/* Record Payment (only for active without payments) */}
+                          {c.subscriptionStatus === 'active' && (
+                            <button
+                              onClick={async () => {
+                                if (!confirm(t('admin.confirmRecordPayment') || 'Record a payment for this active subscription?')) return;
+                                try {
+                                  const result = await recordPayment.mutateAsync({ clientId: c.id });
+                                  alert(`Payment recorded: $${result.amount}`);
+                                  utils.companies.list.invalidate();
+                                } catch (e: any) {
+                                  alert('Failed: ' + (e.message || 'Unknown error'));
+                                }
+                              }}
+                              className="text-warm-gray hover:text-[#2D6A4F] transition-colors p-1"
+                              title={t('admin.recordPayment') || 'Record payment'}
+                            >
+                              <CurrencyDollar size={16} />
                             </button>
                           )}
                           {/* View payments */}

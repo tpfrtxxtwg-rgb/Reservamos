@@ -197,6 +197,27 @@ export const stripeSubscriptionRouter = createRouter({
       return { success: true, previousStatus: sub.status, newStatus: 'active' };
     }),
 
+  // Admin: Record a payment for an active subscription (when payment was received but not recorded)
+  recordPayment: superAdminQuery
+    .input(z.object({ clientId: z.number().int().positive() }))
+    .mutation(async ({ input }) => {
+      const rawDb = getRawDb();
+      const [rows] = await rawDb.execute(
+        `SELECT final_amount, status FROM client_subscriptions WHERE clientId = ? LIMIT 1`,
+        [input.clientId]
+      );
+      const sub = (rows as any[])[0];
+      if (!sub) throw new Error("Subscription not found");
+
+      await rawDb.execute(
+        `INSERT INTO subscription_payments (clientId, amount, currency, status, description, paid_at, created_at)
+         VALUES (?, ?, 'USD', 'succeeded', 'Annual plan payment', NOW(), NOW())`,
+        [input.clientId, sub.final_amount || 600.00]
+      );
+
+      return { success: true, amount: sub.final_amount || 600.00 };
+    }),
+
   // Admin: Sync subscription status with Stripe
   syncWithStripe: superAdminQuery
     .input(z.object({ clientId: z.number().int().positive() }))

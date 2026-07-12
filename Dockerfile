@@ -3,7 +3,7 @@ FROM node:22-slim AS builder
 WORKDIR /app
 
 # CHANGE THIS TIMESTAMP FOR EVERY DEPLOY to invalidate cache
-RUN echo "deploy-2026-07-07-19-00-00" > /tmp/cache-bust
+RUN echo "deploy-2026-07-07-20-00-00" > /tmp/cache-bust
 
 COPY package.json ./
 RUN npm install 2>&1 | tail -5

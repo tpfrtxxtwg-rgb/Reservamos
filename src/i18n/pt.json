@@ -533,7 +533,9 @@
     "viewPayments": "Ver pagamentos",
     "confirmActivate": "Ativar esta assinatura? O pagamento foi recebido.",
     "forceActivate": "Forçar ativação (pagamento recebido)",
-    "syncStripe": "Sincronizar com Stripe"
+    "syncStripe": "Sincronizar com Stripe",
+    "recordPayment": "Registrar pagamento",
+    "confirmRecordPayment": "Registrar um pagamento para esta assinatura ativa?"
   },
   "lang": {
     "en": "English",
