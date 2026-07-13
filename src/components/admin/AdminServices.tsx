@@ -84,11 +84,125 @@ export default function AdminServices() {
     { id: 'hourly', labelKey: 'admin.byTheHour', icon: <Clock size={18} />, descKey: 'admin.byTheHourDesc' },
   ];
 
+  // Check which services exist
+  const hasAirportTransfer = servicesList?.some((s: any) => s.slug === 'airport-transfer');
+  const hasPrivateTour = servicesList?.some((s: any) => s.slug === 'private-tour');
+  const hasHourly = servicesList?.some((s: any) => s.slug === 'hourly');
+
   return (
     <div>
       <div className="mb-6">
         <h2 className="font-display text-xl font-semibold text-charcoal">{t('admin.services') || 'Services'}</h2>
         <p className="font-body text-sm text-warm-gray mt-1">{t('admin.configureServiceTypes') || 'Configure your service types and their options'}</p>
+      </div>
+
+      {/* My Services Overview */}
+      <div className="bg-white rounded-lg shadow-sm border border-[rgba(138,130,120,0.08)] p-5 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-body text-sm font-semibold text-charcoal">{t('admin.myServices') || 'My Services'}</h3>
+          {!showAddService && (
+            <button onClick={() => setShowAddService(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-[#C75E3A] text-white rounded-lg font-body text-sm hover:bg-[#a84d2f] transition-colors">
+              <Plus size={18} /> {t('admin.addService') || 'Add Service'}
+            </button>
+          )}
+        </div>
+
+        {/* Quick-create preset buttons */}
+        {!showAddService && servicesList && servicesList.length === 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+            <button onClick={() => { setSvcName('Airport Transfer'); setSvcSlug('airport-transfer'); setSvcDesc('Private airport transportation service'); createSvc.mutate({ name: 'Airport Transfer', slug: 'airport-transfer', description: 'Private airport transportation service' }); }}
+              disabled={createSvc.isPending}
+              className="flex items-center gap-3 p-4 rounded-lg border-2 border-dashed border-[rgba(138,130,120,0.2)] hover:border-[#C75E3A] hover:bg-[rgba(199,94,58,0.04)] transition-all text-left">
+              <Airplane size={24} className="text-[#C75E3A]" />
+              <div>
+                <span className="font-body text-sm font-medium text-charcoal block">{t('admin.airportTransfer') || 'Airport Transfer'}</span>
+                <span className="font-body text-xs text-warm-gray">{t('admin.clickToActivate') || 'Click to activate'}</span>
+              </div>
+            </button>
+            <button onClick={() => { setSvcName('Private Tour'); setSvcSlug('private-tour'); setSvcDesc('Guided private tours'); createSvc.mutate({ name: 'Private Tour', slug: 'private-tour', description: 'Guided private tours' }); }}
+              disabled={createSvc.isPending}
+              className="flex items-center gap-3 p-4 rounded-lg border-2 border-dashed border-[rgba(138,130,120,0.2)] hover:border-[#C75E3A] hover:bg-[rgba(199,94,58,0.04)] transition-all text-left">
+              <MapTrifold size={24} className="text-[#C75E3A]" />
+              <div>
+                <span className="font-body text-sm font-medium text-charcoal block">{t('admin.privateTour') || 'Private Tour'}</span>
+                <span className="font-body text-xs text-warm-gray">{t('admin.clickToActivate') || 'Click to activate'}</span>
+              </div>
+            </button>
+            <button onClick={() => { setSvcName('By the Hour'); setSvcSlug('hourly'); setSvcDesc('Hourly charter service'); createSvc.mutate({ name: 'By the Hour', slug: 'hourly', description: 'Hourly charter service' }); }}
+              disabled={createSvc.isPending}
+              className="flex items-center gap-3 p-4 rounded-lg border-2 border-dashed border-[rgba(138,130,120,0.2)] hover:border-[#C75E3A] hover:bg-[rgba(199,94,58,0.04)] transition-all text-left">
+              <Clock size={24} className="text-[#C75E3A]" />
+              <div>
+                <span className="font-body text-sm font-medium text-charcoal block">{t('admin.byTheHour') || 'By the Hour'}</span>
+                <span className="font-body text-xs text-warm-gray">{t('admin.clickToActivate') || 'Click to activate'}</span>
+              </div>
+            </button>
+          </div>
+        )}
+
+        {/* Services list */}
+        {servicesList && servicesList.length > 0 ? (
+          <div className="space-y-2">
+            {servicesList.map((svc: any) => (
+              <div key={svc.id} className="flex items-center justify-between p-3 rounded-lg border border-[rgba(138,130,120,0.08)] bg-[#FAFAF8]">
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-md flex items-center justify-center ${svc.active ? 'bg-[rgba(45,106,79,0.1)] text-[#2D6A4F]' : 'bg-[rgba(178,58,47,0.1)] text-[#B23A2F]'}`}>
+                    {svc.slug === 'airport-transfer' ? <Airplane size={16} /> : svc.slug === 'private-tour' ? <MapTrifold size={16} /> : svc.slug === 'hourly' ? <Clock size={16} /> : <CheckCircle size={16} />}
+                  </div>
+                  <div>
+                    <span className="font-body text-sm font-medium text-charcoal">{svc.name}</span>
+                    <span className="font-body text-xs text-warm-gray ml-2">({svc.slug})</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => updateSvc.mutate({ id: svc.id, active: !svc.active })}
+                    className={`px-2.5 py-1 rounded-full font-body text-xs font-medium ${svc.active ? 'bg-[rgba(45,106,79,0.1)] text-[#2D6A4F]' : 'bg-[rgba(178,58,47,0.1)] text-[#B23A2F]'}`}>
+                    {svc.active ? (t('common.active') || 'Active') : (t('common.inactive') || 'Inactive')}
+                  </button>
+                  <button onClick={() => deleteSvc.mutate({ id: svc.id })}
+                    className="p-1.5 text-warm-gray hover:text-[#B23A2F] transition-colors">
+                    <Trash size={16} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          !showAddService && <p className="font-body text-sm text-warm-gray text-center py-4">{t('admin.noServices') || 'No services yet. Activate a service above or click "Add Service" to create a custom one.'}</p>
+        )}
+
+        {/* Add custom service form */}
+        {showAddService && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+            className="bg-[#FAFAF8] rounded-lg p-4 mt-4 border border-[rgba(138,130,120,0.1)]">
+            <h4 className="font-body text-sm font-semibold text-charcoal mb-3">{t('admin.newService') || 'New Service'}</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label className="font-body text-xs font-medium text-warm-gray uppercase mb-1.5 block">{t('admin.serviceName') || 'Name'}</label>
+                <input value={svcName} onChange={e => setSvcName(e.target.value)}
+                  placeholder={t('admin.serviceNamePlaceholder') || 'e.g. Airport Transfer'} className="w-full h-10 bg-white border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm" />
+              </div>
+              <div>
+                <label className="font-body text-xs font-medium text-warm-gray uppercase mb-1.5 block">{t('admin.serviceSlug') || 'Slug'}</label>
+                <input value={svcSlug} onChange={e => setSvcSlug(e.target.value)}
+                  placeholder={t('admin.serviceSlugPlaceholder') || 'e.g. airport-transfer'} className="w-full h-10 bg-white border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm font-mono" />
+              </div>
+              <div>
+                <label className="font-body text-xs font-medium text-warm-gray uppercase mb-1.5 block">{t('admin.serviceDescription') || 'Description'}</label>
+                <input value={svcDesc} onChange={e => setSvcDesc(e.target.value)}
+                  placeholder={t('admin.serviceDescPlaceholder') || 'Optional description'} className="w-full h-10 bg-white border border-[rgba(138,130,120,0.2)] rounded-md px-3 font-body text-sm" />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => { setShowAddService(false); resetSvcForm(); }} className="px-4 py-2 text-warm-gray font-body text-sm">{t('common.cancel') || 'Cancel'}</button>
+              <button onClick={() => { if (!svcName.trim() || !svcSlug.trim()) return; createSvc.mutate({ name: svcName, slug: svcSlug, description: svcDesc || undefined }); }}
+                disabled={createSvc.isPending} className="flex items-center gap-1 px-5 py-2 bg-[#C75E3A] text-white rounded-md font-body text-sm disabled:opacity-50">
+                <Check size={16} /> {t('common.save') || 'Save'}
+              </button>
+            </div>
+          </motion.div>
+        )}
       </div>
 
       {/* Type Tabs */}
