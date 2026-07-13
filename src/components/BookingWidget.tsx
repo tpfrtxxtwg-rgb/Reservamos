@@ -386,7 +386,6 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345', allowed
         </div>
       </div>
     </div>
-    </div>
   );
 
   return (
@@ -1178,9 +1177,6 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345', allowed
           </AnimatePresence>
         </div>
       </div>
-    </div>
-    </div>
-    </div>
     </div>
   );
 }
