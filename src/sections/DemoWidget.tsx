@@ -54,7 +54,7 @@ export default function DemoWidget() {
 
               {/* Widget Sidebar */}
               <div className="w-full md:w-auto md:min-w-[380px] p-6 bg-[#FAFAF8] flex justify-center">
-                <BookingWidget />
+                <BookingWidget allowedSlugs={['airport-transfer']} />
               </div>
             </div>
           </div>

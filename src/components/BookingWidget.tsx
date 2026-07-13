@@ -18,6 +18,7 @@ import { validateStep2, validateStep5 } from '@/lib/widget-validation';
 
 interface BookingWidgetProps {
   apiKey?: string;
+  allowedSlugs?: string[];
 }
 
 const initialBooking: BookingData = {
@@ -76,7 +77,7 @@ const airlines = [
 
 const timeSlots = ['05:00 AM','05:30 AM','06:00 AM','06:30 AM','07:00 AM','07:30 AM','08:00 AM','08:30 AM','09:00 AM','09:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM','12:00 PM','12:30 PM','01:00 PM','01:30 PM','02:00 PM','02:30 PM','03:00 PM','03:30 PM','04:00 PM','04:30 PM','05:00 PM','05:30 PM','06:00 PM','06:30 PM','07:00 PM','07:30 PM','08:00 PM','08:30 PM','09:00 PM','09:30 PM','10:00 PM'];
 
-export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: BookingWidgetProps) {
+export default function BookingWidget({ apiKey = 'rv_demo_client_12345', allowedSlugs }: BookingWidgetProps) {
   const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(1);
   const [direction, setDirection] = useState(1);
@@ -111,6 +112,10 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
     { clientId: effectiveClientId },
     { enabled: isReady }
   );
+  // Filter services by allowedSlugs (for demo/landing page)
+  const filteredServicesList = allowedSlugs && servicesList
+    ? servicesList.filter(s => allowedSlugs.includes(s.slug))
+    : servicesList;
   const { data: destinationsList, isLoading: destsLoading } = trpc.widget.listDestinations.useQuery(
     { clientId: effectiveClientId },
     { enabled: isReady }
@@ -381,6 +386,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
         </div>
       </div>
     </div>
+    </div>
   );
 
   return (
@@ -431,9 +437,9 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
                     <div className="flex items-center justify-center h-32 mb-6">
                       <span className="font-body text-sm text-warm-gray animate-pulse">{t('common.loading') || 'Loading...'}</span>
                     </div>
-                  ) : servicesList && servicesList.length > 0 ? (
+                  ) : filteredServicesList && filteredServicesList.length > 0 ? (
                     <div className="grid grid-cols-1 gap-3 mb-6">
-                      {servicesList.map(service => (
+                      {filteredServicesList.map(service => (
                         <button key={service.id} onClick={() => updateBooking({ serviceId: String(service.id) })}
                           className={`p-4 rounded-lg border-2 text-left transition-all duration-200 hover:shadow-sm hover:-translate-y-0.5 flex items-center gap-4 ${Number(booking.serviceId) === service.id ? 'border-terracotta bg-[rgba(199,94,58,0.04)]' : 'border-[rgba(138,130,120,0.15)] bg-white'}`}>
                           <div className={`${Number(booking.serviceId) === service.id ? 'text-terracotta' : 'text-warm-gray'}`}>
@@ -456,7 +462,7 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
 
                   <div className="flex items-center justify-between pt-2">
                     <span className="font-body text-sm text-warm-gray">
-                      {servicesList && servicesList.length > 0 ? (t('widget.step1.priceFrom') || '') : ''}
+                      {filteredServicesList && filteredServicesList.length > 0 ? (t('widget.step1.priceFrom') || '') : ''}
                     </span>
                     <button onClick={handleNext} disabled={!canProceed()}
                       className={`flex items-center gap-2 px-6 py-3 rounded-full font-body font-semibold text-sm transition-all ${canProceed() ? 'bg-terracotta text-white shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5' : 'bg-terracotta/50 text-white/70 cursor-not-allowed'}`}>
@@ -1172,6 +1178,9 @@ export default function BookingWidget({ apiKey = 'rv_demo_client_12345' }: Booki
           </AnimatePresence>
         </div>
       </div>
+    </div>
+    </div>
+    </div>
     </div>
   );
 }
