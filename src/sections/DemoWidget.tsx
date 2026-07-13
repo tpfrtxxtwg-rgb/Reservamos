@@ -1,5 +1,5 @@
-import { useTranslation } from '../hooks/useTranslation';
-import DemoBookingWidget from '@/components/DemoBookingWidget';
+import { useTranslation } from 'react-i18next';
+import BookingWidget from '@/components/BookingWidget';
 
 export default function DemoWidget() {
   const { t } = useTranslation();
@@ -10,13 +10,13 @@ export default function DemoWidget() {
         {/* Section Header */}
         <div className="text-center mb-12">
           <span className="font-body text-xs font-semibold uppercase tracking-[0.1em] text-terracotta mb-3 block">
-            {t('demoSection.label')}
+            {t('demoSection.label') || 'Pruébalo en Vivo'}
           </span>
           <h2 className="font-display text-3xl md:text-[40px] font-bold text-charcoal mb-4">
-            {t('demoSection.title')}
+            {t('demoSection.title') || 'Tu Cliente Reserva en Segundos'}
           </h2>
           <p className="font-body text-base text-warm-gray max-w-2xl mx-auto">
-            {t('demoSection.description')}
+            {t('demoSection.description') || 'El widget se adapta al diseño de cualquier sitio web. El viajero completa su reserva en menos de 2 minutos.'}
           </p>
         </div>
 
@@ -54,7 +54,7 @@ export default function DemoWidget() {
 
               {/* Widget Sidebar */}
               <div className="w-full md:w-auto md:min-w-[380px] p-6 bg-[#FAFAF8] flex justify-center">
-                <DemoBookingWidget />
+                <BookingWidget />
               </div>
             </div>
           </div>

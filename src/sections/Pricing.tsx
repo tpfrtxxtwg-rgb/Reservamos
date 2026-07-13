@@ -1,5 +1,5 @@
 import { Check } from '@phosphor-icons/react';
-import { useTranslation } from '../hooks/useTranslation';
+import { useTranslation } from 'react-i18next';
 
 export default function Pricing() {
   const { t } = useTranslation();
@@ -10,14 +10,6 @@ export default function Pricing() {
     t('pricing.feature3') || 'Email notifications',
     t('pricing.feature4') || 'Basic reports',
     t('pricing.feature5') || 'Advanced payments (PayPal, Stripe)',
-  ];
-
-  const whyFeatures = [
-    t('pricing.why1') || 'Personalized technical support',
-    t('pricing.why2') || 'No long-term contracts',
-    t('pricing.why3') || 'Setup in less than 24 hours',
-    t('pricing.why4') || 'Custom branding included',
-    t('pricing.why5') || 'Human support via WhatsApp',
   ];
 
   return (
@@ -37,18 +29,21 @@ export default function Pricing() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto items-stretch">
           {/* Card 1 - Price */}
           <div className="bg-white rounded-xl shadow-md p-8 flex flex-col justify-center items-center text-center">
-            <p className="font-display text-lg text-charcoal mb-4">
+            <p className="font-body text-lg text-warm-gray mb-4">
               {t('pricing.subtitle') || 'For all private transportation operators'}
             </p>
-            <div className="mb-2">
-              <span className="font-body text-5xl font-bold text-charcoal">{t('pricing.price') || '$12,000'}</span>
-              <span className="font-body text-base text-warm-gray ml-1">{t('pricing.priceUnit') || 'MXN'} / {t('pricing.month') || 'month'}</span>
+            <div className="mb-6">
+              <span className="font-body text-5xl font-bold text-charcoal">$50</span>
+              <span className="font-body text-base text-warm-gray ml-1">USD / {t('pricing.month') || 'month'}</span>
             </div>
-            <p className="font-body text-xs text-warm-gray/70 mb-6">{t('pricing.priceNote') || '~$600 USD / year'}</p>
             <div className="flex flex-col gap-3 w-full max-w-xs">
-              <a href="/register" className="w-full py-3 rounded-full font-body font-semibold text-sm bg-terracotta text-white shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5 transition-all text-center block">
+              <button onClick={() => window.location.href = '/register'}
+                className="w-full py-3 rounded-full font-body font-semibold text-sm bg-terracotta text-white shadow-button hover:bg-terracotta-dark hover:-translate-y-0.5 transition-all">
                 {t('pricing.getStarted') || 'Get Started'}
-              </a>
+              </button>
+              <button className="w-full py-3 rounded-full font-body font-semibold text-sm border-2 border-[rgba(138,130,120,0.2)] text-charcoal hover:border-terracotta hover:text-terracotta transition-all">
+                {t('pricing.contactSales') || 'Contact Sales'}
+              </button>
             </div>
           </div>
 
@@ -58,7 +53,7 @@ export default function Pricing() {
               {t('pricing.whatsIncluded') || "What's included"}
             </h3>
             <ul className="space-y-4 flex-1">
-              {whyFeatures.map((feature, i) => (
+              {features.map((feature, i) => (
                 <li key={i} className="flex items-start gap-3">
                   <div className="w-6 h-6 rounded-full bg-[rgba(199,94,58,0.1)] flex items-center justify-center flex-shrink-0 mt-0.5">
                     <Check size={14} weight="bold" className="text-terracotta" />
@@ -67,14 +62,6 @@ export default function Pricing() {
                 </li>
               ))}
             </ul>
-            <a
-              href="https://wa.me/526243551663"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-6 w-full py-3 rounded-full font-body font-semibold text-sm text-center border-2 border-terracotta text-terracotta hover:bg-terracotta hover:text-white transition-all"
-            >
-              {t('pricing.whatsappCta') || 'Contact Sales'}
-            </a>
           </div>
         </div>
       </div>
