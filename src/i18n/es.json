@@ -237,7 +237,8 @@
       "optionalServices": "Servicios Opcionales",
       "perPassenger": "por pasajero",
       "continueToPayment": "Continuar al Pago",
-      "processing": "Procesando..."
+      "processing": "Procesando...",
+      "paypal": "PayPal"
     },
     "step5": {
       "title": "Pago",
